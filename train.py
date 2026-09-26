@@ -313,12 +313,27 @@ def main():
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
     stage(f"模型就绪：{n_par:.1f}M 参数，其中可训练 {n_tr:.1f}M")
     loss_fn = MultiTaskLoss(soft, **cfg.get("loss", {})).to(device)
+    # 主干用更低的学习率微调，而不是冻结。
+    #
+    # 冻结的理由是"别把预训练权重带坏"，但代价是只能拿固定的 ImageNet
+    # 特征去分辨 1337 个县级类别——那是细粒度地理判别，ImageNet 特征
+    # 本就不为此而生。实测冻结时 41 轮训练top1 卡在 0.09 不动。
+    # 而这个任务算力并非瓶颈（等数据 : 算梯度 ≈ 3:1），解冻多出的反向
+    # 开销可以承受。低学习率是标准的折中。
+    #
     # 收全部参数而非只收 requires_grad 的：冻结参数的 grad 为 None，
-    # 优化器会自动跳过，收进来无害；反之若只收当前的，之后解冻主干的
-    # 那些参数就永远进不了优化器，解冻变成空操作且不报错。
-    opt = torch.optim.AdamW(
-        model.parameters(),
-        lr=cfg.get("lr", 3e-4), weight_decay=cfg.get("weight_decay", 0.05))
+    # 优化器会自动跳过；反之若只收当前的，之后解冻的那些参数就永远
+    # 进不了优化器，解冻变成空操作且不报错。
+    backbone_scale = cfg.get("backbone_lr_scale", 0.1)
+    backbone_ids = {id(q) for q in model.backbone.parameters()}
+    groups = [
+        {"params": [q for q in model.parameters() if id(q) in backbone_ids],
+         "lr": cfg.get("lr", 3e-4) * backbone_scale},
+        {"params": [q for q in model.parameters() if id(q) not in backbone_ids],
+         "lr": cfg.get("lr", 3e-4)},
+    ]
+    opt = torch.optim.AdamW(groups, lr=cfg.get("lr", 3e-4),
+                            weight_decay=cfg.get("weight_decay", 0.05))
     epochs = cfg.get("epochs", 40)
     if args.overfit:
         # 40 轮 × 8 batch ÷ accum 2 只有 160 次优化步，远不足以让 64 条样本
@@ -326,11 +341,15 @@ def main():
         # 步数，否则测的是"步数不够"而不是"管线通不通"。
         epochs = max(epochs, cfg.get("overfit_epochs", 400))
         cfg["accum"] = 1
+        # 默认预热占总步数的 10%，3200 步就是 320 步——冒烟测试里那等于
+        # 前 40 轮全在热身，学习率还没升到峰值就结束了。
+        cfg["pct_start"] = 0.02
     steps_per_epoch = max(1, len(train_loader) // cfg.get("accum", 1))
     total_steps = epochs * steps_per_epoch
+    pct_start = cfg.get("pct_start", 0.1)
     sched = torch.optim.lr_scheduler.OneCycleLR(
-        opt, max_lr=cfg.get("lr", 3e-4), total_steps=epochs * steps_per_epoch,
-        pct_start=0.1)
+        opt, max_lr=[g["lr"] for g in opt.param_groups],
+        total_steps=total_steps, pct_start=pct_start)
     scaler = torch.amp.GradScaler(enabled=(amp_dtype is torch.float16))
 
     start_epoch, best = 0, -1.0
@@ -420,7 +439,7 @@ def main():
                     hit_num += int((pred[ok] == tgt[ok]).sum())
                     hit_den += int(ok.sum())
 
-            running += float(loss) * accum
+            running += float(loss.detach()) * accum
             seen += 1
             t_compute += time.time() - t_work
 

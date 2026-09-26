@@ -22,8 +22,13 @@ views:
 backbone: convnext_tiny
 pretrained: true
 drop: 0.2
-freeze_backbone: true   # 先冻结主干跑通，再解冻
-unfreeze_after: 2       # 第 2 个 epoch 起解冻
+# 主干不冻结，而是用 backbone_lr_scale 倍的低学习率微调。
+# 冻结时只能拿固定的 ImageNet 特征分辨 1337 个县级类别——那是细粒度
+# 地理判别，实测 41 轮训练top1 卡在 0.09 不动（见 commit 说明）。
+# 本任务算力不是瓶颈（等数据 : 算梯度 ≈ 3:1），反向开销可以承受。
+freeze_backbone: false
+unfreeze_after: 0
+backbone_lr_scale: 0.1
 
 # ── 优化 ────────────────────────────────────────────────────────────
 batch_size: 8           # 按样本数而非图片数：8 样本 × 最多 8 视图 = 最多 64 张 224²
@@ -31,6 +36,7 @@ accum: 2                # 梯度累积，等效 batch 16
 lr: 3.0e-4
 weight_decay: 0.05
 epochs: 40
+pct_start: 0.1          # OneCycleLR 预热占比
 clip: 5.0
 
 # ── 运行 ────────────────────────────────────────────────────────────
