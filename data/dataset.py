@@ -65,7 +65,10 @@ class PanoramaDataset(Dataset):
         )
         key = self.keys[i]
         blob = self._index().read(key)
-        pano = decode_jpeg(blob)
+        # 视图是环绕切的，每个 90° 视图占源宽的 1/4。源宽达到 4×输出尺寸
+        # 就够了，再大只是白白让采样多搬数据。四川的 2048 宽会走半尺寸
+        # 解码，全国铺底的 1024 宽本来就刚好，不会被降。
+        pano = decode_jpeg(blob, min_width=4 * self.view_cfg.size)
         views, vmask = make_sample(pano, rng, self.view_cfg, augment_on=self.augment)
 
         return {

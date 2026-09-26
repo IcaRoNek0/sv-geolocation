@@ -20,7 +20,9 @@
 import argparse
 import contextlib
 import json
+import random
 import time
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -64,6 +66,34 @@ def pick_amp_dtype(device):
         return None
     cc = torch.cuda.get_device_capability(device)
     return torch.bfloat16 if cc[0] >= 8 else torch.float16
+
+
+def stratified_subset(keys, samples, n, seed=0):
+    """按县级类别轮转抽 N 条。
+
+    不能直接取排序后的前 N 条：panoid 里含城市码，排序后前 N 条会高度
+    聚集在同一片区域，验证集的多类基线能到 0.6，指标失去意义。
+    """
+    by_class = defaultdict(list)
+    for k in keys:
+        by_class[samples[k]["adcode"]].append(k)
+    rng = random.Random(seed)
+    for v in by_class.values():
+        rng.shuffle(v)
+    classes = sorted(by_class)
+    out, i = [], 0
+    while len(out) < n:
+        added = False
+        for c in classes:
+            if i < len(by_class[c]):
+                out.append(by_class[c][i])
+                added = True
+                if len(out) >= n:
+                    break
+        if not added:
+            break
+        i += 1
+    return out
 
 
 def apply_freeze_policy(model, epoch, cfg):
@@ -244,7 +274,7 @@ def main():
                 progress=lambda i, n, name: stage(f"扫描分片 {i+1}/{n} {name}"))
         ds._idx = idx_cache["idx"]
         if args.overfit:
-            ds.keys = ds.keys[: args.overfit]
+            ds.keys = stratified_subset(ds.keys, samples, args.overfit, args.seed)
         return ds
 
     # 各类样本量分布：长尾有多长直接决定县级能做到什么程度
@@ -265,7 +295,11 @@ def main():
         except ValueError:
             print(f"划分 {name} 为空，跳过")
     batch_size = cfg.get("batch_size", 8)
-    stage(f"构建 DataLoader（{cfg.get('workers', 2)} 个 worker，首次启动要 fork）…")
+    import os as _os
+    n_cpu = _os.cpu_count() or 1
+    workers = cfg.get("workers", 2)
+    stage(f"CPU {n_cpu} 核，DataLoader {workers} 个 worker"
+          + ("（worker 数超过核数会互相抢 CPU）" if workers > n_cpu else ""))
     train_loader = make_loader(train_ds, batch_size, True,
                                num_workers=cfg.get("workers", 2), seed=args.seed)
     stage(f"就绪：训练 {len(train_ds):,} 条，验证 "
@@ -286,7 +320,14 @@ def main():
         model.parameters(),
         lr=cfg.get("lr", 3e-4), weight_decay=cfg.get("weight_decay", 0.05))
     epochs = cfg.get("epochs", 40)
+    if args.overfit:
+        # 40 轮 × 8 batch ÷ accum 2 只有 160 次优化步，远不足以让 64 条样本
+        # 过拟合——第 7 轮时才走到 28 步，学习率还在预热。冒烟模式必须给够
+        # 步数，否则测的是"步数不够"而不是"管线通不通"。
+        epochs = max(epochs, cfg.get("overfit_epochs", 400))
+        cfg["accum"] = 1
     steps_per_epoch = max(1, len(train_loader) // cfg.get("accum", 1))
+    total_steps = epochs * steps_per_epoch
     sched = torch.optim.lr_scheduler.OneCycleLR(
         opt, max_lr=cfg.get("lr", 3e-4), total_steps=epochs * steps_per_epoch,
         pct_start=0.1)
@@ -315,13 +356,16 @@ def main():
     if eval_every > 1:
         print(f"每 {eval_every} 轮验证一次")
 
-    stage("开始训练")
+    stage(f"开始训练：{epochs} 轮 × {steps_per_epoch} 步 = {total_steps} 次优化步")
     for epoch in range(start_epoch, epochs):
         model.train()
         was_frozen = model.freeze_backbone
         apply_freeze_policy(model, epoch, cfg)
         if was_frozen and not model.freeze_backbone:
-            print(f"epoch {epoch}：解冻主干")
+            n_tr = sum(p.numel() for p in model.parameters()
+                       if p.requires_grad) / 1e6
+            print(f"  [{time.time() - _T0:7.1f}s] epoch {epoch}：解冻主干，"
+                  f"可训练参数 {n_tr:.1f}M", flush=True)
 
         do_eval = (eval_every <= 1 or epoch % eval_every == 0
                    or epoch == epochs - 1)
@@ -385,6 +429,7 @@ def main():
             now = time.time()
             if now - last_log >= cfg.get("log_seconds", 15) or step == n_batches - 1:
                 print(f"  [{now - _T0:7.1f}s] e{epoch:02d} {step+1}/{n_batches} "
+                      f"步 {min(sched.last_epoch, total_steps)}/{total_steps} "
                       f"损失 {running/seen:.4f} 训练top1 "
                       f"{hit_num/max(1,hit_den):.3f} "
                       f"lr {opt.param_groups[0]['lr']:.1e} "
