@@ -26,7 +26,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import yaml
-from tqdm import tqdm
 
 from data.dataset import PanoramaDataset, make_loader
 from data.labels import (build_classes, centroids, city_of_adcode,
@@ -333,10 +332,14 @@ def main():
 
         # 手动迭代而非直接迭代 loader：这样才能把"等数据"和"算梯度"的时间
         # 分开计。数据管线是瓶颈时，这个数字是唯一能说明问题的证据。
+        #
+        # 用定时打点的纯文本日志而非 tqdm 进度条：tqdm 靠 \r 原地刷新，
+        # 在 Colab 的 %%bash 里输出会被缓冲到单元格结束才吐出来，表现为
+        # "跑了几分钟一个字都没有"。纯文本 + flush 到哪个环境都能实时看到。
         loader_it = iter(train_loader)
-        pbar = tqdm(range(len(train_loader)), desc=f"e{epoch:02d}",
-                    unit="batch", leave=False)
-        for step in pbar:
+        n_batches = len(train_loader)
+        last_log = time.time()
+        for step in range(n_batches):
             t_batch = time.time()
             batch = next(loader_it)
             t_data += time.time() - t_batch
@@ -376,19 +379,24 @@ def main():
             running += float(loss) * accum
             seen += 1
             t_compute += time.time() - t_work
-            pbar.set_postfix(
-                loss=f"{running/seen:.3f}",
-                acc=f"{hit_num/max(1,hit_den):.3f}",
-                lr=f"{opt.param_groups[0]['lr']:.1e}",
-                s=f"{(time.time()-t0)/seen:.2f}",
-            )
+
+            # 按时间而非按步数打点：步速随 batch 大小与硬件变化，
+            # 定步数打点要么刷屏要么半天没动静。
+            now = time.time()
+            if now - last_log >= cfg.get("log_seconds", 15) or step == n_batches - 1:
+                print(f"  [{now - _T0:7.1f}s] e{epoch:02d} {step+1}/{n_batches} "
+                      f"损失 {running/seen:.4f} 训练top1 "
+                      f"{hit_num/max(1,hit_den):.3f} "
+                      f"lr {opt.param_groups[0]['lr']:.1e} "
+                      f"{(now-t0)/max(1,seen):.2f}s/batch", flush=True)
+                last_log = now
 
             # 到点就存盘——Colab 随时会断，不能等到 epoch 结束
-            if time.time() - last_ckpt > ckpt_minutes * 60:
+            if now - last_ckpt > ckpt_minutes * 60:
                 save(ckpt_path, model, opt, sched, scaler, epoch, best)
-                pbar.write(f"  [checkpoint] epoch {epoch} step {step}")
-                last_ckpt = time.time()
-        pbar.close()
+                print(f"  [{now - _T0:7.1f}s] checkpoint 已存：epoch {epoch} "
+                      f"step {step}", flush=True)
+                last_ckpt = now
 
         train_loss = running / max(1, seen)
         epoch_sec = time.time() - t0

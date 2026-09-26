@@ -33,7 +33,6 @@ from pathlib import Path
 
 import aiohttp
 from PIL import Image
-from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import AI_ROOT, OUT_DIR  # noqa: E402
@@ -52,6 +51,9 @@ HEADERS = {
     "Referer": "https://www.baidu.com/",
 }
 SDATA_BATCH = 100        # 项目约定；400 表示批次过大，见 bisect 逻辑
+LOG_SECONDS = 15         # 打点间隔。用纯文本日志而非 tqdm：tqdm 靠 \r 原地
+                         # 刷新，在 Colab 的 %%bash 里会被缓冲到单元格结束才
+                         # 吐出来，表现为"跑了几十分钟一个字都没有"
 JPEG_QUALITY = 85
 
 SCHEMA = """
@@ -176,7 +178,7 @@ async def phase_meta(args):
     sem = asyncio.Semaphore(args.concurrency)
     done = fail = 0
 
-    async def work(session, batch, pbar):
+    async def work(session, batch):
         nonlocal done, fail
         async with sem:
             res = await sdata_batch(session, batch)
@@ -209,16 +211,31 @@ async def phase_meta(args):
             [(r[0], now, r[1]) for r in rows if len(r) == 2],
         )
         conn.commit()
-        pbar.update(len(batch))
 
     # part 查表，供 work 内使用
     obj_part = dict(conn.execute("SELECT panoid, part FROM panos"))
 
     batches = [pending[i:i + SDATA_BATCH] for i in range(0, len(pending), SDATA_BATCH)]
     connector = aiohttp.TCPConnector(limit=args.concurrency, ttl_dns_cache=300)
+    t0 = time.time()
+
+    async def reporter():
+        while True:
+            await asyncio.sleep(LOG_SECONDS)
+            n = done + fail
+            el = time.time() - t0
+            rate = n / el if el > 0 else 0
+            left = (len(pending) - n) / rate if rate > 0 else 0
+            print(f"[{el:6.1f}s] 元数据 {n:,}/{len(pending):,} "
+                  f"({100*n/max(1,len(pending)):.1f}%) 成功 {done:,} 失败 {fail} "
+                  f"{rate:.0f} 条/秒 剩余约 {left/60:.0f} 分钟", flush=True)
+
     async with aiohttp.ClientSession(connector=connector) as session:
-        with tqdm(total=len(pending), unit=" 条", desc="元数据") as pbar:
-            await asyncio.gather(*(work(session, b, pbar) for b in batches))
+        rep = asyncio.create_task(reporter())
+        try:
+            await asyncio.gather(*(work(session, b) for b in batches))
+        finally:
+            rep.cancel()
 
     ok = conn.execute("SELECT COUNT(*) FROM panos WHERE state='meta_ok'").fetchone()[0]
     # 层级分布
@@ -298,8 +315,15 @@ async def phase_images(args):
     sem = asyncio.Semaphore(args.concurrency)
     done = fail = 0
     total_bytes = 0
+    # 断点续跑时把之前已完成的部分计入基数，否则进度看起来永远从零开始
+    base_bytes, base_n = conn.execute(
+        "SELECT COALESCE(SUM(bytes),0), COUNT(*) FROM panos WHERE state='done'"
+    ).fetchone()
+    if base_n:
+        print(f"已有 {base_n:,} 条 / {base_bytes/1e9:.2f} GB 完成（本次从断点续跑）",
+              flush=True)
 
-    async def work(session, rec, pbar):
+    async def work(session, rec):
         nonlocal done, fail, total_bytes
         panoid, adcode, part, z, bx, by = rec
         target = TARGET_SIZE.get(part)
@@ -333,8 +357,6 @@ async def phase_images(args):
             )
             conn.commit()
             fail += 1
-            pbar.update(1)
-            pbar.set_postfix(ok=done, fail=fail, mb=f"{total_bytes/1e6:.0f}")
             return
 
         path = IMAGE_DIR / part / adcode / f"{panoid}.jpg"
@@ -349,17 +371,33 @@ async def phase_images(args):
         conn.commit()
         done += 1
         total_bytes += size
-        pbar.update(1)
-        pbar.set_postfix(ok=done, fail=fail, mb=f"{total_bytes/1e6:.0f}")
 
     # aiohttp 默认连接池上限是 100，不显式放开的话并发设再大也无效——
     # 而且不会报错，只是悄悄卡在 100。
     connector = aiohttp.TCPConnector(limit=args.concurrency, ttl_dns_cache=300)
-    async with aiohttp.ClientSession(connector=connector) as session:
-        with tqdm(total=len(todo), unit=" 条", desc="抓图") as pbar:
-            await asyncio.gather(*(work(session, r, pbar) for r in todo))
+    t0 = time.time()
 
-    print(f"完成 {done}，失败 {fail}，共 {total_bytes/1e9:.2f} GB")
+    async def reporter():
+        while True:
+            await asyncio.sleep(LOG_SECONDS)
+            el = time.time() - t0
+            n = done + fail
+            rate = n / el if el > 0 else 0
+            left = (len(todo) - n) / rate if rate > 0 else 0
+            print(f"[{el:6.1f}s] 抓图 {n:,}/{len(todo):,} "
+                  f"({100*n/max(1,len(todo)):.1f}%) 成功 {done:,} 失败 {fail} "
+                  f"本次 {total_bytes/1e9:.2f} GB 累计 {(base_bytes+total_bytes)/1e9:.2f} GB "
+                  f"{rate:.1f} 条/秒 剩余约 {left/60:.0f} 分钟", flush=True)
+
+    async with aiohttp.ClientSession(connector=connector) as session:
+        rep = asyncio.create_task(reporter())
+        try:
+            await asyncio.gather(*(work(session, r) for r in todo))
+        finally:
+            rep.cancel()
+
+    print(f"完成 {done}，失败 {fail}，本次 {total_bytes/1e9:.2f} GB，"
+          f"累计 {(base_bytes+total_bytes)/1e9:.2f} GB", flush=True)
     conn.close()
 
 

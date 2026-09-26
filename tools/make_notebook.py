@@ -285,7 +285,9 @@ code("""
 cd /content/ai
 python train.py --config configs/default.yaml \\
     --data /content/data --points data/pool/county_points.npz \\
-    --out /content/drive/MyDrive/sv/runs/smoke --overfit 64 --eval-every 5
+    --out /content/drive/MyDrive/sv/runs/smoke --overfit 64 --eval-every 5 \\
+    > /content/smoke.log 2>&1
+tail -40 /content/smoke.log
 """, title="⑦ 冒烟：64 条样本能否过拟合")
 
 # ── ⑧
@@ -308,11 +310,17 @@ tail -25 /content/train.log
 md("""---
 # ⑨ 看进度
 
-每轮会打印这样一行：
+输出是纯文本日志而非进度条。**tqdm 在 Colab 里不能用**：它靠 `\r` 原地
+刷新，而 `%%bash` 会把子进程输出缓冲到单元格结束——表现为"跑了几分钟
+一个字都没有"。所以训练与采集现在都按时间打点，每 15 秒一行：
 
 ```
-e07 损失 2.1341 训练top1 0.093  112s (14s 等数据 / 98s 计算)  140 样本/s  剩余约 62 分钟
-e07 同县留出 top1 0.021 top5 0.083 宏平均 0.015 多数类基线 0.012 中位误差 412.3 km
+[   22.1s] 开始训练
+[   37.4s] e00 20/1970 损失 6.8421 训练top1 0.000 lr 3.0e-04 0.76s/batch
+[   52.8s] e00 40/1970 损失 6.1203 训练top1 0.025 lr 3.0e-04 0.77s/batch
+...
+e00 损失 5.8812 训练top1 0.041  152s (18s 等数据 / 134s 计算)  104 样本/s  剩余约 100 分钟
+e00 同县留出 top1 0.021 top5 0.083 宏平均 0.015 多数类基线 0.012 中位误差 412.3 km
       候选邻近率(top5 落在真值 150km 内) 0.271
 ```
 
@@ -333,8 +341,9 @@ e07 同县留出 top1 0.021 top5 0.083 宏平均 0.015 多数类基线 0.012 中
 正式训练想让日志安静一点可以加 `--eval-every 2`。
 """)
 code("""
-!tail -8 /content/train.log
-""", title="⑨ 看训练进度")
+# 随时可以重跑本格看最新进度
+!tail -12 /content/train.log
+""", title="⑨ 看训练进度（可反复重跑）")
 
 code("""
 import json
