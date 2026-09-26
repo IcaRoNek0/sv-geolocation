@@ -39,6 +39,19 @@ from utils.geo_utils import CountyPoints, denormalize_coords, normalize_coords
 from utils.metrics import summarize
 
 
+_T0 = time.time()
+
+
+def stage(msg):
+    """打印启动阶段，带累计耗时。
+
+    必须 flush：Colab 的 stdout 走管道，默认是**块缓冲**而非行缓冲，
+    不刷的话这些行会一直卡在缓冲区里，直到缓冲满或进程结束。表现出来
+    就是"跑了十几秒一个输出都没有"，而实际代码一直在跑。
+    """
+    print(f"[{time.time() - _T0:6.1f}s] {msg}", flush=True)
+
+
 def autocast_ctx(device, amp_dtype):
     """autocast 上下文。dtype=None 在 CPU 上会报错，所以显式走空上下文。"""
     if amp_dtype is None:
@@ -162,6 +175,13 @@ def main():
     ap.add_argument("--seed", type=int, default=20260926)
     args = ap.parse_args()
 
+    import sys
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(line_buffering=True)
+        except (AttributeError, ValueError):
+            pass
+
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
@@ -176,21 +196,24 @@ def main():
             print("提示：当前是 Turing 及更早架构，只能 fp16；若换到 L4/A100 会自动切 bf16")
 
     args.out.mkdir(parents=True, exist_ok=True)
-    t_idx = time.time()
+    stage(f"设备 {device}  精度 {amp_dtype}")
     shard_paths = sorted(args.data.glob("*.tar"))
     if not shard_paths:
         raise SystemExit(f"{args.data} 下没有 .tar 分片——第 ⑥ 格拷盘跑了吗？")
     samples = load_samples(args.data / "samples.jsonl")
+    stage(f"元数据 {len(samples):,} 条，分片 {len(shard_paths)} 个")
     split, split_payload = load_split(args.data / "split.json")
     cp = CountyPoints(args.points)
+    stage(f"划分与点位表就绪（点位表 {len(cp)} 县）")
 
     adcodes, class_index = build_classes(list(samples.values()), cp)
     cent = centroids(adcodes, cp)
+    stage(f"类别空间 {len(adcodes)} 县，质心已算")
     soft = soft_targets(cent, half_km=cfg.get("soft_half_km", 50.0))
+    stage(f"地理软标签矩阵 {soft.shape[0]}×{soft.shape[1]} 已算")
     (county_index, coord_index, city_index, prov_index,
      city_list, prov_list) = build_indices(samples, class_index)
-    print(f"类别 {len(adcodes)} 县 / {len(city_list)} 市 / {len(prov_list)} 省"
-          f"  （索引扫描 {time.time()-t_idx:.1f}s）")
+    print(f"类别 {len(adcodes)} 县 / {len(city_list)} 市 / {len(prov_list)} 省")
 
     # 类别表随 checkpoint 一起存：推理端靠它把 logit 下标映回县码。
     # 不这样做的话，推理时重建类别表一旦与训练时不一致，预测会被静默地
@@ -217,7 +240,9 @@ def main():
         # 索引只在父进程建一次（扫 tar 头要几秒）。fd 跨 fork 共享是安全的，
         # 因为 read() 用 os.pread——它在偏移量处读、不移动文件位置。
         if "idx" not in idx_cache:
-            idx_cache["idx"] = ShardIndex(shard_paths)
+            idx_cache["idx"] = ShardIndex(
+                shard_paths,
+                progress=lambda i, n, name: stage(f"扫描分片 {i+1}/{n} {name}"))
         ds._idx = idx_cache["idx"]
         if args.overfit:
             ds.keys = ds.keys[: args.overfit]
@@ -241,12 +266,19 @@ def main():
         except ValueError:
             print(f"划分 {name} 为空，跳过")
     batch_size = cfg.get("batch_size", 8)
+    stage(f"构建 DataLoader（{cfg.get('workers', 2)} 个 worker，首次启动要 fork）…")
     train_loader = make_loader(train_ds, batch_size, True,
                                num_workers=cfg.get("workers", 2), seed=args.seed)
+    stage(f"就绪：训练 {len(train_ds):,} 条，验证 "
+          f"{ {k: len(v.dataset) for k, v in val_loaders.items()} }")
     print(f"训练样本 {len(train_ds):,}  验证 {[f'{k}:{len(v.dataset)}' for k, v in val_loaders.items()]}")
 
     # ── 模型 ────────────────────────────────────────────────────────
+    stage("构建模型…")
     model = build_model(len(adcodes), len(city_list), len(prov_list), cfg).to(device)
+    n_par = sum(p.numel() for p in model.parameters()) / 1e6
+    n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
+    stage(f"模型就绪：{n_par:.1f}M 参数，其中可训练 {n_tr:.1f}M")
     loss_fn = MultiTaskLoss(soft, **cfg.get("loss", {})).to(device)
     # 收全部参数而非只收 requires_grad 的：冻结参数的 grad 为 None，
     # 优化器会自动跳过，收进来无害；反之若只收当前的，之后解冻主干的
@@ -284,6 +316,7 @@ def main():
     if eval_every > 1:
         print(f"每 {eval_every} 轮验证一次")
 
+    stage("开始训练")
     for epoch in range(start_epoch, epochs):
         model.train()
         was_frozen = model.freeze_backbone

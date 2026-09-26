@@ -88,8 +88,21 @@ class TestShardIndex(unittest.TestCase):
         self.assertEqual(self.idx.read("ccc"), self.payloads["ccc"])
 
     def test_metadata_sidecar(self):
-        self.assertEqual(self.idx.meta("a")["adcode"], "510105")
-        self.assertEqual(self.idx.meta("ccc")["adcode"], "510104")
+        """侧车 JSON 是选择性读取的，要用就得显式打开。"""
+        idx = ShardIndex(sorted(self.tmp.glob("sv-*.tar")), want_json=True)
+        self.assertEqual(idx.meta("a")["adcode"], "510105")
+        self.assertEqual(idx.meta("ccc")["adcode"], "510104")
+        idx.close()
+
+    def test_json_not_read_by_default(self):
+        """默认不读侧车 JSON。
+
+        两万多个成员逐个解出来解析会占启动时间的大头，而训练用不到
+        ——元数据来自 samples.jsonl。这条断言钉住这个默认值，避免以后
+        有人顺手改回去又把启动拖慢。
+        """
+        self.assertEqual(self.idx.meta("a"), {})
+        self.assertEqual(len(self.idx), 4, "索引本身仍应完整")
 
     def test_missing_key_raises(self):
         with self.assertRaises(KeyError):

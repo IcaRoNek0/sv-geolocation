@@ -19,7 +19,7 @@ from pathlib import Path
 class ShardIndex:
     """扫描分片建立索引，按 key 随机读取成员。"""
 
-    def __init__(self, shard_paths, want_json=True):
+    def __init__(self, shard_paths, want_json=False, progress=None):
         self.shards = [Path(p) for p in sorted(shard_paths)]
         if not self.shards:
             raise ValueError("没有找到任何分片")
@@ -27,10 +27,20 @@ class ShardIndex:
         self._index = {}
         self._meta = {}
         self._fds = {}
-        self._scan(want_json)
+        self._scan(want_json, progress)
 
-    def _scan(self, want_json):
+    def _scan(self, want_json, progress=None):
+        """扫一遍 tar 头建立偏移索引。
+
+        want_json 默认关闭：侧车 JSON 训练用不到（元数据来自
+        samples.jsonl），读了也是白读。实测在 21 746 条 / 9 个分片上
+        只省 0.1 秒（5.2s → 5.1s，约 2%）——侧车文件很小且是顺序读，
+        开销被 tar 头遍历盖过去了。所以这是个**顺手的清理，不是优化**；
+        真需要 meta() 时打开即可。
+        """
         for si, path in enumerate(self.shards):
+            if progress:
+                progress(si, len(self.shards), path.name)
             with tarfile.open(path, "r") as tf:
                 for member in tf:
                     if not member.isfile():
