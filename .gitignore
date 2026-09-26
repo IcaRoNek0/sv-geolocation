@@ -3,8 +3,10 @@
 
 # ── 图像与分片：体积以 GB 计，只进 Drive ──────────────────────────
 # 例外：split.json 定义了评估口径，必须入库固定下来，
-# 否则不同 session 用不同划分，指标失去可比性
-data/shards/
+# 否则不同 session 用不同划分，指标失去可比性。
+# 注意必须写成 data/shards/* 而非 data/shards/ —— 目录一旦整体被排除，
+# git 就不会再向下查找，后面的 ! 例外规则完全无效。
+data/shards/*
 !data/shards/split.json
 data/raw/
 data/images/
