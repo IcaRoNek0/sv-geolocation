@@ -50,6 +50,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shard-mb", type=int, default=500)
     ap.add_argument("--limit", type=int, default=0, help="只打包前 N 条，用于验证")
+    ap.add_argument("--out", type=Path, default=SHARD_DIR)
     args = ap.parse_args()
 
     rows = load_done()
@@ -66,7 +67,7 @@ def main():
             r = json.loads(line)
             pool[r["panoid"]] = r
 
-    SHARD_DIR.mkdir(parents=True, exist_ok=True)
+    args.out.mkdir(parents=True, exist_ok=True)
     target = args.shard_mb * 1024 * 1024
 
     t0 = time.time()
@@ -77,7 +78,7 @@ def main():
     cur = None
     cur_size = 0
     cur_count = 0
-    samples_fh = (SHARD_DIR / "samples.jsonl").open("w", encoding="utf-8")
+    samples_fh = (args.out / "samples.jsonl").open("w", encoding="utf-8")
 
     def close_shard():
         nonlocal cur, cur_size, cur_count, shard_idx
@@ -100,7 +101,7 @@ def main():
                 continue
 
             if cur is None:
-                path = SHARD_DIR / f"sv-{shard_idx:04d}.tar"
+                path = args.out / f"sv-{shard_idx:04d}.tar"
                 cur = tarfile.open(path, "w", format=tarfile.GNU_FORMAT)
 
             cur.add(str(img), arcname=f"{panoid}.jpg")
@@ -130,7 +131,7 @@ def main():
         samples_fh.close()
 
     total = sum(m["bytes"] for m in manifest)
-    (SHARD_DIR / "manifest.json").write_text(json.dumps({
+    (args.out / "manifest.json").write_text(json.dumps({
         "shards": manifest,
         "samples": written,
         "bytes": total,
@@ -143,7 +144,7 @@ def main():
     print(f"打包 {written:,} 条 → {len(manifest)} 个分片，{total/1e9:.2f} GB")
     if missing:
         print(f"缺图 {len(missing)} 条（前几个：{missing[:3]}）")
-    print(f"耗时 {time.time()-t0:.1f}s  产物 {SHARD_DIR}")
+    print(f"耗时 {time.time()-t0:.1f}s  产物 {args.out}")
 
 
 if __name__ == "__main__":

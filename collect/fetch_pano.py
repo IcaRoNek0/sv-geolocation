@@ -245,6 +245,43 @@ async def fetch_tile(session, sem, panoid, z, row, col, tries=3):
     return None
 
 
+# 标准层级几何：z 层对应 2^(z-1) × 2^(z-2) 块 512² 瓦片。
+# 实测 z=2→2×1、z=3→4×2、z=4→8×4、z=5→16×8。
+def grid_for_z(z):
+    return (2 ** (z - 1), 2 ** (z - 2))
+
+
+# 各归属部分的**目标**像素尺寸。层级回退后要缩放到这个尺寸，
+# 否则同一批数据里混着两种分辨率，训练侧得额外处理。
+TARGET_SIZE = {"sichuan": (2048, 1024), "national": (1024, 512)}
+
+
+async def fetch_grid(session, sem, panoid, z):
+    """取该层级下的完整瓦片阵列。任何一块缺失即视为该层级不可用。
+
+    不能只信 sdata 的 ImgLayer：实测有点位的元数据列出了 4 个层级，
+    但 pdata 只提供 z=1（预览）与 z=4，z=2/z=3 全返回 404。
+    """
+    bx, by = grid_for_z(z)
+    tiles = await asyncio.gather(*(
+        fetch_tile(session, sem, panoid, z, r, c)
+        for r in range(by) for c in range(bx)
+    ))
+    if any(t is None for t in tiles) or not tiles:
+        return None, sum(1 for t in tiles if t is None), len(tiles)
+    return tiles, 0, len(tiles)
+
+
+def stitch(tiles, bx, by):
+    first = Image.open(io.BytesIO(tiles[0]))
+    tw, th = first.size
+    canvas = Image.new("RGB", (bx * tw, by * th))
+    for idx, body in enumerate(tiles):
+        r, c = divmod(idx, bx)
+        canvas.paste(Image.open(io.BytesIO(body)).convert("RGB"), (c * tw, r * th))
+    return canvas
+
+
 async def phase_images(args):
     conn = open_state()
     todo = list(conn.execute(
@@ -265,41 +302,45 @@ async def phase_images(args):
     async def work(session, rec, pbar):
         nonlocal done, fail, total_bytes
         panoid, adcode, part, z, bx, by = rec
-        tiles = await asyncio.gather(*(
-            fetch_tile(session, sem, panoid, z, r, c)
-            for r in range(by) for c in range(bx)
-        ))
-        missing = sum(1 for t in tiles if t is None)
-        if missing or not tiles:
+        target = TARGET_SIZE.get(part)
+        # 目标层级优先，失败则按尺寸接近程度回退。最多试 3 个层级——
+        # 对真正失效的点位，穷举 5 个层级 × 最多 16 块瓦片纯属浪费。
+        fallbacks = sorted((c for c in (2, 3, 4, 5) if c != z),
+                           key=lambda c: abs(c - z))[:2]
+        canvas = None
+        tried = []
+        for cz in [z] + fallbacks:
+            tiles, missing, total = await fetch_grid(session, sem, panoid, cz)
+            if tiles is None:
+                tried.append(f"z{cz}:{missing}/{total}")
+                continue
+            try:
+                cbx, cby = grid_for_z(cz)
+                canvas = stitch(tiles, cbx, cby)
+            except Exception as e:
+                tried.append(f"z{cz}:stitch:{e}")
+                continue
+            if cz != z:
+                # 回退层级必须缩放回目标尺寸，否则同一批数据里混着两种分辨率
+                if target and (canvas.width, canvas.height) != target:
+                    canvas = canvas.resize(target, Image.LANCZOS)
+            break
+
+        if canvas is None:
             conn.execute(
                 "UPDATE panos SET state='fail', error=?, updated=? WHERE panoid=?",
-                (f"tiles {missing}/{len(tiles)}", time.time(), panoid),
+                (";".join(tried), time.time(), panoid),
             )
             conn.commit()
             fail += 1
             pbar.update(1)
             pbar.set_postfix(ok=done, fail=fail, mb=f"{total_bytes/1e6:.0f}")
             return
-        try:
-            first = Image.open(io.BytesIO(tiles[0]))
-            tw, th = first.size
-            canvas = Image.new("RGB", (bx * tw, by * th))
-            for idx, body in enumerate(tiles):
-                r, c = divmod(idx, bx)
-                canvas.paste(Image.open(io.BytesIO(body)).convert("RGB"), (c * tw, r * th))
-            path = IMAGE_DIR / part / adcode / f"{panoid}.jpg"
-            path.parent.mkdir(parents=True, exist_ok=True)
-            canvas.save(path, "JPEG", quality=JPEG_QUALITY, optimize=True)
-            size = path.stat().st_size
-        except Exception as e:
-            conn.execute(
-                "UPDATE panos SET state='fail', error=?, updated=? WHERE panoid=?",
-                (f"stitch:{e}", time.time(), panoid),
-            )
-            conn.commit()
-            fail += 1
-            pbar.update(1)
-            return
+
+        path = IMAGE_DIR / part / adcode / f"{panoid}.jpg"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        canvas.save(path, "JPEG", quality=JPEG_QUALITY, optimize=True)
+        size = path.stat().st_size
         conn.execute(
             "UPDATE panos SET state='done', bytes=?, width=?, height=?, updated=? "
             "WHERE panoid=?",
