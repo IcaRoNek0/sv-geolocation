@@ -13,8 +13,13 @@ data/images/
 *.zip
 
 # ── 数据库：原始主库与派生的状态库都不入库 ────────────────────────
+# 含运行中的 sqlite 产生的临时文件（-journal/-wal/-shm），
+# 它们会随进程出现和消失，被 git add -A 撞上会让提交失败
 *.sqlite3
 *.sqlite3.lock
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
 *.db
 
 # ── 训练产物 ──────────────────────────────────────────────────────
