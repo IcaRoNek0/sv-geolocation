@@ -92,8 +92,6 @@ from getpass import getpass
 REPO = 'IcaRoNek0/sv-geolocation'
 BRANCH = 'main'
 
-EXPECT = '1c2338a'      # 本 notebook 对应的代码版本，见 README
-
 if os.path.isdir('/content/ai/.git'):
     print('代码已存在，拉取最新')
     r = subprocess.run(['git', '-C', '/content/ai', 'pull'],
@@ -114,11 +112,16 @@ else:
         raise SystemExit('克隆失败（token 无效？仓库名不对？）\\n' + r.stderr[-500:])
 
 os.chdir('/content/ai')
-head = subprocess.run(['git', 'log', '--oneline', '-1'],
-                      capture_output=True, text=True).stdout.strip()
-print('当前代码：', head)
-if EXPECT not in head:
-    print(f'⚠ 期望版本含 {EXPECT}。若刚拉取过仍不符，说明服务器上的 main 还没更新。')
+def _rev(ref):
+    return subprocess.run(['git', 'rev-parse', '--short', ref],
+                          capture_output=True, text=True).stdout.strip()
+
+head, remote = _rev('HEAD'), _rev('origin/main')
+print(f'当前代码 {head}   远程 {remote}')
+if head != remote:
+    # 不硬编码版本号：那种写法每提交一次就过期，反而会误报。
+    # 与远程比对是自维护的。
+    print('⚠ 本地与远程不一致——拉取没成功，你跑的可能是旧代码')
 """, title="② 取代码")
 
 code("""
