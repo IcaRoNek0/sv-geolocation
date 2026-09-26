@@ -21,6 +21,26 @@ WEISZFELD_EPS = 1e-7         # 相对收敛阈值
 WEISZFELD_MAX_ITER = 500
 COINCIDENT_M = 0.5           # 判定迭代点与数据点重合的距离阈值
 
+# 坐标回归头的归一化范围（中国含港澳）。训练与推理必须共用同一个边界，
+# 否则模型的输出会被两套尺度解释成不同的地点。
+CHINA_BBOX = (73.0, 18.0, 135.0, 54.0)   # lon_min, lat_min, lon_max, lat_max
+
+
+def normalize_coords(lon, lat):
+    """经纬度 → [0,1] 的 (x, y)，供坐标回归头使用。"""
+    lon0, lat0, lon1, lat1 = CHINA_BBOX
+    x = (np.asarray(lon, dtype=np.float64) - lon0) / (lon1 - lon0)
+    y = (np.asarray(lat, dtype=np.float64) - lat0) / (lat1 - lat0)
+    return x, y
+
+
+def denormalize_coords(x, y):
+    """[0,1] 的 (x, y) → 经纬度。裁剪到合法范围，越界输出没有意义。"""
+    lon0, lat0, lon1, lat1 = CHINA_BBOX
+    x = np.clip(np.asarray(x, dtype=np.float64), 0.0, 1.0)
+    y = np.clip(np.asarray(y, dtype=np.float64), 0.0, 1.0)
+    return lon0 + x * (lon1 - lon0), lat0 + y * (lat1 - lat0)
+
 
 def haversine(lon1, lat1, lon2, lat2):
     """球面大圆距离，单位米。参数可为标量或数组。"""

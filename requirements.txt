@@ -1,0 +1,12 @@
+# 采集端（本机 / 国内机器）—— 不依赖 torch
+aiohttp>=3.9,<4
+tqdm>=4.66,<5
+numpy>=1.24
+Pillow>=10
+
+# 训练端（Colab）—— 在上面基础上追加
+# Colab 已预装 torch，一般不需要在 requirements 里锁版本；
+# 若本地起环境，按自己的 CUDA 版本装。
+torch>=2.2
+timm>=0.9
+pyyaml>=6

@@ -215,7 +215,8 @@ async def phase_meta(args):
     obj_part = dict(conn.execute("SELECT panoid, part FROM panos"))
 
     batches = [pending[i:i + SDATA_BATCH] for i in range(0, len(pending), SDATA_BATCH)]
-    async with aiohttp.ClientSession() as session:
+    connector = aiohttp.TCPConnector(limit=args.concurrency, ttl_dns_cache=300)
+    async with aiohttp.ClientSession(connector=connector) as session:
         with tqdm(total=len(pending), unit=" 条", desc="元数据") as pbar:
             await asyncio.gather(*(work(session, b, pbar) for b in batches))
 
@@ -310,7 +311,10 @@ async def phase_images(args):
         pbar.update(1)
         pbar.set_postfix(ok=done, fail=fail, mb=f"{total_bytes/1e6:.0f}")
 
-    async with aiohttp.ClientSession() as session:
+    # aiohttp 默认连接池上限是 100，不显式放开的话并发设再大也无效——
+    # 而且不会报错，只是悄悄卡在 100。
+    connector = aiohttp.TCPConnector(limit=args.concurrency, ttl_dns_cache=300)
+    async with aiohttp.ClientSession(connector=connector) as session:
         with tqdm(total=len(todo), unit=" 条", desc="抓图") as pbar:
             await asyncio.gather(*(work(session, r, pbar) for r in todo))
 
