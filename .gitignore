@@ -1,0 +1,47 @@
+# 数据与图像 —— 绝不入库（体积以 GB 计）
+data/
+shards/
+raw/
+*.tar
+*.sqlite3
+*.sqlite3.lock
+*.jsonl
+*.npz
+*.npy
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# 训练产物
+checkpoints/
+runs/
+outputs/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+wandb/
+
+# 凭据 —— 见仓库约定：密钥文件 gitignore，另存脱敏 .example
+secrets.py
+.env
+.env.*
+*.key
+*_credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Notebook
+.ipynb_checkpoints/
+
+# 编辑器 / 系统
+.DS_Store
+.idea/
+.vscode/
+*.swp
