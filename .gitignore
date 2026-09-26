@@ -1,19 +1,23 @@
-# 数据与图像 —— 绝不入库（体积以 GB 计）
-data/
-shards/
-raw/
+# 本仓库可以存放派生数据集（采样池、点位表、直方图），
+# 但不得复制原始大数据库、图像分片与训练产物。
+
+# ── 图像与分片：体积以 GB 计，只进 Drive ──────────────────────────
+data/shards/
+data/raw/
+data/images/
 *.tar
-*.sqlite3
-*.sqlite3.lock
-*.jsonl
-*.npz
-*.npy
 *.jpg
 *.jpeg
 *.png
 *.webp
+*.zip
 
-# 训练产物
+# ── 数据库：原始主库与派生的状态库都不入库 ────────────────────────
+*.sqlite3
+*.sqlite3.lock
+*.db
+
+# ── 训练产物 ──────────────────────────────────────────────────────
 checkpoints/
 runs/
 outputs/
@@ -23,24 +27,22 @@ outputs/
 *.safetensors
 wandb/
 
-# 凭据 —— 见仓库约定：密钥文件 gitignore，另存脱敏 .example
+# ── 凭据：密钥文件 gitignore，另存脱敏 .example ──────────────────
 secrets.py
 .env
 .env.*
 *.key
 *_credentials.json
 
-# Python
+# ── Python ────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 *.egg-info/
 
-# Notebook
+# ── Notebook / 编辑器 / 系统 ─────────────────────────────────────
 .ipynb_checkpoints/
-
-# 编辑器 / 系统
 .DS_Store
 .idea/
 .vscode/

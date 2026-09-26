@@ -1,0 +1,10611 @@
+{
+  "scanned_rows": 12137231,
+  "limit": null,
+  "seed": 20260926,
+  "elapsed_seconds": 90.0,
+  "grid": {
+    "sample_m": 300.0,
+    "points_m": 1000.0
+  },
+  "quota": {
+    "sichuan_per_county": 109,
+    "national_per_province": 303
+  },
+  "totals": {
+    "sample_rows": 21746,
+    "sichuan_rows": 12130,
+    "national_rows": 9616,
+    "counties_with_points": 2604,
+    "points_total": 192075,
+    "provinces_with_data": 33,
+    "sichuan_counties": 177,
+    "sichuan_counties_covered": 177,
+    "sichuan_counties_under_quota": 55,
+    "national_groups_under_quota": 0
+  },
+  "provinces": {
+    "110000": {
+      "available": 288756,
+      "selected": 303,
+      "quota": 303
+    },
+    "120000": {
+      "available": 196848,
+      "selected": 303,
+      "quota": 303
+    },
+    "130000": {
+      "available": 199179,
+      "selected": 303,
+      "quota": 303
+    },
+    "140000": {
+      "available": 124218,
+      "selected": 303,
+      "quota": 303
+    },
+    "150000": {
+      "available": 31077,
+      "selected": 303,
+      "quota": 303
+    },
+    "210000": {
+      "available": 163463,
+      "selected": 303,
+      "quota": 303
+    },
+    "220000": {
+      "available": 51328,
+      "selected": 303,
+      "quota": 303
+    },
+    "230000": {
+      "available": 70231,
+      "selected": 303,
+      "quota": 303
+    },
+    "310000": {
+      "available": 247724,
+      "selected": 303,
+      "quota": 303
+    },
+    "320000": {
+      "available": 1761400,
+      "selected": 303,
+      "quota": 303
+    },
+    "330000": {
+      "available": 1604650,
+      "selected": 303,
+      "quota": 303
+    },
+    "340000": {
+      "available": 101752,
+      "selected": 303,
+      "quota": 303
+    },
+    "350000": {
+      "available": 841743,
+      "selected": 303,
+      "quota": 303
+    },
+    "360000": {
+      "available": 801497,
+      "selected": 303,
+      "quota": 303
+    },
+    "370000": {
+      "available": 322400,
+      "selected": 303,
+      "quota": 303
+    },
+    "410000": {
+      "available": 174592,
+      "selected": 303,
+      "quota": 303
+    },
+    "420000": {
+      "available": 218099,
+      "selected": 303,
+      "quota": 303
+    },
+    "430000": {
+      "available": 71124,
+      "selected": 303,
+      "quota": 303
+    },
+    "440000": {
+      "available": 2270435,
+      "selected": 303,
+      "quota": 303
+    },
+    "450000": {
+      "available": 847677,
+      "selected": 303,
+      "quota": 303
+    },
+    "460000": {
+      "available": 186145,
+      "selected": 303,
+      "quota": 303
+    },
+    "500000": {
+      "available": 166336,
+      "selected": 303,
+      "quota": 303
+    },
+    "510000": {
+      "available": 106701,
+      "selected": 12130,
+      "quota": 19293
+    },
+    "520000": {
+      "available": 31314,
+      "selected": 303,
+      "quota": 303
+    },
+    "530000": {
+      "available": 850831,
+      "selected": 303,
+      "quota": 303
+    },
+    "540000": {
+      "available": 103308,
+      "selected": 303,
+      "quota": 303
+    },
+    "610000": {
+      "available": 57713,
+      "selected": 303,
+      "quota": 303
+    },
+    "620000": {
+      "available": 51411,
+      "selected": 303,
+      "quota": 303
+    },
+    "630000": {
+      "available": 24340,
+      "selected": 303,
+      "quota": 303
+    },
+    "640000": {
+      "available": 59462,
+      "selected": 303,
+      "quota": 303
+    },
+    "650000": {
+      "available": 14707,
+      "selected": 303,
+      "quota": 303
+    },
+    "810000": {
+      "available": 76426,
+      "selected": 303,
+      "quota": 303
+    },
+    "820000": {
+      "available": 20344,
+      "selected": 223,
+      "quota": 303
+    }
+  },
+  "counties": {
+    "110101": {
+      "available": 4924,
+      "selected": 3
+    },
+    "110102": {
+      "available": 6207,
+      "selected": 7
+    },
+    "110105": {
+      "available": 34239,
+      "selected": 30
+    },
+    "110106": {
+      "available": 18282,
+      "selected": 22
+    },
+    "110107": {
+      "available": 4309,
+      "selected": 6
+    },
+    "110108": {
+      "available": 24726,
+      "selected": 26
+    },
+    "110109": {
+      "available": 5305,
+      "selected": 6
+    },
+    "110111": {
+      "available": 10714,
+      "selected": 28
+    },
+    "110112": {
+      "available": 15554,
+      "selected": 19
+    },
+    "110113": {
+      "available": 41152,
+      "selected": 37
+    },
+    "110114": {
+      "available": 30363,
+      "selected": 43
+    },
+    "110115": {
+      "available": 17889,
+      "selected": 25
+    },
+    "110116": {
+      "available": 15685,
+      "selected": 17
+    },
+    "110117": {
+      "available": 17971,
+      "selected": 8
+    },
+    "110118": {
+      "available": 18996,
+      "selected": 9
+    },
+    "110119": {
+      "available": 22440,
+      "selected": 17
+    },
+    "120101": {
+      "available": 3446,
+      "selected": 1
+    },
+    "120102": {
+      "available": 7941,
+      "selected": 10
+    },
+    "120103": {
+      "available": 10946,
+      "selected": 12
+    },
+    "120104": {
+      "available": 8884,
+      "selected": 3
+    },
+    "120105": {
+      "available": 6193,
+      "selected": 6
+    },
+    "120106": {
+      "available": 4682,
+      "selected": 3
+    },
+    "120110": {
+      "available": 24293,
+      "selected": 34
+    },
+    "120111": {
+      "available": 29718,
+      "selected": 53
+    },
+    "120112": {
+      "available": 14965,
+      "selected": 17
+    },
+    "120113": {
+      "available": 17361,
+      "selected": 40
+    },
+    "120114": {
+      "available": 12221,
+      "selected": 25
+    },
+    "120115": {
+      "available": 5336,
+      "selected": 16
+    },
+    "120116": {
+      "available": 40488,
+      "selected": 63
+    },
+    "120117": {
+      "available": 2198,
+      "selected": 0
+    },
+    "120118": {
+      "available": 4759,
+      "selected": 14
+    },
+    "120119": {
+      "available": 3417,
+      "selected": 6
+    },
+    "130102": {
+      "available": 3673,
+      "selected": 14
+    },
+    "130104": {
+      "available": 3241,
+      "selected": 14
+    },
+    "130105": {
+      "available": 2819,
+      "selected": 9
+    },
+    "130107": {
+      "available": 601,
+      "selected": 4
+    },
+    "130108": {
+      "available": 4462,
+      "selected": 11
+    },
+    "130109": {
+      "available": 2257,
+      "selected": 6
+    },
+    "130110": {
+      "available": 2961,
+      "selected": 8
+    },
+    "130111": {
+      "available": 1681,
+      "selected": 2
+    },
+    "130121": {
+      "available": 743,
+      "selected": 3
+    },
+    "130123": {
+      "available": 1768,
+      "selected": 2
+    },
+    "130125": {
+      "available": 885,
+      "selected": 3
+    },
+    "130126": {
+      "available": 944,
+      "selected": 4
+    },
+    "130127": {
+      "available": 762,
+      "selected": 2
+    },
+    "130128": {
+      "available": 646,
+      "selected": 4
+    },
+    "130129": {
+      "available": 513,
+      "selected": 1
+    },
+    "130130": {
+      "available": 626,
+      "selected": 2
+    },
+    "130131": {
+      "available": 1562,
+      "selected": 3
+    },
+    "130132": {
+      "available": 980,
+      "selected": 0
+    },
+    "130133": {
+      "available": 830,
+      "selected": 2
+    },
+    "130181": {
+      "available": 2304,
+      "selected": 7
+    },
+    "130183": {
+      "available": 1481,
+      "selected": 4
+    },
+    "130184": {
+      "available": 1107,
+      "selected": 4
+    },
+    "130202": {
+      "available": 1771,
+      "selected": 0
+    },
+    "130203": {
+      "available": 3508,
+      "selected": 0
+    },
+    "130204": {
+      "available": 1530,
+      "selected": 0
+    },
+    "130205": {
+      "available": 1854,
+      "selected": 0
+    },
+    "130207": {
+      "available": 1844,
+      "selected": 1
+    },
+    "130208": {
+      "available": 2788,
+      "selected": 0
+    },
+    "130209": {
+      "available": 786,
+      "selected": 0
+    },
+    "130224": {
+      "available": 1061,
+      "selected": 0
+    },
+    "130225": {
+      "available": 577,
+      "selected": 0
+    },
+    "130227": {
+      "available": 565,
+      "selected": 0
+    },
+    "130229": {
+      "available": 523,
+      "selected": 0
+    },
+    "130281": {
+      "available": 1141,
+      "selected": 0
+    },
+    "130283": {
+      "available": 1327,
+      "selected": 0
+    },
+    "130284": {
+      "available": 766,
+      "selected": 0
+    },
+    "130302": {
+      "available": 6139,
+      "selected": 24
+    },
+    "130303": {
+      "available": 2163,
+      "selected": 4
+    },
+    "130304": {
+      "available": 2262,
+      "selected": 3
+    },
+    "130306": {
+      "available": 1413,
+      "selected": 6
+    },
+    "130321": {
+      "available": 248,
+      "selected": 1
+    },
+    "130322": {
+      "available": 1396,
+      "selected": 5
+    },
+    "130324": {
+      "available": 305,
+      "selected": 0
+    },
+    "130402": {
+      "available": 3285,
+      "selected": 0
+    },
+    "130403": {
+      "available": 3768,
+      "selected": 0
+    },
+    "130404": {
+      "available": 1596,
+      "selected": 0
+    },
+    "130406": {
+      "available": 2127,
+      "selected": 0
+    },
+    "130407": {
+      "available": 3448,
+      "selected": 0
+    },
+    "130408": {
+      "available": 3821,
+      "selected": 0
+    },
+    "130423": {
+      "available": 2227,
+      "selected": 0
+    },
+    "130424": {
+      "available": 2879,
+      "selected": 0
+    },
+    "130425": {
+      "available": 1792,
+      "selected": 0
+    },
+    "130426": {
+      "available": 1516,
+      "selected": 0
+    },
+    "130427": {
+      "available": 1731,
+      "selected": 0
+    },
+    "130430": {
+      "available": 1024,
+      "selected": 0
+    },
+    "130431": {
+      "available": 1415,
+      "selected": 0
+    },
+    "130432": {
+      "available": 1507,
+      "selected": 0
+    },
+    "130433": {
+      "available": 1487,
+      "selected": 0
+    },
+    "130434": {
+      "available": 2316,
+      "selected": 0
+    },
+    "130435": {
+      "available": 1681,
+      "selected": 0
+    },
+    "130481": {
+      "available": 4838,
+      "selected": 0
+    },
+    "130502": {
+      "available": 1544,
+      "selected": 6
+    },
+    "130503": {
+      "available": 1344,
+      "selected": 4
+    },
+    "130505": {
+      "available": 412,
+      "selected": 3
+    },
+    "130506": {
+      "available": 554,
+      "selected": 0
+    },
+    "130522": {
+      "available": 609,
+      "selected": 3
+    },
+    "130523": {
+      "available": 726,
+      "selected": 3
+    },
+    "130524": {
+      "available": 378,
+      "selected": 1
+    },
+    "130525": {
+      "available": 942,
+      "selected": 5
+    },
+    "130528": {
+      "available": 856,
+      "selected": 1
+    },
+    "130529": {
+      "available": 822,
+      "selected": 2
+    },
+    "130530": {
+      "available": 622,
+      "selected": 1
+    },
+    "130531": {
+      "available": 396,
+      "selected": 0
+    },
+    "130532": {
+      "available": 751,
+      "selected": 0
+    },
+    "130533": {
+      "available": 1061,
+      "selected": 5
+    },
+    "130534": {
+      "available": 1030,
+      "selected": 3
+    },
+    "130535": {
+      "available": 490,
+      "selected": 0
+    },
+    "130581": {
+      "available": 857,
+      "selected": 0
+    },
+    "130582": {
+      "available": 1048,
+      "selected": 5
+    },
+    "130602": {
+      "available": 3112,
+      "selected": 3
+    },
+    "130606": {
+      "available": 3867,
+      "selected": 3
+    },
+    "130607": {
+      "available": 1106,
+      "selected": 3
+    },
+    "130608": {
+      "available": 689,
+      "selected": 1
+    },
+    "130609": {
+      "available": 942,
+      "selected": 0
+    },
+    "130623": {
+      "available": 1188,
+      "selected": 0
+    },
+    "130624": {
+      "available": 194,
+      "selected": 0
+    },
+    "130626": {
+      "available": 447,
+      "selected": 0
+    },
+    "130627": {
+      "available": 481,
+      "selected": 0
+    },
+    "130628": {
+      "available": 614,
+      "selected": 0
+    },
+    "130629": {
+      "available": 428,
+      "selected": 0
+    },
+    "130630": {
+      "available": 511,
+      "selected": 0
+    },
+    "130631": {
+      "available": 486,
+      "selected": 0
+    },
+    "130632": {
+      "available": 335,
+      "selected": 0
+    },
+    "130633": {
+      "available": 463,
+      "selected": 0
+    },
+    "130634": {
+      "available": 593,
+      "selected": 0
+    },
+    "130635": {
+      "available": 486,
+      "selected": 0
+    },
+    "130636": {
+      "available": 356,
+      "selected": 0
+    },
+    "130637": {
+      "available": 290,
+      "selected": 0
+    },
+    "130638": {
+      "available": 449,
+      "selected": 0
+    },
+    "130681": {
+      "available": 1300,
+      "selected": 0
+    },
+    "130682": {
+      "available": 952,
+      "selected": 0
+    },
+    "130683": {
+      "available": 633,
+      "selected": 0
+    },
+    "130684": {
+      "available": 687,
+      "selected": 0
+    },
+    "130702": {
+      "available": 1643,
+      "selected": 0
+    },
+    "130703": {
+      "available": 863,
+      "selected": 0
+    },
+    "130705": {
+      "available": 1346,
+      "selected": 0
+    },
+    "130706": {
+      "available": 269,
+      "selected": 0
+    },
+    "130708": {
+      "available": 481,
+      "selected": 0
+    },
+    "130709": {
+      "available": 245,
+      "selected": 0
+    },
+    "130722": {
+      "available": 1005,
+      "selected": 0
+    },
+    "130723": {
+      "available": 361,
+      "selected": 0
+    },
+    "130724": {
+      "available": 348,
+      "selected": 0
+    },
+    "130725": {
+      "available": 317,
+      "selected": 0
+    },
+    "130726": {
+      "available": 635,
+      "selected": 0
+    },
+    "130727": {
+      "available": 416,
+      "selected": 0
+    },
+    "130728": {
+      "available": 427,
+      "selected": 0
+    },
+    "130730": {
+      "available": 854,
+      "selected": 0
+    },
+    "130731": {
+      "available": 429,
+      "selected": 0
+    },
+    "130732": {
+      "available": 219,
+      "selected": 0
+    },
+    "130802": {
+      "available": 2012,
+      "selected": 8
+    },
+    "130803": {
+      "available": 704,
+      "selected": 4
+    },
+    "130821": {
+      "available": 206,
+      "selected": 1
+    },
+    "130822": {
+      "available": 201,
+      "selected": 0
+    },
+    "130824": {
+      "available": 170,
+      "selected": 0
+    },
+    "130825": {
+      "available": 206,
+      "selected": 0
+    },
+    "130826": {
+      "available": 412,
+      "selected": 3
+    },
+    "130827": {
+      "available": 242,
+      "selected": 1
+    },
+    "130828": {
+      "available": 273,
+      "selected": 1
+    },
+    "130881": {
+      "available": 258,
+      "selected": 0
+    },
+    "130902": {
+      "available": 1538,
+      "selected": 3
+    },
+    "130903": {
+      "available": 2137,
+      "selected": 8
+    },
+    "130921": {
+      "available": 833,
+      "selected": 3
+    },
+    "130922": {
+      "available": 452,
+      "selected": 0
+    },
+    "130923": {
+      "available": 523,
+      "selected": 2
+    },
+    "130924": {
+      "available": 240,
+      "selected": 0
+    },
+    "130925": {
+      "available": 389,
+      "selected": 0
+    },
+    "130926": {
+      "available": 25,
+      "selected": 0
+    },
+    "130927": {
+      "available": 376,
+      "selected": 0
+    },
+    "130928": {
+      "available": 305,
+      "selected": 0
+    },
+    "130929": {
+      "available": 587,
+      "selected": 5
+    },
+    "130930": {
+      "available": 230,
+      "selected": 0
+    },
+    "130981": {
+      "available": 1013,
+      "selected": 2
+    },
+    "130982": {
+      "available": 1521,
+      "selected": 3
+    },
+    "130983": {
+      "available": 1773,
+      "selected": 7
+    },
+    "130984": {
+      "available": 1255,
+      "selected": 2
+    },
+    "131002": {
+      "available": 1992,
+      "selected": 4
+    },
+    "131003": {
+      "available": 4253,
+      "selected": 11
+    },
+    "131022": {
+      "available": 1960,
+      "selected": 6
+    },
+    "131023": {
+      "available": 621,
+      "selected": 4
+    },
+    "131024": {
+      "available": 1042,
+      "selected": 1
+    },
+    "131025": {
+      "available": 426,
+      "selected": 0
+    },
+    "131026": {
+      "available": 437,
+      "selected": 2
+    },
+    "131028": {
+      "available": 447,
+      "selected": 1
+    },
+    "131081": {
+      "available": 1366,
+      "selected": 3
+    },
+    "131082": {
+      "available": 2643,
+      "selected": 13
+    },
+    "131102": {
+      "available": 3512,
+      "selected": 0
+    },
+    "131103": {
+      "available": 1006,
+      "selected": 0
+    },
+    "131121": {
+      "available": 515,
+      "selected": 0
+    },
+    "131122": {
+      "available": 25,
+      "selected": 0
+    },
+    "131123": {
+      "available": 217,
+      "selected": 0
+    },
+    "131124": {
+      "available": 273,
+      "selected": 0
+    },
+    "131125": {
+      "available": 241,
+      "selected": 0
+    },
+    "131126": {
+      "available": 582,
+      "selected": 0
+    },
+    "131127": {
+      "available": 109,
+      "selected": 0
+    },
+    "131128": {
+      "available": 267,
+      "selected": 0
+    },
+    "131182": {
+      "available": 1184,
+      "selected": 0
+    },
+    "140105": {
+      "available": 9223,
+      "selected": 4
+    },
+    "140106": {
+      "available": 2443,
+      "selected": 1
+    },
+    "140107": {
+      "available": 3281,
+      "selected": 0
+    },
+    "140108": {
+      "available": 5853,
+      "selected": 0
+    },
+    "140109": {
+      "available": 4349,
+      "selected": 1
+    },
+    "140110": {
+      "available": 5796,
+      "selected": 0
+    },
+    "140121": {
+      "available": 2637,
+      "selected": 0
+    },
+    "140122": {
+      "available": 898,
+      "selected": 0
+    },
+    "140123": {
+      "available": 412,
+      "selected": 0
+    },
+    "140181": {
+      "available": 757,
+      "selected": 0
+    },
+    "140212": {
+      "available": 568,
+      "selected": 0
+    },
+    "140213": {
+      "available": 6998,
+      "selected": 2
+    },
+    "140214": {
+      "available": 4277,
+      "selected": 4
+    },
+    "140215": {
+      "available": 3193,
+      "selected": 3
+    },
+    "140221": {
+      "available": 634,
+      "selected": 0
+    },
+    "140222": {
+      "available": 978,
+      "selected": 0
+    },
+    "140223": {
+      "available": 1191,
+      "selected": 0
+    },
+    "140224": {
+      "available": 1012,
+      "selected": 0
+    },
+    "140225": {
+      "available": 705,
+      "selected": 0
+    },
+    "140226": {
+      "available": 615,
+      "selected": 0
+    },
+    "140302": {
+      "available": 446,
+      "selected": 0
+    },
+    "140303": {
+      "available": 264,
+      "selected": 0
+    },
+    "140311": {
+      "available": 477,
+      "selected": 1
+    },
+    "140321": {
+      "available": 231,
+      "selected": 1
+    },
+    "140322": {
+      "available": 11,
+      "selected": 0
+    },
+    "140403": {
+      "available": 3837,
+      "selected": 19
+    },
+    "140404": {
+      "available": 2284,
+      "selected": 7
+    },
+    "140405": {
+      "available": 561,
+      "selected": 3
+    },
+    "140406": {
+      "available": 908,
+      "selected": 6
+    },
+    "140423": {
+      "available": 1019,
+      "selected": 5
+    },
+    "140425": {
+      "available": 267,
+      "selected": 0
+    },
+    "140426": {
+      "available": 1061,
+      "selected": 2
+    },
+    "140427": {
+      "available": 981,
+      "selected": 3
+    },
+    "140428": {
+      "available": 520,
+      "selected": 4
+    },
+    "140429": {
+      "available": 206,
+      "selected": 1
+    },
+    "140430": {
+      "available": 263,
+      "selected": 1
+    },
+    "140431": {
+      "available": 577,
+      "selected": 3
+    },
+    "140502": {
+      "available": 2287,
+      "selected": 7
+    },
+    "140521": {
+      "available": 250,
+      "selected": 3
+    },
+    "140522": {
+      "available": 377,
+      "selected": 5
+    },
+    "140524": {
+      "available": 335,
+      "selected": 3
+    },
+    "140525": {
+      "available": 1814,
+      "selected": 12
+    },
+    "140581": {
+      "available": 268,
+      "selected": 0
+    },
+    "140602": {
+      "available": 2511,
+      "selected": 6
+    },
+    "140603": {
+      "available": 351,
+      "selected": 0
+    },
+    "140621": {
+      "available": 377,
+      "selected": 0
+    },
+    "140622": {
+      "available": 335,
+      "selected": 0
+    },
+    "140623": {
+      "available": 342,
+      "selected": 0
+    },
+    "140681": {
+      "available": 715,
+      "selected": 0
+    },
+    "140702": {
+      "available": 4452,
+      "selected": 23
+    },
+    "140703": {
+      "available": 689,
+      "selected": 5
+    },
+    "140721": {
+      "available": 397,
+      "selected": 2
+    },
+    "140722": {
+      "available": 413,
+      "selected": 0
+    },
+    "140723": {
+      "available": 424,
+      "selected": 0
+    },
+    "140724": {
+      "available": 390,
+      "selected": 2
+    },
+    "140725": {
+      "available": 458,
+      "selected": 3
+    },
+    "140727": {
+      "available": 729,
+      "selected": 2
+    },
+    "140728": {
+      "available": 1199,
+      "selected": 7
+    },
+    "140729": {
+      "available": 281,
+      "selected": 2
+    },
+    "140781": {
+      "available": 1073,
+      "selected": 3
+    },
+    "140802": {
+      "available": 2365,
+      "selected": 6
+    },
+    "140821": {
+      "available": 274,
+      "selected": 0
+    },
+    "140822": {
+      "available": 256,
+      "selected": 0
+    },
+    "140823": {
+      "available": 326,
+      "selected": 0
+    },
+    "140824": {
+      "available": 185,
+      "selected": 0
+    },
+    "140825": {
+      "available": 230,
+      "selected": 0
+    },
+    "140826": {
+      "available": 297,
+      "selected": 0
+    },
+    "140827": {
+      "available": 230,
+      "selected": 0
+    },
+    "140828": {
+      "available": 137,
+      "selected": 0
+    },
+    "140829": {
+      "available": 121,
+      "selected": 0
+    },
+    "140830": {
+      "available": 197,
+      "selected": 0
+    },
+    "140881": {
+      "available": 210,
+      "selected": 0
+    },
+    "140882": {
+      "available": 472,
+      "selected": 0
+    },
+    "140902": {
+      "available": 2805,
+      "selected": 10
+    },
+    "140921": {
+      "available": 424,
+      "selected": 3
+    },
+    "140922": {
+      "available": 626,
+      "selected": 2
+    },
+    "140923": {
+      "available": 264,
+      "selected": 0
+    },
+    "140924": {
+      "available": 618,
+      "selected": 0
+    },
+    "140925": {
+      "available": 339,
+      "selected": 0
+    },
+    "140926": {
+      "available": 286,
+      "selected": 0
+    },
+    "140927": {
+      "available": 303,
+      "selected": 0
+    },
+    "140928": {
+      "available": 389,
+      "selected": 0
+    },
+    "140929": {
+      "available": 323,
+      "selected": 0
+    },
+    "140930": {
+      "available": 343,
+      "selected": 0
+    },
+    "140931": {
+      "available": 103,
+      "selected": 0
+    },
+    "140932": {
+      "available": 50,
+      "selected": 0
+    },
+    "140981": {
+      "available": 457,
+      "selected": 0
+    },
+    "141002": {
+      "available": 6279,
+      "selected": 29
+    },
+    "141021": {
+      "available": 622,
+      "selected": 3
+    },
+    "141022": {
+      "available": 709,
+      "selected": 6
+    },
+    "141023": {
+      "available": 858,
+      "selected": 4
+    },
+    "141024": {
+      "available": 2122,
+      "selected": 13
+    },
+    "141025": {
+      "available": 269,
+      "selected": 0
+    },
+    "141026": {
+      "available": 379,
+      "selected": 0
+    },
+    "141027": {
+      "available": 279,
+      "selected": 2
+    },
+    "141028": {
+      "available": 197,
+      "selected": 0
+    },
+    "141029": {
+      "available": 367,
+      "selected": 2
+    },
+    "141030": {
+      "available": 130,
+      "selected": 1
+    },
+    "141031": {
+      "available": 249,
+      "selected": 2
+    },
+    "141032": {
+      "available": 144,
+      "selected": 0
+    },
+    "141033": {
+      "available": 296,
+      "selected": 0
+    },
+    "141034": {
+      "available": 196,
+      "selected": 3
+    },
+    "141081": {
+      "available": 1272,
+      "selected": 9
+    },
+    "141082": {
+      "available": 636,
+      "selected": 10
+    },
+    "141102": {
+      "available": 1525,
+      "selected": 8
+    },
+    "141121": {
+      "available": 390,
+      "selected": 1
+    },
+    "141122": {
+      "available": 330,
+      "selected": 7
+    },
+    "141123": {
+      "available": 165,
+      "selected": 1
+    },
+    "141124": {
+      "available": 196,
+      "selected": 0
+    },
+    "141125": {
+      "available": 222,
+      "selected": 1
+    },
+    "141126": {
+      "available": 207,
+      "selected": 1
+    },
+    "141127": {
+      "available": 302,
+      "selected": 3
+    },
+    "141128": {
+      "available": 215,
+      "selected": 1
+    },
+    "141129": {
+      "available": 267,
+      "selected": 1
+    },
+    "141130": {
+      "available": 188,
+      "selected": 0
+    },
+    "141181": {
+      "available": 1771,
+      "selected": 14
+    },
+    "141182": {
+      "available": 606,
+      "selected": 4
+    },
+    "150102": {
+      "available": 1729,
+      "selected": 19
+    },
+    "150103": {
+      "available": 882,
+      "selected": 11
+    },
+    "150104": {
+      "available": 1049,
+      "selected": 13
+    },
+    "150105": {
+      "available": 2424,
+      "selected": 16
+    },
+    "150121": {
+      "available": 1285,
+      "selected": 17
+    },
+    "150122": {
+      "available": 339,
+      "selected": 9
+    },
+    "150123": {
+      "available": 569,
+      "selected": 7
+    },
+    "150124": {
+      "available": 150,
+      "selected": 0
+    },
+    "150125": {
+      "available": 263,
+      "selected": 5
+    },
+    "150202": {
+      "available": 735,
+      "selected": 0
+    },
+    "150203": {
+      "available": 988,
+      "selected": 0
+    },
+    "150204": {
+      "available": 628,
+      "selected": 0
+    },
+    "150205": {
+      "available": 10,
+      "selected": 0
+    },
+    "150206": {
+      "available": 68,
+      "selected": 0
+    },
+    "150207": {
+      "available": 1340,
+      "selected": 0
+    },
+    "150221": {
+      "available": 172,
+      "selected": 0
+    },
+    "150222": {
+      "available": 142,
+      "selected": 0
+    },
+    "150223": {
+      "available": 99,
+      "selected": 0
+    },
+    "150302": {
+      "available": 456,
+      "selected": 2
+    },
+    "150303": {
+      "available": 176,
+      "selected": 5
+    },
+    "150304": {
+      "available": 119,
+      "selected": 5
+    },
+    "150402": {
+      "available": 557,
+      "selected": 12
+    },
+    "150403": {
+      "available": 135,
+      "selected": 4
+    },
+    "150404": {
+      "available": 482,
+      "selected": 7
+    },
+    "150428": {
+      "available": 143,
+      "selected": 6
+    },
+    "150502": {
+      "available": 693,
+      "selected": 10
+    },
+    "150602": {
+      "available": 2227,
+      "selected": 0
+    },
+    "150603": {
+      "available": 787,
+      "selected": 0
+    },
+    "150621": {
+      "available": 526,
+      "selected": 0
+    },
+    "150622": {
+      "available": 190,
+      "selected": 0
+    },
+    "150623": {
+      "available": 528,
+      "selected": 5
+    },
+    "150624": {
+      "available": 571,
+      "selected": 0
+    },
+    "150625": {
+      "available": 160,
+      "selected": 0
+    },
+    "150626": {
+      "available": 675,
+      "selected": 0
+    },
+    "150627": {
+      "available": 1690,
+      "selected": 0
+    },
+    "150702": {
+      "available": 829,
+      "selected": 13
+    },
+    "150703": {
+      "available": 479,
+      "selected": 12
+    },
+    "150722": {
+      "available": 42,
+      "selected": 1
+    },
+    "150723": {
+      "available": 119,
+      "selected": 3
+    },
+    "150724": {
+      "available": 257,
+      "selected": 3
+    },
+    "150725": {
+      "available": 97,
+      "selected": 0
+    },
+    "150726": {
+      "available": 63,
+      "selected": 1
+    },
+    "150727": {
+      "available": 127,
+      "selected": 1
+    },
+    "150781": {
+      "available": 1001,
+      "selected": 19
+    },
+    "150782": {
+      "available": 165,
+      "selected": 0
+    },
+    "150784": {
+      "available": 157,
+      "selected": 3
+    },
+    "150785": {
+      "available": 119,
+      "selected": 3
+    },
+    "150802": {
+      "available": 584,
+      "selected": 11
+    },
+    "150821": {
+      "available": 85,
+      "selected": 2
+    },
+    "150825": {
+      "available": 78,
+      "selected": 3
+    },
+    "150826": {
+      "available": 172,
+      "selected": 6
+    },
+    "150902": {
+      "available": 653,
+      "selected": 10
+    },
+    "150926": {
+      "available": 365,
+      "selected": 9
+    },
+    "150927": {
+      "available": 95,
+      "selected": 2
+    },
+    "150928": {
+      "available": 176,
+      "selected": 5
+    },
+    "152201": {
+      "available": 669,
+      "selected": 14
+    },
+    "152202": {
+      "available": 260,
+      "selected": 8
+    },
+    "152221": {
+      "available": 189,
+      "selected": 1
+    },
+    "152501": {
+      "available": 196,
+      "selected": 2
+    },
+    "152502": {
+      "available": 668,
+      "selected": 14
+    },
+    "152921": {
+      "available": 445,
+      "selected": 4
+    },
+    "210102": {
+      "available": 2016,
+      "selected": 6
+    },
+    "210103": {
+      "available": 2062,
+      "selected": 6
+    },
+    "210104": {
+      "available": 2870,
+      "selected": 10
+    },
+    "210105": {
+      "available": 2301,
+      "selected": 6
+    },
+    "210106": {
+      "available": 5399,
+      "selected": 11
+    },
+    "210111": {
+      "available": 3272,
+      "selected": 7
+    },
+    "210112": {
+      "available": 9859,
+      "selected": 33
+    },
+    "210113": {
+      "available": 5079,
+      "selected": 18
+    },
+    "210114": {
+      "available": 5779,
+      "selected": 11
+    },
+    "210115": {
+      "available": 712,
+      "selected": 1
+    },
+    "210123": {
+      "available": 509,
+      "selected": 0
+    },
+    "210124": {
+      "available": 997,
+      "selected": 8
+    },
+    "210181": {
+      "available": 1603,
+      "selected": 5
+    },
+    "210202": {
+      "available": 1459,
+      "selected": 0
+    },
+    "210203": {
+      "available": 919,
+      "selected": 0
+    },
+    "210204": {
+      "available": 1742,
+      "selected": 0
+    },
+    "210211": {
+      "available": 10377,
+      "selected": 8
+    },
+    "210212": {
+      "available": 7004,
+      "selected": 2
+    },
+    "210213": {
+      "available": 19909,
+      "selected": 6
+    },
+    "210214": {
+      "available": 7552,
+      "selected": 0
+    },
+    "210224": {
+      "available": 67,
+      "selected": 0
+    },
+    "210281": {
+      "available": 9779,
+      "selected": 0
+    },
+    "210283": {
+      "available": 4116,
+      "selected": 0
+    },
+    "210302": {
+      "available": 1233,
+      "selected": 4
+    },
+    "210303": {
+      "available": 2768,
+      "selected": 4
+    },
+    "210304": {
+      "available": 2107,
+      "selected": 11
+    },
+    "210311": {
+      "available": 222,
+      "selected": 1
+    },
+    "210321": {
+      "available": 907,
+      "selected": 4
+    },
+    "210323": {
+      "available": 1311,
+      "selected": 3
+    },
+    "210381": {
+      "available": 2891,
+      "selected": 12
+    },
+    "210402": {
+      "available": 616,
+      "selected": 2
+    },
+    "210403": {
+      "available": 241,
+      "selected": 1
+    },
+    "210404": {
+      "available": 1591,
+      "selected": 9
+    },
+    "210411": {
+      "available": 844,
+      "selected": 2
+    },
+    "210422": {
+      "available": 296,
+      "selected": 1
+    },
+    "210502": {
+      "available": 306,
+      "selected": 3
+    },
+    "210503": {
+      "available": 188,
+      "selected": 1
+    },
+    "210504": {
+      "available": 611,
+      "selected": 3
+    },
+    "210505": {
+      "available": 163,
+      "selected": 1
+    },
+    "210521": {
+      "available": 193,
+      "selected": 0
+    },
+    "210522": {
+      "available": 534,
+      "selected": 0
+    },
+    "210602": {
+      "available": 429,
+      "selected": 2
+    },
+    "210603": {
+      "available": 1405,
+      "selected": 7
+    },
+    "210604": {
+      "available": 292,
+      "selected": 1
+    },
+    "210624": {
+      "available": 122,
+      "selected": 0
+    },
+    "210681": {
+      "available": 753,
+      "selected": 2
+    },
+    "210682": {
+      "available": 206,
+      "selected": 0
+    },
+    "210702": {
+      "available": 503,
+      "selected": 0
+    },
+    "210703": {
+      "available": 701,
+      "selected": 2
+    },
+    "210711": {
+      "available": 1605,
+      "selected": 7
+    },
+    "210726": {
+      "available": 175,
+      "selected": 1
+    },
+    "210727": {
+      "available": 222,
+      "selected": 1
+    },
+    "210781": {
+      "available": 423,
+      "selected": 1
+    },
+    "210782": {
+      "available": 281,
+      "selected": 0
+    },
+    "210802": {
+      "available": 554,
+      "selected": 0
+    },
+    "210803": {
+      "available": 2711,
+      "selected": 1
+    },
+    "210804": {
+      "available": 2389,
+      "selected": 0
+    },
+    "210811": {
+      "available": 2083,
+      "selected": 0
+    },
+    "210881": {
+      "available": 674,
+      "selected": 0
+    },
+    "210882": {
+      "available": 1093,
+      "selected": 0
+    },
+    "210902": {
+      "available": 558,
+      "selected": 3
+    },
+    "210903": {
+      "available": 253,
+      "selected": 4
+    },
+    "210904": {
+      "available": 449,
+      "selected": 2
+    },
+    "210905": {
+      "available": 296,
+      "selected": 1
+    },
+    "210911": {
+      "available": 1397,
+      "selected": 9
+    },
+    "210921": {
+      "available": 582,
+      "selected": 1
+    },
+    "210922": {
+      "available": 304,
+      "selected": 2
+    },
+    "211002": {
+      "available": 744,
+      "selected": 1
+    },
+    "211003": {
+      "available": 511,
+      "selected": 2
+    },
+    "211004": {
+      "available": 708,
+      "selected": 2
+    },
+    "211005": {
+      "available": 322,
+      "selected": 1
+    },
+    "211011": {
+      "available": 780,
+      "selected": 2
+    },
+    "211021": {
+      "available": 928,
+      "selected": 0
+    },
+    "211102": {
+      "available": 931,
+      "selected": 0
+    },
+    "211103": {
+      "available": 2134,
+      "selected": 10
+    },
+    "211104": {
+      "available": 4747,
+      "selected": 14
+    },
+    "211122": {
+      "available": 519,
+      "selected": 0
+    },
+    "211202": {
+      "available": 1156,
+      "selected": 5
+    },
+    "211221": {
+      "available": 1221,
+      "selected": 1
+    },
+    "211302": {
+      "available": 1085,
+      "selected": 5
+    },
+    "211303": {
+      "available": 735,
+      "selected": 4
+    },
+    "211321": {
+      "available": 118,
+      "selected": 2
+    },
+    "211402": {
+      "available": 903,
+      "selected": 1
+    },
+    "211403": {
+      "available": 2027,
+      "selected": 4
+    },
+    "211421": {
+      "available": 17,
+      "selected": 0
+    },
+    "211481": {
+      "available": 1013,
+      "selected": 2
+    },
+    "220102": {
+      "available": 4607,
+      "selected": 16
+    },
+    "220103": {
+      "available": 5160,
+      "selected": 52
+    },
+    "220104": {
+      "available": 3091,
+      "selected": 13
+    },
+    "220105": {
+      "available": 3076,
+      "selected": 17
+    },
+    "220106": {
+      "available": 4775,
+      "selected": 34
+    },
+    "220112": {
+      "available": 509,
+      "selected": 2
+    },
+    "220113": {
+      "available": 1774,
+      "selected": 14
+    },
+    "220122": {
+      "available": 483,
+      "selected": 0
+    },
+    "220182": {
+      "available": 591,
+      "selected": 0
+    },
+    "220183": {
+      "available": 628,
+      "selected": 2
+    },
+    "220184": {
+      "available": 620,
+      "selected": 0
+    },
+    "220202": {
+      "available": 1789,
+      "selected": 27
+    },
+    "220203": {
+      "available": 1352,
+      "selected": 14
+    },
+    "220204": {
+      "available": 1018,
+      "selected": 12
+    },
+    "220211": {
+      "available": 1292,
+      "selected": 16
+    },
+    "220221": {
+      "available": 353,
+      "selected": 3
+    },
+    "220281": {
+      "available": 441,
+      "selected": 3
+    },
+    "220282": {
+      "available": 540,
+      "selected": 2
+    },
+    "220283": {
+      "available": 279,
+      "selected": 2
+    },
+    "220284": {
+      "available": 543,
+      "selected": 5
+    },
+    "220302": {
+      "available": 648,
+      "selected": 0
+    },
+    "220303": {
+      "available": 664,
+      "selected": 0
+    },
+    "220402": {
+      "available": 734,
+      "selected": 0
+    },
+    "220403": {
+      "available": 242,
+      "selected": 0
+    },
+    "220422": {
+      "available": 11,
+      "selected": 0
+    },
+    "220502": {
+      "available": 751,
+      "selected": 0
+    },
+    "220503": {
+      "available": 137,
+      "selected": 0
+    },
+    "220521": {
+      "available": 156,
+      "selected": 0
+    },
+    "220523": {
+      "available": 523,
+      "selected": 0
+    },
+    "220524": {
+      "available": 226,
+      "selected": 0
+    },
+    "220581": {
+      "available": 446,
+      "selected": 0
+    },
+    "220582": {
+      "available": 694,
+      "selected": 0
+    },
+    "220602": {
+      "available": 468,
+      "selected": 0
+    },
+    "220605": {
+      "available": 3,
+      "selected": 0
+    },
+    "220621": {
+      "available": 94,
+      "selected": 0
+    },
+    "220622": {
+      "available": 126,
+      "selected": 0
+    },
+    "220623": {
+      "available": 95,
+      "selected": 0
+    },
+    "220681": {
+      "available": 94,
+      "selected": 0
+    },
+    "220702": {
+      "available": 1938,
+      "selected": 0
+    },
+    "220721": {
+      "available": 481,
+      "selected": 1
+    },
+    "220802": {
+      "available": 1079,
+      "selected": 13
+    },
+    "220821": {
+      "available": 572,
+      "selected": 4
+    },
+    "220822": {
+      "available": 677,
+      "selected": 7
+    },
+    "220881": {
+      "available": 691,
+      "selected": 5
+    },
+    "220882": {
+      "available": 402,
+      "selected": 2
+    },
+    "222401": {
+      "available": 2339,
+      "selected": 18
+    },
+    "222403": {
+      "available": 1513,
+      "selected": 7
+    },
+    "222404": {
+      "available": 497,
+      "selected": 0
+    },
+    "222405": {
+      "available": 370,
+      "selected": 3
+    },
+    "222406": {
+      "available": 186,
+      "selected": 0
+    },
+    "222424": {
+      "available": 243,
+      "selected": 0
+    },
+    "222426": {
+      "available": 1307,
+      "selected": 9
+    },
+    "230102": {
+      "available": 5315,
+      "selected": 30
+    },
+    "230103": {
+      "available": 3792,
+      "selected": 30
+    },
+    "230104": {
+      "available": 2909,
+      "selected": 17
+    },
+    "230108": {
+      "available": 1945,
+      "selected": 11
+    },
+    "230109": {
+      "available": 4869,
+      "selected": 30
+    },
+    "230110": {
+      "available": 5659,
+      "selected": 45
+    },
+    "230111": {
+      "available": 2120,
+      "selected": 21
+    },
+    "230112": {
+      "available": 1347,
+      "selected": 13
+    },
+    "230113": {
+      "available": 5385,
+      "selected": 42
+    },
+    "230123": {
+      "available": 400,
+      "selected": 4
+    },
+    "230124": {
+      "available": 308,
+      "selected": 2
+    },
+    "230125": {
+      "available": 286,
+      "selected": 3
+    },
+    "230126": {
+      "available": 498,
+      "selected": 4
+    },
+    "230127": {
+      "available": 240,
+      "selected": 1
+    },
+    "230128": {
+      "available": 289,
+      "selected": 1
+    },
+    "230129": {
+      "available": 345,
+      "selected": 2
+    },
+    "230183": {
+      "available": 496,
+      "selected": 7
+    },
+    "230184": {
+      "available": 386,
+      "selected": 3
+    },
+    "230202": {
+      "available": 1070,
+      "selected": 0
+    },
+    "230203": {
+      "available": 484,
+      "selected": 0
+    },
+    "230204": {
+      "available": 453,
+      "selected": 0
+    },
+    "230205": {
+      "available": 231,
+      "selected": 0
+    },
+    "230206": {
+      "available": 550,
+      "selected": 0
+    },
+    "230221": {
+      "available": 198,
+      "selected": 0
+    },
+    "230223": {
+      "available": 224,
+      "selected": 0
+    },
+    "230225": {
+      "available": 165,
+      "selected": 0
+    },
+    "230227": {
+      "available": 303,
+      "selected": 0
+    },
+    "230229": {
+      "available": 220,
+      "selected": 0
+    },
+    "230231": {
+      "available": 188,
+      "selected": 0
+    },
+    "230281": {
+      "available": 250,
+      "selected": 0
+    },
+    "230302": {
+      "available": 430,
+      "selected": 5
+    },
+    "230303": {
+      "available": 40,
+      "selected": 0
+    },
+    "230304": {
+      "available": 99,
+      "selected": 3
+    },
+    "230305": {
+      "available": 37,
+      "selected": 1
+    },
+    "230306": {
+      "available": 3,
+      "selected": 0
+    },
+    "230321": {
+      "available": 112,
+      "selected": 0
+    },
+    "230381": {
+      "available": 192,
+      "selected": 0
+    },
+    "230382": {
+      "available": 118,
+      "selected": 3
+    },
+    "230402": {
+      "available": 137,
+      "selected": 0
+    },
+    "230403": {
+      "available": 275,
+      "selected": 0
+    },
+    "230404": {
+      "available": 218,
+      "selected": 0
+    },
+    "230407": {
+      "available": 8,
+      "selected": 0
+    },
+    "230421": {
+      "available": 425,
+      "selected": 0
+    },
+    "230422": {
+      "available": 162,
+      "selected": 0
+    },
+    "230502": {
+      "available": 685,
+      "selected": 0
+    },
+    "230602": {
+      "available": 3117,
+      "selected": 0
+    },
+    "230603": {
+      "available": 4237,
+      "selected": 0
+    },
+    "230604": {
+      "available": 2705,
+      "selected": 0
+    },
+    "230605": {
+      "available": 953,
+      "selected": 0
+    },
+    "230606": {
+      "available": 383,
+      "selected": 0
+    },
+    "230623": {
+      "available": 230,
+      "selected": 0
+    },
+    "230624": {
+      "available": 376,
+      "selected": 0
+    },
+    "230717": {
+      "available": 1029,
+      "selected": 0
+    },
+    "230718": {
+      "available": 372,
+      "selected": 0
+    },
+    "230719": {
+      "available": 292,
+      "selected": 0
+    },
+    "230723": {
+      "available": 108,
+      "selected": 0
+    },
+    "230724": {
+      "available": 341,
+      "selected": 0
+    },
+    "230751": {
+      "available": 234,
+      "selected": 0
+    },
+    "230781": {
+      "available": 433,
+      "selected": 0
+    },
+    "230803": {
+      "available": 611,
+      "selected": 5
+    },
+    "230804": {
+      "available": 426,
+      "selected": 7
+    },
+    "230805": {
+      "available": 466,
+      "selected": 3
+    },
+    "230811": {
+      "available": 321,
+      "selected": 1
+    },
+    "230881": {
+      "available": 333,
+      "selected": 5
+    },
+    "230883": {
+      "available": 181,
+      "selected": 1
+    },
+    "230902": {
+      "available": 252,
+      "selected": 0
+    },
+    "230903": {
+      "available": 515,
+      "selected": 0
+    },
+    "230904": {
+      "available": 278,
+      "selected": 0
+    },
+    "231002": {
+      "available": 514,
+      "selected": 0
+    },
+    "231003": {
+      "available": 465,
+      "selected": 0
+    },
+    "231004": {
+      "available": 595,
+      "selected": 0
+    },
+    "231005": {
+      "available": 417,
+      "selected": 0
+    },
+    "231084": {
+      "available": 89,
+      "selected": 0
+    },
+    "231102": {
+      "available": 411,
+      "selected": 0
+    },
+    "231123": {
+      "available": 117,
+      "selected": 0
+    },
+    "231124": {
+      "available": 180,
+      "selected": 0
+    },
+    "231181": {
+      "available": 314,
+      "selected": 0
+    },
+    "231182": {
+      "available": 159,
+      "selected": 0
+    },
+    "231183": {
+      "available": 240,
+      "selected": 0
+    },
+    "231202": {
+      "available": 816,
+      "selected": 0
+    },
+    "231221": {
+      "available": 268,
+      "selected": 0
+    },
+    "231222": {
+      "available": 281,
+      "selected": 0
+    },
+    "231223": {
+      "available": 194,
+      "selected": 0
+    },
+    "231224": {
+      "available": 210,
+      "selected": 0
+    },
+    "231225": {
+      "available": 217,
+      "selected": 0
+    },
+    "231226": {
+      "available": 308,
+      "selected": 0
+    },
+    "231281": {
+      "available": 479,
+      "selected": 0
+    },
+    "231282": {
+      "available": 320,
+      "selected": 0
+    },
+    "231283": {
+      "available": 252,
+      "selected": 0
+    },
+    "232701": {
+      "available": 346,
+      "selected": 0
+    },
+    "232718": {
+      "available": 301,
+      "selected": 3
+    },
+    "232721": {
+      "available": 256,
+      "selected": 0
+    },
+    "232722": {
+      "available": 423,
+      "selected": 0
+    },
+    "310101": {
+      "available": 1763,
+      "selected": 0
+    },
+    "310104": {
+      "available": 4227,
+      "selected": 6
+    },
+    "310105": {
+      "available": 2470,
+      "selected": 5
+    },
+    "310106": {
+      "available": 3130,
+      "selected": 1
+    },
+    "310107": {
+      "available": 4556,
+      "selected": 8
+    },
+    "310109": {
+      "available": 2257,
+      "selected": 0
+    },
+    "310110": {
+      "available": 4454,
+      "selected": 2
+    },
+    "310112": {
+      "available": 19895,
+      "selected": 25
+    },
+    "310113": {
+      "available": 14571,
+      "selected": 16
+    },
+    "310114": {
+      "available": 17502,
+      "selected": 24
+    },
+    "310115": {
+      "available": 60885,
+      "selected": 64
+    },
+    "310116": {
+      "available": 16225,
+      "selected": 36
+    },
+    "310117": {
+      "available": 19971,
+      "selected": 29
+    },
+    "310118": {
+      "available": 16281,
+      "selected": 22
+    },
+    "310120": {
+      "available": 24561,
+      "selected": 20
+    },
+    "310151": {
+      "available": 34976,
+      "selected": 45
+    },
+    "320102": {
+      "available": 7998,
+      "selected": 3
+    },
+    "320104": {
+      "available": 7693,
+      "selected": 4
+    },
+    "320105": {
+      "available": 12685,
+      "selected": 1
+    },
+    "320106": {
+      "available": 8491,
+      "selected": 4
+    },
+    "320111": {
+      "available": 28519,
+      "selected": 8
+    },
+    "320113": {
+      "available": 27108,
+      "selected": 13
+    },
+    "320114": {
+      "available": 10885,
+      "selected": 2
+    },
+    "320115": {
+      "available": 42763,
+      "selected": 14
+    },
+    "320116": {
+      "available": 21535,
+      "selected": 7
+    },
+    "320117": {
+      "available": 10722,
+      "selected": 6
+    },
+    "320118": {
+      "available": 6410,
+      "selected": 1
+    },
+    "320205": {
+      "available": 26259,
+      "selected": 15
+    },
+    "320206": {
+      "available": 19194,
+      "selected": 8
+    },
+    "320211": {
+      "available": 28157,
+      "selected": 11
+    },
+    "320213": {
+      "available": 12650,
+      "selected": 2
+    },
+    "320214": {
+      "available": 31393,
+      "selected": 9
+    },
+    "320281": {
+      "available": 26680,
+      "selected": 8
+    },
+    "320282": {
+      "available": 22506,
+      "selected": 5
+    },
+    "320302": {
+      "available": 6254,
+      "selected": 0
+    },
+    "320303": {
+      "available": 6758,
+      "selected": 1
+    },
+    "320305": {
+      "available": 11939,
+      "selected": 0
+    },
+    "320311": {
+      "available": 5736,
+      "selected": 0
+    },
+    "320312": {
+      "available": 25296,
+      "selected": 3
+    },
+    "320321": {
+      "available": 14586,
+      "selected": 0
+    },
+    "320322": {
+      "available": 11431,
+      "selected": 0
+    },
+    "320324": {
+      "available": 17784,
+      "selected": 0
+    },
+    "320381": {
+      "available": 12009,
+      "selected": 0
+    },
+    "320382": {
+      "available": 25788,
+      "selected": 1
+    },
+    "320402": {
+      "available": 15601,
+      "selected": 6
+    },
+    "320404": {
+      "available": 16938,
+      "selected": 10
+    },
+    "320411": {
+      "available": 36688,
+      "selected": 17
+    },
+    "320412": {
+      "available": 59622,
+      "selected": 20
+    },
+    "320413": {
+      "available": 14276,
+      "selected": 5
+    },
+    "320481": {
+      "available": 10374,
+      "selected": 3
+    },
+    "320505": {
+      "available": 14850,
+      "selected": 0
+    },
+    "320506": {
+      "available": 44406,
+      "selected": 0
+    },
+    "320507": {
+      "available": 16815,
+      "selected": 1
+    },
+    "320508": {
+      "available": 7478,
+      "selected": 0
+    },
+    "320509": {
+      "available": 21694,
+      "selected": 4
+    },
+    "320581": {
+      "available": 27836,
+      "selected": 10
+    },
+    "320582": {
+      "available": 25220,
+      "selected": 2
+    },
+    "320583": {
+      "available": 35831,
+      "selected": 6
+    },
+    "320585": {
+      "available": 20215,
+      "selected": 5
+    },
+    "320602": {
+      "available": 37125,
+      "selected": 7
+    },
+    "320612": {
+      "available": 22615,
+      "selected": 8
+    },
+    "320623": {
+      "available": 5036,
+      "selected": 2
+    },
+    "320681": {
+      "available": 11774,
+      "selected": 3
+    },
+    "320682": {
+      "available": 8659,
+      "selected": 2
+    },
+    "320684": {
+      "available": 22760,
+      "selected": 1
+    },
+    "320685": {
+      "available": 13206,
+      "selected": 10
+    },
+    "320703": {
+      "available": 32944,
+      "selected": 4
+    },
+    "320706": {
+      "available": 20975,
+      "selected": 3
+    },
+    "320707": {
+      "available": 19474,
+      "selected": 1
+    },
+    "320722": {
+      "available": 22042,
+      "selected": 2
+    },
+    "320723": {
+      "available": 12521,
+      "selected": 1
+    },
+    "320724": {
+      "available": 7951,
+      "selected": 0
+    },
+    "320803": {
+      "available": 14500,
+      "selected": 6
+    },
+    "320804": {
+      "available": 17244,
+      "selected": 7
+    },
+    "320812": {
+      "available": 40059,
+      "selected": 16
+    },
+    "320813": {
+      "available": 5782,
+      "selected": 2
+    },
+    "320826": {
+      "available": 12467,
+      "selected": 7
+    },
+    "320830": {
+      "available": 9394,
+      "selected": 2
+    },
+    "320831": {
+      "available": 7230,
+      "selected": 1
+    },
+    "320902": {
+      "available": 28522,
+      "selected": 0
+    },
+    "320903": {
+      "available": 16544,
+      "selected": 0
+    },
+    "320904": {
+      "available": 10604,
+      "selected": 0
+    },
+    "320921": {
+      "available": 4877,
+      "selected": 0
+    },
+    "320922": {
+      "available": 7659,
+      "selected": 0
+    },
+    "320923": {
+      "available": 11888,
+      "selected": 0
+    },
+    "320924": {
+      "available": 12201,
+      "selected": 0
+    },
+    "320925": {
+      "available": 13008,
+      "selected": 0
+    },
+    "320981": {
+      "available": 10964,
+      "selected": 0
+    },
+    "321002": {
+      "available": 21961,
+      "selected": 0
+    },
+    "321003": {
+      "available": 37099,
+      "selected": 0
+    },
+    "321012": {
+      "available": 20843,
+      "selected": 0
+    },
+    "321023": {
+      "available": 12191,
+      "selected": 0
+    },
+    "321081": {
+      "available": 12653,
+      "selected": 0
+    },
+    "321084": {
+      "available": 13791,
+      "selected": 0
+    },
+    "321102": {
+      "available": 28786,
+      "selected": 1
+    },
+    "321111": {
+      "available": 15045,
+      "selected": 2
+    },
+    "321112": {
+      "available": 11046,
+      "selected": 0
+    },
+    "321181": {
+      "available": 27162,
+      "selected": 0
+    },
+    "321182": {
+      "available": 13909,
+      "selected": 0
+    },
+    "321183": {
+      "available": 11741,
+      "selected": 0
+    },
+    "321202": {
+      "available": 38284,
+      "selected": 0
+    },
+    "321203": {
+      "available": 6924,
+      "selected": 0
+    },
+    "321204": {
+      "available": 14223,
+      "selected": 0
+    },
+    "321281": {
+      "available": 12997,
+      "selected": 0
+    },
+    "321282": {
+      "available": 18684,
+      "selected": 0
+    },
+    "321283": {
+      "available": 14570,
+      "selected": 0
+    },
+    "321302": {
+      "available": 29110,
+      "selected": 0
+    },
+    "321311": {
+      "available": 25252,
+      "selected": 0
+    },
+    "321322": {
+      "available": 25214,
+      "selected": 0
+    },
+    "321323": {
+      "available": 17832,
+      "selected": 0
+    },
+    "321324": {
+      "available": 14985,
+      "selected": 0
+    },
+    "330102": {
+      "available": 34573,
+      "selected": 0
+    },
+    "330105": {
+      "available": 28971,
+      "selected": 0
+    },
+    "330106": {
+      "available": 37088,
+      "selected": 1
+    },
+    "330108": {
+      "available": 17328,
+      "selected": 0
+    },
+    "330109": {
+      "available": 55039,
+      "selected": 0
+    },
+    "330110": {
+      "available": 25845,
+      "selected": 1
+    },
+    "330111": {
+      "available": 18773,
+      "selected": 2
+    },
+    "330112": {
+      "available": 15907,
+      "selected": 0
+    },
+    "330113": {
+      "available": 29884,
+      "selected": 2
+    },
+    "330114": {
+      "available": 31277,
+      "selected": 0
+    },
+    "330122": {
+      "available": 11587,
+      "selected": 1
+    },
+    "330127": {
+      "available": 5599,
+      "selected": 0
+    },
+    "330182": {
+      "available": 4988,
+      "selected": 0
+    },
+    "330203": {
+      "available": 39171,
+      "selected": 14
+    },
+    "330205": {
+      "available": 29466,
+      "selected": 10
+    },
+    "330206": {
+      "available": 55481,
+      "selected": 19
+    },
+    "330211": {
+      "available": 32989,
+      "selected": 7
+    },
+    "330212": {
+      "available": 65971,
+      "selected": 19
+    },
+    "330213": {
+      "available": 8813,
+      "selected": 6
+    },
+    "330225": {
+      "available": 10994,
+      "selected": 3
+    },
+    "330226": {
+      "available": 13656,
+      "selected": 3
+    },
+    "330281": {
+      "available": 20483,
+      "selected": 7
+    },
+    "330282": {
+      "available": 55406,
+      "selected": 24
+    },
+    "330302": {
+      "available": 20624,
+      "selected": 0
+    },
+    "330303": {
+      "available": 28264,
+      "selected": 0
+    },
+    "330304": {
+      "available": 24297,
+      "selected": 0
+    },
+    "330305": {
+      "available": 4045,
+      "selected": 0
+    },
+    "330324": {
+      "available": 10000,
+      "selected": 0
+    },
+    "330326": {
+      "available": 6084,
+      "selected": 0
+    },
+    "330327": {
+      "available": 5011,
+      "selected": 0
+    },
+    "330328": {
+      "available": 912,
+      "selected": 0
+    },
+    "330329": {
+      "available": 1488,
+      "selected": 0
+    },
+    "330381": {
+      "available": 18881,
+      "selected": 0
+    },
+    "330382": {
+      "available": 3417,
+      "selected": 0
+    },
+    "330383": {
+      "available": 6260,
+      "selected": 0
+    },
+    "330402": {
+      "available": 32292,
+      "selected": 14
+    },
+    "330411": {
+      "available": 17882,
+      "selected": 7
+    },
+    "330421": {
+      "available": 15398,
+      "selected": 6
+    },
+    "330424": {
+      "available": 10094,
+      "selected": 2
+    },
+    "330481": {
+      "available": 20829,
+      "selected": 6
+    },
+    "330482": {
+      "available": 13330,
+      "selected": 4
+    },
+    "330483": {
+      "available": 21756,
+      "selected": 11
+    },
+    "330502": {
+      "available": 46482,
+      "selected": 2
+    },
+    "330503": {
+      "available": 15172,
+      "selected": 0
+    },
+    "330521": {
+      "available": 11374,
+      "selected": 0
+    },
+    "330522": {
+      "available": 19817,
+      "selected": 0
+    },
+    "330523": {
+      "available": 14443,
+      "selected": 0
+    },
+    "330602": {
+      "available": 38813,
+      "selected": 1
+    },
+    "330603": {
+      "available": 29989,
+      "selected": 3
+    },
+    "330604": {
+      "available": 15836,
+      "selected": 0
+    },
+    "330624": {
+      "available": 6326,
+      "selected": 1
+    },
+    "330681": {
+      "available": 23347,
+      "selected": 2
+    },
+    "330683": {
+      "available": 9587,
+      "selected": 0
+    },
+    "330702": {
+      "available": 20562,
+      "selected": 7
+    },
+    "330703": {
+      "available": 15862,
+      "selected": 5
+    },
+    "330723": {
+      "available": 10151,
+      "selected": 3
+    },
+    "330726": {
+      "available": 10984,
+      "selected": 3
+    },
+    "330727": {
+      "available": 2573,
+      "selected": 1
+    },
+    "330781": {
+      "available": 13307,
+      "selected": 6
+    },
+    "330782": {
+      "available": 30936,
+      "selected": 9
+    },
+    "330783": {
+      "available": 25563,
+      "selected": 14
+    },
+    "330784": {
+      "available": 19079,
+      "selected": 7
+    },
+    "330802": {
+      "available": 41618,
+      "selected": 20
+    },
+    "330803": {
+      "available": 23029,
+      "selected": 12
+    },
+    "330822": {
+      "available": 5115,
+      "selected": 2
+    },
+    "330824": {
+      "available": 2378,
+      "selected": 2
+    },
+    "330825": {
+      "available": 14835,
+      "selected": 2
+    },
+    "330881": {
+      "available": 15752,
+      "selected": 6
+    },
+    "330902": {
+      "available": 23295,
+      "selected": 1
+    },
+    "330903": {
+      "available": 19980,
+      "selected": 0
+    },
+    "330921": {
+      "available": 2654,
+      "selected": 0
+    },
+    "330922": {
+      "available": 6860,
+      "selected": 0
+    },
+    "331002": {
+      "available": 34796,
+      "selected": 0
+    },
+    "331003": {
+      "available": 25738,
+      "selected": 0
+    },
+    "331004": {
+      "available": 25912,
+      "selected": 0
+    },
+    "331022": {
+      "available": 1450,
+      "selected": 0
+    },
+    "331023": {
+      "available": 2734,
+      "selected": 0
+    },
+    "331024": {
+      "available": 1960,
+      "selected": 0
+    },
+    "331081": {
+      "available": 5005,
+      "selected": 0
+    },
+    "331082": {
+      "available": 5989,
+      "selected": 0
+    },
+    "331083": {
+      "available": 3401,
+      "selected": 0
+    },
+    "331102": {
+      "available": 20720,
+      "selected": 11
+    },
+    "331121": {
+      "available": 3222,
+      "selected": 3
+    },
+    "331122": {
+      "available": 3329,
+      "selected": 1
+    },
+    "331123": {
+      "available": 1914,
+      "selected": 0
+    },
+    "331124": {
+      "available": 4899,
+      "selected": 3
+    },
+    "331125": {
+      "available": 5599,
+      "selected": 1
+    },
+    "331126": {
+      "available": 4714,
+      "selected": 3
+    },
+    "331127": {
+      "available": 2138,
+      "selected": 0
+    },
+    "331181": {
+      "available": 5258,
+      "selected": 3
+    },
+    "340102": {
+      "available": 5182,
+      "selected": 1
+    },
+    "340103": {
+      "available": 2758,
+      "selected": 4
+    },
+    "340104": {
+      "available": 7373,
+      "selected": 0
+    },
+    "340111": {
+      "available": 6308,
+      "selected": 9
+    },
+    "340121": {
+      "available": 2771,
+      "selected": 7
+    },
+    "340122": {
+      "available": 3144,
+      "selected": 5
+    },
+    "340123": {
+      "available": 3409,
+      "selected": 1
+    },
+    "340181": {
+      "available": 447,
+      "selected": 0
+    },
+    "340202": {
+      "available": 1009,
+      "selected": 1
+    },
+    "340207": {
+      "available": 4076,
+      "selected": 2
+    },
+    "340209": {
+      "available": 2430,
+      "selected": 0
+    },
+    "340210": {
+      "available": 1108,
+      "selected": 0
+    },
+    "340211": {
+      "available": 352,
+      "selected": 0
+    },
+    "340223": {
+      "available": 782,
+      "selected": 0
+    },
+    "340302": {
+      "available": 1098,
+      "selected": 0
+    },
+    "340303": {
+      "available": 951,
+      "selected": 0
+    },
+    "340304": {
+      "available": 1134,
+      "selected": 0
+    },
+    "340311": {
+      "available": 808,
+      "selected": 0
+    },
+    "340321": {
+      "available": 742,
+      "selected": 0
+    },
+    "340322": {
+      "available": 433,
+      "selected": 0
+    },
+    "340323": {
+      "available": 222,
+      "selected": 0
+    },
+    "340402": {
+      "available": 536,
+      "selected": 3
+    },
+    "340403": {
+      "available": 1117,
+      "selected": 7
+    },
+    "340404": {
+      "available": 121,
+      "selected": 0
+    },
+    "340405": {
+      "available": 205,
+      "selected": 0
+    },
+    "340406": {
+      "available": 7,
+      "selected": 0
+    },
+    "340422": {
+      "available": 251,
+      "selected": 2
+    },
+    "340503": {
+      "available": 1289,
+      "selected": 9
+    },
+    "340504": {
+      "available": 1317,
+      "selected": 9
+    },
+    "340506": {
+      "available": 265,
+      "selected": 3
+    },
+    "340521": {
+      "available": 748,
+      "selected": 2
+    },
+    "340602": {
+      "available": 821,
+      "selected": 6
+    },
+    "340603": {
+      "available": 1105,
+      "selected": 3
+    },
+    "340604": {
+      "available": 783,
+      "selected": 5
+    },
+    "340621": {
+      "available": 471,
+      "selected": 3
+    },
+    "340705": {
+      "available": 1183,
+      "selected": 11
+    },
+    "340706": {
+      "available": 367,
+      "selected": 3
+    },
+    "340711": {
+      "available": 551,
+      "selected": 4
+    },
+    "340802": {
+      "available": 632,
+      "selected": 3
+    },
+    "340803": {
+      "available": 679,
+      "selected": 1
+    },
+    "340811": {
+      "available": 1129,
+      "selected": 8
+    },
+    "340822": {
+      "available": 584,
+      "selected": 4
+    },
+    "340825": {
+      "available": 413,
+      "selected": 2
+    },
+    "340826": {
+      "available": 480,
+      "selected": 3
+    },
+    "340827": {
+      "available": 606,
+      "selected": 4
+    },
+    "340828": {
+      "available": 318,
+      "selected": 3
+    },
+    "340881": {
+      "available": 937,
+      "selected": 4
+    },
+    "340882": {
+      "available": 722,
+      "selected": 4
+    },
+    "341002": {
+      "available": 1253,
+      "selected": 5
+    },
+    "341003": {
+      "available": 750,
+      "selected": 4
+    },
+    "341004": {
+      "available": 360,
+      "selected": 1
+    },
+    "341021": {
+      "available": 496,
+      "selected": 5
+    },
+    "341022": {
+      "available": 367,
+      "selected": 3
+    },
+    "341023": {
+      "available": 171,
+      "selected": 0
+    },
+    "341024": {
+      "available": 225,
+      "selected": 0
+    },
+    "341102": {
+      "available": 2036,
+      "selected": 5
+    },
+    "341103": {
+      "available": 1956,
+      "selected": 14
+    },
+    "341122": {
+      "available": 536,
+      "selected": 5
+    },
+    "341124": {
+      "available": 1122,
+      "selected": 8
+    },
+    "341125": {
+      "available": 519,
+      "selected": 5
+    },
+    "341126": {
+      "available": 385,
+      "selected": 5
+    },
+    "341181": {
+      "available": 692,
+      "selected": 4
+    },
+    "341182": {
+      "available": 445,
+      "selected": 5
+    },
+    "341202": {
+      "available": 2552,
+      "selected": 0
+    },
+    "341203": {
+      "available": 736,
+      "selected": 0
+    },
+    "341204": {
+      "available": 748,
+      "selected": 0
+    },
+    "341221": {
+      "available": 523,
+      "selected": 0
+    },
+    "341222": {
+      "available": 495,
+      "selected": 0
+    },
+    "341225": {
+      "available": 482,
+      "selected": 0
+    },
+    "341226": {
+      "available": 805,
+      "selected": 0
+    },
+    "341282": {
+      "available": 816,
+      "selected": 0
+    },
+    "341302": {
+      "available": 1914,
+      "selected": 18
+    },
+    "341321": {
+      "available": 199,
+      "selected": 1
+    },
+    "341322": {
+      "available": 203,
+      "selected": 1
+    },
+    "341323": {
+      "available": 185,
+      "selected": 1
+    },
+    "341324": {
+      "available": 142,
+      "selected": 1
+    },
+    "341502": {
+      "available": 2118,
+      "selected": 16
+    },
+    "341503": {
+      "available": 1634,
+      "selected": 5
+    },
+    "341504": {
+      "available": 392,
+      "selected": 2
+    },
+    "341522": {
+      "available": 344,
+      "selected": 1
+    },
+    "341523": {
+      "available": 467,
+      "selected": 3
+    },
+    "341524": {
+      "available": 408,
+      "selected": 2
+    },
+    "341525": {
+      "available": 455,
+      "selected": 3
+    },
+    "341602": {
+      "available": 2316,
+      "selected": 0
+    },
+    "341621": {
+      "available": 300,
+      "selected": 0
+    },
+    "341622": {
+      "available": 462,
+      "selected": 0
+    },
+    "341623": {
+      "available": 397,
+      "selected": 0
+    },
+    "341702": {
+      "available": 1607,
+      "selected": 10
+    },
+    "341721": {
+      "available": 98,
+      "selected": 0
+    },
+    "341722": {
+      "available": 45,
+      "selected": 1
+    },
+    "341723": {
+      "available": 167,
+      "selected": 1
+    },
+    "341802": {
+      "available": 1316,
+      "selected": 6
+    },
+    "341821": {
+      "available": 330,
+      "selected": 3
+    },
+    "341823": {
+      "available": 672,
+      "selected": 7
+    },
+    "341824": {
+      "available": 639,
+      "selected": 5
+    },
+    "341825": {
+      "available": 134,
+      "selected": 0
+    },
+    "341881": {
+      "available": 1095,
+      "selected": 7
+    },
+    "341882": {
+      "available": 1069,
+      "selected": 4
+    },
+    "350102": {
+      "available": 9925,
+      "selected": 0
+    },
+    "350103": {
+      "available": 6260,
+      "selected": 0
+    },
+    "350104": {
+      "available": 35606,
+      "selected": 0
+    },
+    "350105": {
+      "available": 7108,
+      "selected": 0
+    },
+    "350111": {
+      "available": 19187,
+      "selected": 0
+    },
+    "350112": {
+      "available": 9922,
+      "selected": 0
+    },
+    "350121": {
+      "available": 26663,
+      "selected": 0
+    },
+    "350122": {
+      "available": 6183,
+      "selected": 0
+    },
+    "350123": {
+      "available": 1933,
+      "selected": 0
+    },
+    "350124": {
+      "available": 1373,
+      "selected": 0
+    },
+    "350125": {
+      "available": 2695,
+      "selected": 0
+    },
+    "350128": {
+      "available": 3334,
+      "selected": 0
+    },
+    "350181": {
+      "available": 9241,
+      "selected": 0
+    },
+    "350203": {
+      "available": 20768,
+      "selected": 0
+    },
+    "350205": {
+      "available": 20461,
+      "selected": 2
+    },
+    "350206": {
+      "available": 20469,
+      "selected": 0
+    },
+    "350211": {
+      "available": 32452,
+      "selected": 7
+    },
+    "350212": {
+      "available": 30412,
+      "selected": 7
+    },
+    "350213": {
+      "available": 27839,
+      "selected": 9
+    },
+    "350302": {
+      "available": 20789,
+      "selected": 13
+    },
+    "350303": {
+      "available": 17068,
+      "selected": 10
+    },
+    "350304": {
+      "available": 25805,
+      "selected": 18
+    },
+    "350305": {
+      "available": 7010,
+      "selected": 2
+    },
+    "350322": {
+      "available": 20467,
+      "selected": 11
+    },
+    "350403": {
+      "available": 15460,
+      "selected": 11
+    },
+    "350421": {
+      "available": 1812,
+      "selected": 0
+    },
+    "350423": {
+      "available": 2851,
+      "selected": 1
+    },
+    "350424": {
+      "available": 3500,
+      "selected": 4
+    },
+    "350425": {
+      "available": 3387,
+      "selected": 1
+    },
+    "350426": {
+      "available": 3027,
+      "selected": 0
+    },
+    "350427": {
+      "available": 10652,
+      "selected": 6
+    },
+    "350429": {
+      "available": 1941,
+      "selected": 0
+    },
+    "350430": {
+      "available": 112,
+      "selected": 0
+    },
+    "350481": {
+      "available": 7676,
+      "selected": 0
+    },
+    "350502": {
+      "available": 6731,
+      "selected": 4
+    },
+    "350503": {
+      "available": 12758,
+      "selected": 8
+    },
+    "350504": {
+      "available": 2449,
+      "selected": 2
+    },
+    "350505": {
+      "available": 2386,
+      "selected": 2
+    },
+    "350521": {
+      "available": 15854,
+      "selected": 9
+    },
+    "350524": {
+      "available": 2976,
+      "selected": 2
+    },
+    "350525": {
+      "available": 2173,
+      "selected": 2
+    },
+    "350526": {
+      "available": 2329,
+      "selected": 2
+    },
+    "350581": {
+      "available": 13292,
+      "selected": 10
+    },
+    "350582": {
+      "available": 53435,
+      "selected": 40
+    },
+    "350583": {
+      "available": 21596,
+      "selected": 18
+    },
+    "350602": {
+      "available": 26814,
+      "selected": 0
+    },
+    "350603": {
+      "available": 20759,
+      "selected": 0
+    },
+    "350622": {
+      "available": 6659,
+      "selected": 0
+    },
+    "350623": {
+      "available": 9049,
+      "selected": 0
+    },
+    "350624": {
+      "available": 5150,
+      "selected": 0
+    },
+    "350625": {
+      "available": 6458,
+      "selected": 0
+    },
+    "350626": {
+      "available": 10448,
+      "selected": 0
+    },
+    "350627": {
+      "available": 4495,
+      "selected": 0
+    },
+    "350628": {
+      "available": 4228,
+      "selected": 0
+    },
+    "350629": {
+      "available": 2180,
+      "selected": 0
+    },
+    "350681": {
+      "available": 23354,
+      "selected": 0
+    },
+    "350702": {
+      "available": 11139,
+      "selected": 6
+    },
+    "350703": {
+      "available": 8271,
+      "selected": 2
+    },
+    "350721": {
+      "available": 2065,
+      "selected": 1
+    },
+    "350722": {
+      "available": 1833,
+      "selected": 3
+    },
+    "350723": {
+      "available": 1148,
+      "selected": 1
+    },
+    "350724": {
+      "available": 1442,
+      "selected": 1
+    },
+    "350725": {
+      "available": 1108,
+      "selected": 2
+    },
+    "350781": {
+      "available": 4356,
+      "selected": 6
+    },
+    "350782": {
+      "available": 14215,
+      "selected": 9
+    },
+    "350783": {
+      "available": 5204,
+      "selected": 1
+    },
+    "350802": {
+      "available": 32964,
+      "selected": 23
+    },
+    "350803": {
+      "available": 501,
+      "selected": 1
+    },
+    "350821": {
+      "available": 4768,
+      "selected": 5
+    },
+    "350823": {
+      "available": 3996,
+      "selected": 4
+    },
+    "350824": {
+      "available": 2719,
+      "selected": 4
+    },
+    "350825": {
+      "available": 1599,
+      "selected": 0
+    },
+    "350881": {
+      "available": 4664,
+      "selected": 2
+    },
+    "350902": {
+      "available": 25609,
+      "selected": 16
+    },
+    "350922": {
+      "available": 3560,
+      "selected": 3
+    },
+    "350923": {
+      "available": 2693,
+      "selected": 2
+    },
+    "350924": {
+      "available": 1283,
+      "selected": 1
+    },
+    "350925": {
+      "available": 1351,
+      "selected": 0
+    },
+    "350926": {
+      "available": 2104,
+      "selected": 2
+    },
+    "350981": {
+      "available": 7279,
+      "selected": 5
+    },
+    "350982": {
+      "available": 6911,
+      "selected": 2
+    },
+    "360102": {
+      "available": 6685,
+      "selected": 0
+    },
+    "360103": {
+      "available": 9082,
+      "selected": 5
+    },
+    "360104": {
+      "available": 7162,
+      "selected": 2
+    },
+    "360111": {
+      "available": 31861,
+      "selected": 17
+    },
+    "360112": {
+      "available": 16494,
+      "selected": 9
+    },
+    "360113": {
+      "available": 19260,
+      "selected": 8
+    },
+    "360121": {
+      "available": 39055,
+      "selected": 13
+    },
+    "360123": {
+      "available": 4103,
+      "selected": 1
+    },
+    "360124": {
+      "available": 6388,
+      "selected": 9
+    },
+    "360202": {
+      "available": 15589,
+      "selected": 6
+    },
+    "360203": {
+      "available": 20390,
+      "selected": 18
+    },
+    "360222": {
+      "available": 5358,
+      "selected": 2
+    },
+    "360281": {
+      "available": 9079,
+      "selected": 6
+    },
+    "360302": {
+      "available": 30203,
+      "selected": 28
+    },
+    "360313": {
+      "available": 5660,
+      "selected": 1
+    },
+    "360322": {
+      "available": 3596,
+      "selected": 4
+    },
+    "360323": {
+      "available": 993,
+      "selected": 0
+    },
+    "360402": {
+      "available": 28441,
+      "selected": 21
+    },
+    "360403": {
+      "available": 12208,
+      "selected": 10
+    },
+    "360404": {
+      "available": 17820,
+      "selected": 11
+    },
+    "360423": {
+      "available": 5556,
+      "selected": 3
+    },
+    "360424": {
+      "available": 2716,
+      "selected": 3
+    },
+    "360425": {
+      "available": 2960,
+      "selected": 4
+    },
+    "360426": {
+      "available": 3917,
+      "selected": 2
+    },
+    "360428": {
+      "available": 3485,
+      "selected": 1
+    },
+    "360429": {
+      "available": 2211,
+      "selected": 0
+    },
+    "360430": {
+      "available": 1441,
+      "selected": 0
+    },
+    "360481": {
+      "available": 9139,
+      "selected": 7
+    },
+    "360482": {
+      "available": 4237,
+      "selected": 0
+    },
+    "360483": {
+      "available": 9957,
+      "selected": 6
+    },
+    "360502": {
+      "available": 30750,
+      "selected": 0
+    },
+    "360602": {
+      "available": 19269,
+      "selected": 0
+    },
+    "360603": {
+      "available": 3756,
+      "selected": 0
+    },
+    "360681": {
+      "available": 7019,
+      "selected": 0
+    },
+    "360702": {
+      "available": 38554,
+      "selected": 0
+    },
+    "360703": {
+      "available": 21492,
+      "selected": 0
+    },
+    "360704": {
+      "available": 5967,
+      "selected": 0
+    },
+    "360722": {
+      "available": 4855,
+      "selected": 0
+    },
+    "360723": {
+      "available": 3030,
+      "selected": 0
+    },
+    "360724": {
+      "available": 3121,
+      "selected": 0
+    },
+    "360725": {
+      "available": 1525,
+      "selected": 0
+    },
+    "360726": {
+      "available": 1541,
+      "selected": 0
+    },
+    "360728": {
+      "available": 2798,
+      "selected": 0
+    },
+    "360729": {
+      "available": 1797,
+      "selected": 0
+    },
+    "360730": {
+      "available": 3529,
+      "selected": 0
+    },
+    "360731": {
+      "available": 4158,
+      "selected": 0
+    },
+    "360732": {
+      "available": 3091,
+      "selected": 0
+    },
+    "360733": {
+      "available": 3616,
+      "selected": 0
+    },
+    "360734": {
+      "available": 2130,
+      "selected": 0
+    },
+    "360735": {
+      "available": 2428,
+      "selected": 0
+    },
+    "360781": {
+      "available": 5364,
+      "selected": 0
+    },
+    "360783": {
+      "available": 3329,
+      "selected": 0
+    },
+    "360802": {
+      "available": 27210,
+      "selected": 19
+    },
+    "360803": {
+      "available": 14365,
+      "selected": 13
+    },
+    "360821": {
+      "available": 20325,
+      "selected": 11
+    },
+    "360822": {
+      "available": 7696,
+      "selected": 5
+    },
+    "360823": {
+      "available": 236,
+      "selected": 0
+    },
+    "360824": {
+      "available": 6547,
+      "selected": 4
+    },
+    "360825": {
+      "available": 3151,
+      "selected": 2
+    },
+    "360826": {
+      "available": 2164,
+      "selected": 2
+    },
+    "360827": {
+      "available": 2816,
+      "selected": 3
+    },
+    "360828": {
+      "available": 3980,
+      "selected": 4
+    },
+    "360829": {
+      "available": 3595,
+      "selected": 2
+    },
+    "360830": {
+      "available": 3236,
+      "selected": 2
+    },
+    "360881": {
+      "available": 8127,
+      "selected": 6
+    },
+    "360902": {
+      "available": 50234,
+      "selected": 10
+    },
+    "360921": {
+      "available": 11,
+      "selected": 0
+    },
+    "361002": {
+      "available": 23569,
+      "selected": 4
+    },
+    "361003": {
+      "available": 6086,
+      "selected": 0
+    },
+    "361021": {
+      "available": 740,
+      "selected": 0
+    },
+    "361022": {
+      "available": 136,
+      "selected": 0
+    },
+    "361023": {
+      "available": 375,
+      "selected": 0
+    },
+    "361024": {
+      "available": 1438,
+      "selected": 0
+    },
+    "361025": {
+      "available": 470,
+      "selected": 0
+    },
+    "361026": {
+      "available": 332,
+      "selected": 0
+    },
+    "361027": {
+      "available": 2852,
+      "selected": 0
+    },
+    "361028": {
+      "available": 204,
+      "selected": 0
+    },
+    "361030": {
+      "available": 681,
+      "selected": 0
+    },
+    "361102": {
+      "available": 18042,
+      "selected": 0
+    },
+    "361103": {
+      "available": 3363,
+      "selected": 0
+    },
+    "361104": {
+      "available": 12882,
+      "selected": 0
+    },
+    "361123": {
+      "available": 5520,
+      "selected": 0
+    },
+    "361124": {
+      "available": 2426,
+      "selected": 0
+    },
+    "361125": {
+      "available": 1842,
+      "selected": 0
+    },
+    "361126": {
+      "available": 3871,
+      "selected": 0
+    },
+    "361127": {
+      "available": 2275,
+      "selected": 0
+    },
+    "361128": {
+      "available": 7536,
+      "selected": 0
+    },
+    "361129": {
+      "available": 2328,
+      "selected": 0
+    },
+    "361130": {
+      "available": 36171,
+      "selected": 19
+    },
+    "361181": {
+      "available": 6500,
+      "selected": 0
+    },
+    "370102": {
+      "available": 3195,
+      "selected": 8
+    },
+    "370103": {
+      "available": 3820,
+      "selected": 5
+    },
+    "370104": {
+      "available": 3005,
+      "selected": 1
+    },
+    "370105": {
+      "available": 4326,
+      "selected": 11
+    },
+    "370112": {
+      "available": 8909,
+      "selected": 13
+    },
+    "370113": {
+      "available": 3174,
+      "selected": 5
+    },
+    "370114": {
+      "available": 6104,
+      "selected": 4
+    },
+    "370115": {
+      "available": 2420,
+      "selected": 9
+    },
+    "370116": {
+      "available": 2713,
+      "selected": 8
+    },
+    "370117": {
+      "available": 585,
+      "selected": 0
+    },
+    "370124": {
+      "available": 712,
+      "selected": 0
+    },
+    "370126": {
+      "available": 537,
+      "selected": 3
+    },
+    "370202": {
+      "available": 1644,
+      "selected": 3
+    },
+    "370203": {
+      "available": 3098,
+      "selected": 1
+    },
+    "370211": {
+      "available": 9573,
+      "selected": 10
+    },
+    "370212": {
+      "available": 4358,
+      "selected": 7
+    },
+    "370213": {
+      "available": 3197,
+      "selected": 6
+    },
+    "370214": {
+      "available": 9145,
+      "selected": 12
+    },
+    "370215": {
+      "available": 3803,
+      "selected": 4
+    },
+    "370281": {
+      "available": 2169,
+      "selected": 1
+    },
+    "370283": {
+      "available": 1181,
+      "selected": 3
+    },
+    "370285": {
+      "available": 1605,
+      "selected": 4
+    },
+    "370302": {
+      "available": 2542,
+      "selected": 0
+    },
+    "370303": {
+      "available": 6053,
+      "selected": 0
+    },
+    "370304": {
+      "available": 1650,
+      "selected": 0
+    },
+    "370305": {
+      "available": 2719,
+      "selected": 0
+    },
+    "370306": {
+      "available": 1920,
+      "selected": 0
+    },
+    "370321": {
+      "available": 1462,
+      "selected": 0
+    },
+    "370322": {
+      "available": 475,
+      "selected": 0
+    },
+    "370323": {
+      "available": 634,
+      "selected": 0
+    },
+    "370402": {
+      "available": 1521,
+      "selected": 0
+    },
+    "370403": {
+      "available": 1747,
+      "selected": 0
+    },
+    "370404": {
+      "available": 518,
+      "selected": 0
+    },
+    "370405": {
+      "available": 355,
+      "selected": 0
+    },
+    "370406": {
+      "available": 273,
+      "selected": 0
+    },
+    "370481": {
+      "available": 1692,
+      "selected": 0
+    },
+    "370502": {
+      "available": 8507,
+      "selected": 0
+    },
+    "370503": {
+      "available": 1138,
+      "selected": 0
+    },
+    "370505": {
+      "available": 4177,
+      "selected": 0
+    },
+    "370522": {
+      "available": 745,
+      "selected": 0
+    },
+    "370523": {
+      "available": 1329,
+      "selected": 0
+    },
+    "370602": {
+      "available": 4286,
+      "selected": 0
+    },
+    "370611": {
+      "available": 3673,
+      "selected": 0
+    },
+    "370612": {
+      "available": 2850,
+      "selected": 0
+    },
+    "370613": {
+      "available": 3956,
+      "selected": 0
+    },
+    "370614": {
+      "available": 2019,
+      "selected": 0
+    },
+    "370681": {
+      "available": 1721,
+      "selected": 0
+    },
+    "370682": {
+      "available": 2041,
+      "selected": 0
+    },
+    "370683": {
+      "available": 1544,
+      "selected": 0
+    },
+    "370685": {
+      "available": 1813,
+      "selected": 0
+    },
+    "370686": {
+      "available": 784,
+      "selected": 0
+    },
+    "370687": {
+      "available": 3482,
+      "selected": 0
+    },
+    "370702": {
+      "available": 4107,
+      "selected": 3
+    },
+    "370703": {
+      "available": 4331,
+      "selected": 3
+    },
+    "370704": {
+      "available": 2316,
+      "selected": 1
+    },
+    "370705": {
+      "available": 3322,
+      "selected": 0
+    },
+    "370724": {
+      "available": 2792,
+      "selected": 1
+    },
+    "370725": {
+      "available": 2746,
+      "selected": 1
+    },
+    "370781": {
+      "available": 4985,
+      "selected": 1
+    },
+    "370782": {
+      "available": 1569,
+      "selected": 0
+    },
+    "370783": {
+      "available": 4332,
+      "selected": 1
+    },
+    "370784": {
+      "available": 2611,
+      "selected": 0
+    },
+    "370785": {
+      "available": 1565,
+      "selected": 0
+    },
+    "370786": {
+      "available": 1265,
+      "selected": 1
+    },
+    "370811": {
+      "available": 4266,
+      "selected": 10
+    },
+    "370812": {
+      "available": 1332,
+      "selected": 3
+    },
+    "370826": {
+      "available": 1151,
+      "selected": 2
+    },
+    "370827": {
+      "available": 492,
+      "selected": 0
+    },
+    "370828": {
+      "available": 1006,
+      "selected": 0
+    },
+    "370829": {
+      "available": 787,
+      "selected": 2
+    },
+    "370830": {
+      "available": 534,
+      "selected": 0
+    },
+    "370831": {
+      "available": 548,
+      "selected": 3
+    },
+    "370832": {
+      "available": 844,
+      "selected": 2
+    },
+    "370881": {
+      "available": 1265,
+      "selected": 3
+    },
+    "370883": {
+      "available": 1504,
+      "selected": 2
+    },
+    "370902": {
+      "available": 2876,
+      "selected": 0
+    },
+    "370911": {
+      "available": 2982,
+      "selected": 0
+    },
+    "370921": {
+      "available": 244,
+      "selected": 0
+    },
+    "370923": {
+      "available": 325,
+      "selected": 0
+    },
+    "370982": {
+      "available": 309,
+      "selected": 0
+    },
+    "370983": {
+      "available": 1457,
+      "selected": 0
+    },
+    "371002": {
+      "available": 9679,
+      "selected": 0
+    },
+    "371003": {
+      "available": 2957,
+      "selected": 0
+    },
+    "371082": {
+      "available": 3463,
+      "selected": 0
+    },
+    "371083": {
+      "available": 1837,
+      "selected": 0
+    },
+    "371102": {
+      "available": 4431,
+      "selected": 3
+    },
+    "371103": {
+      "available": 400,
+      "selected": 0
+    },
+    "371121": {
+      "available": 1154,
+      "selected": 1
+    },
+    "371122": {
+      "available": 368,
+      "selected": 0
+    },
+    "371302": {
+      "available": 8341,
+      "selected": 15
+    },
+    "371311": {
+      "available": 3772,
+      "selected": 2
+    },
+    "371312": {
+      "available": 6401,
+      "selected": 15
+    },
+    "371321": {
+      "available": 4570,
+      "selected": 10
+    },
+    "371322": {
+      "available": 3255,
+      "selected": 4
+    },
+    "371323": {
+      "available": 2003,
+      "selected": 7
+    },
+    "371324": {
+      "available": 4124,
+      "selected": 8
+    },
+    "371325": {
+      "available": 3614,
+      "selected": 9
+    },
+    "371326": {
+      "available": 3597,
+      "selected": 8
+    },
+    "371327": {
+      "available": 3561,
+      "selected": 7
+    },
+    "371328": {
+      "available": 2760,
+      "selected": 3
+    },
+    "371329": {
+      "available": 2372,
+      "selected": 7
+    },
+    "371402": {
+      "available": 5693,
+      "selected": 6
+    },
+    "371403": {
+      "available": 778,
+      "selected": 2
+    },
+    "371422": {
+      "available": 643,
+      "selected": 1
+    },
+    "371423": {
+      "available": 511,
+      "selected": 3
+    },
+    "371424": {
+      "available": 981,
+      "selected": 3
+    },
+    "371425": {
+      "available": 1241,
+      "selected": 3
+    },
+    "371426": {
+      "available": 691,
+      "selected": 2
+    },
+    "371427": {
+      "available": 752,
+      "selected": 1
+    },
+    "371428": {
+      "available": 512,
+      "selected": 1
+    },
+    "371481": {
+      "available": 696,
+      "selected": 0
+    },
+    "371482": {
+      "available": 809,
+      "selected": 1
+    },
+    "371502": {
+      "available": 3649,
+      "selected": 14
+    },
+    "371503": {
+      "available": 793,
+      "selected": 1
+    },
+    "371521": {
+      "available": 387,
+      "selected": 1
+    },
+    "371522": {
+      "available": 524,
+      "selected": 2
+    },
+    "371524": {
+      "available": 630,
+      "selected": 2
+    },
+    "371525": {
+      "available": 595,
+      "selected": 1
+    },
+    "371526": {
+      "available": 713,
+      "selected": 2
+    },
+    "371581": {
+      "available": 418,
+      "selected": 1
+    },
+    "371602": {
+      "available": 3342,
+      "selected": 0
+    },
+    "371603": {
+      "available": 3,
+      "selected": 0
+    },
+    "371621": {
+      "available": 54,
+      "selected": 0
+    },
+    "371625": {
+      "available": 17,
+      "selected": 0
+    },
+    "371681": {
+      "available": 36,
+      "selected": 0
+    },
+    "371702": {
+      "available": 2656,
+      "selected": 0
+    },
+    "371703": {
+      "available": 425,
+      "selected": 0
+    },
+    "371721": {
+      "available": 3020,
+      "selected": 0
+    },
+    "371722": {
+      "available": 2122,
+      "selected": 0
+    },
+    "371723": {
+      "available": 2853,
+      "selected": 0
+    },
+    "371724": {
+      "available": 2503,
+      "selected": 0
+    },
+    "371725": {
+      "available": 3046,
+      "selected": 0
+    },
+    "371726": {
+      "available": 2073,
+      "selected": 0
+    },
+    "371728": {
+      "available": 1813,
+      "selected": 0
+    },
+    "410102": {
+      "available": 4532,
+      "selected": 0
+    },
+    "410103": {
+      "available": 2923,
+      "selected": 0
+    },
+    "410104": {
+      "available": 5642,
+      "selected": 0
+    },
+    "410105": {
+      "available": 8519,
+      "selected": 0
+    },
+    "410106": {
+      "available": 863,
+      "selected": 0
+    },
+    "410108": {
+      "available": 2426,
+      "selected": 1
+    },
+    "410122": {
+      "available": 11323,
+      "selected": 27
+    },
+    "410181": {
+      "available": 1870,
+      "selected": 0
+    },
+    "410182": {
+      "available": 2997,
+      "selected": 0
+    },
+    "410183": {
+      "available": 1455,
+      "selected": 0
+    },
+    "410184": {
+      "available": 5744,
+      "selected": 0
+    },
+    "410185": {
+      "available": 2051,
+      "selected": 1
+    },
+    "410202": {
+      "available": 3184,
+      "selected": 13
+    },
+    "410203": {
+      "available": 1306,
+      "selected": 4
+    },
+    "410204": {
+      "available": 721,
+      "selected": 1
+    },
+    "410205": {
+      "available": 749,
+      "selected": 1
+    },
+    "410212": {
+      "available": 5811,
+      "selected": 17
+    },
+    "410221": {
+      "available": 1109,
+      "selected": 4
+    },
+    "410222": {
+      "available": 1618,
+      "selected": 8
+    },
+    "410223": {
+      "available": 1081,
+      "selected": 3
+    },
+    "410225": {
+      "available": 959,
+      "selected": 3
+    },
+    "410302": {
+      "available": 1017,
+      "selected": 2
+    },
+    "410303": {
+      "available": 1310,
+      "selected": 4
+    },
+    "410304": {
+      "available": 582,
+      "selected": 1
+    },
+    "410305": {
+      "available": 2232,
+      "selected": 8
+    },
+    "410306": {
+      "available": 1664,
+      "selected": 6
+    },
+    "410311": {
+      "available": 4136,
+      "selected": 12
+    },
+    "410323": {
+      "available": 519,
+      "selected": 0
+    },
+    "410324": {
+      "available": 558,
+      "selected": 1
+    },
+    "410325": {
+      "available": 406,
+      "selected": 4
+    },
+    "410326": {
+      "available": 358,
+      "selected": 0
+    },
+    "410327": {
+      "available": 656,
+      "selected": 3
+    },
+    "410328": {
+      "available": 313,
+      "selected": 2
+    },
+    "410329": {
+      "available": 881,
+      "selected": 7
+    },
+    "410381": {
+      "available": 887,
+      "selected": 2
+    },
+    "410402": {
+      "available": 1385,
+      "selected": 11
+    },
+    "410403": {
+      "available": 869,
+      "selected": 3
+    },
+    "410404": {
+      "available": 245,
+      "selected": 1
+    },
+    "410411": {
+      "available": 804,
+      "selected": 2
+    },
+    "410421": {
+      "available": 872,
+      "selected": 6
+    },
+    "410422": {
+      "available": 794,
+      "selected": 5
+    },
+    "410423": {
+      "available": 517,
+      "selected": 0
+    },
+    "410425": {
+      "available": 449,
+      "selected": 1
+    },
+    "410481": {
+      "available": 327,
+      "selected": 1
+    },
+    "410482": {
+      "available": 500,
+      "selected": 1
+    },
+    "410502": {
+      "available": 1785,
+      "selected": 9
+    },
+    "410503": {
+      "available": 753,
+      "selected": 2
+    },
+    "410505": {
+      "available": 1064,
+      "selected": 6
+    },
+    "410506": {
+      "available": 1109,
+      "selected": 6
+    },
+    "410522": {
+      "available": 433,
+      "selected": 2
+    },
+    "410523": {
+      "available": 1335,
+      "selected": 2
+    },
+    "410526": {
+      "available": 1461,
+      "selected": 2
+    },
+    "410527": {
+      "available": 488,
+      "selected": 4
+    },
+    "410581": {
+      "available": 1549,
+      "selected": 3
+    },
+    "410602": {
+      "available": 11,
+      "selected": 0
+    },
+    "410603": {
+      "available": 190,
+      "selected": 0
+    },
+    "410611": {
+      "available": 1028,
+      "selected": 0
+    },
+    "410621": {
+      "available": 288,
+      "selected": 0
+    },
+    "410622": {
+      "available": 413,
+      "selected": 0
+    },
+    "410702": {
+      "available": 1475,
+      "selected": 0
+    },
+    "410703": {
+      "available": 1066,
+      "selected": 4
+    },
+    "410704": {
+      "available": 956,
+      "selected": 0
+    },
+    "410711": {
+      "available": 1823,
+      "selected": 5
+    },
+    "410721": {
+      "available": 2007,
+      "selected": 8
+    },
+    "410724": {
+      "available": 672,
+      "selected": 2
+    },
+    "410725": {
+      "available": 453,
+      "selected": 0
+    },
+    "410726": {
+      "available": 333,
+      "selected": 0
+    },
+    "410727": {
+      "available": 433,
+      "selected": 0
+    },
+    "410781": {
+      "available": 1749,
+      "selected": 1
+    },
+    "410782": {
+      "available": 2076,
+      "selected": 2
+    },
+    "410783": {
+      "available": 872,
+      "selected": 0
+    },
+    "410802": {
+      "available": 1094,
+      "selected": 4
+    },
+    "410803": {
+      "available": 464,
+      "selected": 4
+    },
+    "410804": {
+      "available": 240,
+      "selected": 0
+    },
+    "410811": {
+      "available": 1651,
+      "selected": 3
+    },
+    "410821": {
+      "available": 511,
+      "selected": 0
+    },
+    "410822": {
+      "available": 736,
+      "selected": 3
+    },
+    "410823": {
+      "available": 660,
+      "selected": 3
+    },
+    "410825": {
+      "available": 388,
+      "selected": 1
+    },
+    "410882": {
+      "available": 511,
+      "selected": 2
+    },
+    "410883": {
+      "available": 343,
+      "selected": 0
+    },
+    "410902": {
+      "available": 1938,
+      "selected": 0
+    },
+    "410922": {
+      "available": 319,
+      "selected": 0
+    },
+    "410928": {
+      "available": 510,
+      "selected": 0
+    },
+    "411002": {
+      "available": 1537,
+      "selected": 0
+    },
+    "411003": {
+      "available": 914,
+      "selected": 0
+    },
+    "411024": {
+      "available": 205,
+      "selected": 0
+    },
+    "411025": {
+      "available": 174,
+      "selected": 0
+    },
+    "411081": {
+      "available": 475,
+      "selected": 0
+    },
+    "411082": {
+      "available": 516,
+      "selected": 0
+    },
+    "411102": {
+      "available": 758,
+      "selected": 4
+    },
+    "411103": {
+      "available": 677,
+      "selected": 1
+    },
+    "411104": {
+      "available": 753,
+      "selected": 4
+    },
+    "411121": {
+      "available": 273,
+      "selected": 3
+    },
+    "411122": {
+      "available": 736,
+      "selected": 4
+    },
+    "411202": {
+      "available": 1170,
+      "selected": 0
+    },
+    "411203": {
+      "available": 254,
+      "selected": 0
+    },
+    "411221": {
+      "available": 16,
+      "selected": 0
+    },
+    "411281": {
+      "available": 437,
+      "selected": 0
+    },
+    "411282": {
+      "available": 4,
+      "selected": 0
+    },
+    "411302": {
+      "available": 2139,
+      "selected": 3
+    },
+    "411303": {
+      "available": 1861,
+      "selected": 4
+    },
+    "411321": {
+      "available": 372,
+      "selected": 0
+    },
+    "411322": {
+      "available": 520,
+      "selected": 0
+    },
+    "411323": {
+      "available": 670,
+      "selected": 1
+    },
+    "411324": {
+      "available": 775,
+      "selected": 0
+    },
+    "411325": {
+      "available": 649,
+      "selected": 3
+    },
+    "411326": {
+      "available": 356,
+      "selected": 0
+    },
+    "411327": {
+      "available": 652,
+      "selected": 2
+    },
+    "411328": {
+      "available": 1388,
+      "selected": 2
+    },
+    "411329": {
+      "available": 608,
+      "selected": 0
+    },
+    "411330": {
+      "available": 530,
+      "selected": 0
+    },
+    "411381": {
+      "available": 1079,
+      "selected": 6
+    },
+    "411402": {
+      "available": 2089,
+      "selected": 0
+    },
+    "411403": {
+      "available": 1629,
+      "selected": 0
+    },
+    "411421": {
+      "available": 1205,
+      "selected": 0
+    },
+    "411422": {
+      "available": 714,
+      "selected": 0
+    },
+    "411423": {
+      "available": 582,
+      "selected": 0
+    },
+    "411424": {
+      "available": 567,
+      "selected": 0
+    },
+    "411425": {
+      "available": 764,
+      "selected": 0
+    },
+    "411426": {
+      "available": 737,
+      "selected": 0
+    },
+    "411481": {
+      "available": 1465,
+      "selected": 0
+    },
+    "411502": {
+      "available": 1128,
+      "selected": 0
+    },
+    "411503": {
+      "available": 1419,
+      "selected": 0
+    },
+    "411521": {
+      "available": 441,
+      "selected": 0
+    },
+    "411522": {
+      "available": 340,
+      "selected": 0
+    },
+    "411523": {
+      "available": 404,
+      "selected": 0
+    },
+    "411524": {
+      "available": 320,
+      "selected": 0
+    },
+    "411525": {
+      "available": 795,
+      "selected": 0
+    },
+    "411526": {
+      "available": 468,
+      "selected": 0
+    },
+    "411527": {
+      "available": 476,
+      "selected": 0
+    },
+    "411528": {
+      "available": 302,
+      "selected": 0
+    },
+    "411602": {
+      "available": 2027,
+      "selected": 0
+    },
+    "411603": {
+      "available": 900,
+      "selected": 0
+    },
+    "411621": {
+      "available": 464,
+      "selected": 0
+    },
+    "411622": {
+      "available": 600,
+      "selected": 0
+    },
+    "411623": {
+      "available": 512,
+      "selected": 0
+    },
+    "411624": {
+      "available": 769,
+      "selected": 0
+    },
+    "411625": {
+      "available": 883,
+      "selected": 0
+    },
+    "411627": {
+      "available": 409,
+      "selected": 0
+    },
+    "411628": {
+      "available": 519,
+      "selected": 0
+    },
+    "411681": {
+      "available": 727,
+      "selected": 0
+    },
+    "411702": {
+      "available": 2578,
+      "selected": 10
+    },
+    "411721": {
+      "available": 462,
+      "selected": 2
+    },
+    "411722": {
+      "available": 365,
+      "selected": 0
+    },
+    "411723": {
+      "available": 395,
+      "selected": 1
+    },
+    "411724": {
+      "available": 384,
+      "selected": 0
+    },
+    "411725": {
+      "available": 177,
+      "selected": 1
+    },
+    "411726": {
+      "available": 442,
+      "selected": 0
+    },
+    "411727": {
+      "available": 276,
+      "selected": 0
+    },
+    "411728": {
+      "available": 338,
+      "selected": 3
+    },
+    "411729": {
+      "available": 446,
+      "selected": 3
+    },
+    "419001": {
+      "available": 225,
+      "selected": 2
+    },
+    "420102": {
+      "available": 7611,
+      "selected": 4
+    },
+    "420103": {
+      "available": 3471,
+      "selected": 6
+    },
+    "420104": {
+      "available": 4635,
+      "selected": 8
+    },
+    "420105": {
+      "available": 11693,
+      "selected": 16
+    },
+    "420106": {
+      "available": 9009,
+      "selected": 12
+    },
+    "420107": {
+      "available": 4971,
+      "selected": 8
+    },
+    "420111": {
+      "available": 26094,
+      "selected": 55
+    },
+    "420112": {
+      "available": 17352,
+      "selected": 32
+    },
+    "420113": {
+      "available": 5220,
+      "selected": 8
+    },
+    "420114": {
+      "available": 22710,
+      "selected": 39
+    },
+    "420115": {
+      "available": 29071,
+      "selected": 48
+    },
+    "420116": {
+      "available": 11460,
+      "selected": 16
+    },
+    "420117": {
+      "available": 6371,
+      "selected": 15
+    },
+    "420202": {
+      "available": 500,
+      "selected": 0
+    },
+    "420203": {
+      "available": 925,
+      "selected": 0
+    },
+    "420204": {
+      "available": 934,
+      "selected": 0
+    },
+    "420205": {
+      "available": 140,
+      "selected": 0
+    },
+    "420222": {
+      "available": 96,
+      "selected": 0
+    },
+    "420281": {
+      "available": 2426,
+      "selected": 0
+    },
+    "420302": {
+      "available": 1745,
+      "selected": 0
+    },
+    "420303": {
+      "available": 1425,
+      "selected": 0
+    },
+    "420304": {
+      "available": 130,
+      "selected": 0
+    },
+    "420322": {
+      "available": 118,
+      "selected": 0
+    },
+    "420323": {
+      "available": 94,
+      "selected": 0
+    },
+    "420324": {
+      "available": 74,
+      "selected": 0
+    },
+    "420325": {
+      "available": 114,
+      "selected": 0
+    },
+    "420381": {
+      "available": 522,
+      "selected": 1
+    },
+    "420502": {
+      "available": 1233,
+      "selected": 0
+    },
+    "420503": {
+      "available": 1276,
+      "selected": 1
+    },
+    "420504": {
+      "available": 525,
+      "selected": 2
+    },
+    "420505": {
+      "available": 1186,
+      "selected": 0
+    },
+    "420506": {
+      "available": 1462,
+      "selected": 4
+    },
+    "420525": {
+      "available": 125,
+      "selected": 0
+    },
+    "420526": {
+      "available": 141,
+      "selected": 0
+    },
+    "420527": {
+      "available": 263,
+      "selected": 0
+    },
+    "420581": {
+      "available": 372,
+      "selected": 0
+    },
+    "420582": {
+      "available": 409,
+      "selected": 0
+    },
+    "420583": {
+      "available": 252,
+      "selected": 0
+    },
+    "420602": {
+      "available": 1547,
+      "selected": 0
+    },
+    "420606": {
+      "available": 2509,
+      "selected": 0
+    },
+    "420607": {
+      "available": 2183,
+      "selected": 0
+    },
+    "420624": {
+      "available": 292,
+      "selected": 0
+    },
+    "420625": {
+      "available": 314,
+      "selected": 0
+    },
+    "420626": {
+      "available": 284,
+      "selected": 0
+    },
+    "420682": {
+      "available": 334,
+      "selected": 0
+    },
+    "420683": {
+      "available": 530,
+      "selected": 0
+    },
+    "420684": {
+      "available": 440,
+      "selected": 0
+    },
+    "420702": {
+      "available": 78,
+      "selected": 0
+    },
+    "420703": {
+      "available": 787,
+      "selected": 0
+    },
+    "420704": {
+      "available": 2624,
+      "selected": 2
+    },
+    "420802": {
+      "available": 284,
+      "selected": 2
+    },
+    "420804": {
+      "available": 1047,
+      "selected": 1
+    },
+    "420822": {
+      "available": 221,
+      "selected": 0
+    },
+    "420881": {
+      "available": 857,
+      "selected": 0
+    },
+    "420882": {
+      "available": 354,
+      "selected": 0
+    },
+    "420902": {
+      "available": 1633,
+      "selected": 3
+    },
+    "420921": {
+      "available": 311,
+      "selected": 0
+    },
+    "420922": {
+      "available": 241,
+      "selected": 0
+    },
+    "420923": {
+      "available": 294,
+      "selected": 0
+    },
+    "420981": {
+      "available": 239,
+      "selected": 0
+    },
+    "420982": {
+      "available": 387,
+      "selected": 0
+    },
+    "420984": {
+      "available": 261,
+      "selected": 0
+    },
+    "421002": {
+      "available": 2141,
+      "selected": 1
+    },
+    "421003": {
+      "available": 1195,
+      "selected": 1
+    },
+    "421022": {
+      "available": 395,
+      "selected": 0
+    },
+    "421023": {
+      "available": 402,
+      "selected": 0
+    },
+    "421024": {
+      "available": 169,
+      "selected": 0
+    },
+    "421081": {
+      "available": 403,
+      "selected": 0
+    },
+    "421083": {
+      "available": 370,
+      "selected": 0
+    },
+    "421087": {
+      "available": 279,
+      "selected": 0
+    },
+    "421102": {
+      "available": 2272,
+      "selected": 0
+    },
+    "421121": {
+      "available": 351,
+      "selected": 0
+    },
+    "421122": {
+      "available": 320,
+      "selected": 0
+    },
+    "421123": {
+      "available": 368,
+      "selected": 0
+    },
+    "421124": {
+      "available": 286,
+      "selected": 0
+    },
+    "421125": {
+      "available": 375,
+      "selected": 0
+    },
+    "421126": {
+      "available": 564,
+      "selected": 0
+    },
+    "421127": {
+      "available": 735,
+      "selected": 0
+    },
+    "421181": {
+      "available": 752,
+      "selected": 0
+    },
+    "421182": {
+      "available": 756,
+      "selected": 0
+    },
+    "421202": {
+      "available": 1876,
+      "selected": 0
+    },
+    "421224": {
+      "available": 103,
+      "selected": 0
+    },
+    "421303": {
+      "available": 1814,
+      "selected": 7
+    },
+    "421321": {
+      "available": 106,
+      "selected": 0
+    },
+    "422801": {
+      "available": 1628,
+      "selected": 3
+    },
+    "429004": {
+      "available": 1784,
+      "selected": 4
+    },
+    "429005": {
+      "available": 2289,
+      "selected": 3
+    },
+    "429006": {
+      "available": 1993,
+      "selected": 1
+    },
+    "429021": {
+      "available": 167,
+      "selected": 0
+    },
+    "430102": {
+      "available": 1485,
+      "selected": 16
+    },
+    "430103": {
+      "available": 2335,
+      "selected": 20
+    },
+    "430104": {
+      "available": 5865,
+      "selected": 43
+    },
+    "430105": {
+      "available": 2916,
+      "selected": 20
+    },
+    "430111": {
+      "available": 3028,
+      "selected": 31
+    },
+    "430112": {
+      "available": 2361,
+      "selected": 19
+    },
+    "430121": {
+      "available": 2333,
+      "selected": 18
+    },
+    "430181": {
+      "available": 690,
+      "selected": 4
+    },
+    "430182": {
+      "available": 1722,
+      "selected": 18
+    },
+    "430202": {
+      "available": 488,
+      "selected": 0
+    },
+    "430203": {
+      "available": 898,
+      "selected": 2
+    },
+    "430204": {
+      "available": 772,
+      "selected": 2
+    },
+    "430211": {
+      "available": 1292,
+      "selected": 2
+    },
+    "430212": {
+      "available": 265,
+      "selected": 0
+    },
+    "430223": {
+      "available": 341,
+      "selected": 0
+    },
+    "430224": {
+      "available": 336,
+      "selected": 0
+    },
+    "430225": {
+      "available": 183,
+      "selected": 0
+    },
+    "430281": {
+      "available": 636,
+      "selected": 0
+    },
+    "430302": {
+      "available": 1754,
+      "selected": 7
+    },
+    "430304": {
+      "available": 1887,
+      "selected": 13
+    },
+    "430321": {
+      "available": 705,
+      "selected": 1
+    },
+    "430381": {
+      "available": 390,
+      "selected": 0
+    },
+    "430382": {
+      "available": 86,
+      "selected": 0
+    },
+    "430405": {
+      "available": 1145,
+      "selected": 5
+    },
+    "430406": {
+      "available": 863,
+      "selected": 1
+    },
+    "430407": {
+      "available": 656,
+      "selected": 1
+    },
+    "430408": {
+      "available": 967,
+      "selected": 4
+    },
+    "430412": {
+      "available": 95,
+      "selected": 0
+    },
+    "430421": {
+      "available": 417,
+      "selected": 3
+    },
+    "430422": {
+      "available": 316,
+      "selected": 0
+    },
+    "430423": {
+      "available": 137,
+      "selected": 0
+    },
+    "430424": {
+      "available": 203,
+      "selected": 0
+    },
+    "430426": {
+      "available": 218,
+      "selected": 0
+    },
+    "430481": {
+      "available": 371,
+      "selected": 0
+    },
+    "430482": {
+      "available": 369,
+      "selected": 0
+    },
+    "430502": {
+      "available": 1330,
+      "selected": 0
+    },
+    "430503": {
+      "available": 799,
+      "selected": 0
+    },
+    "430511": {
+      "available": 583,
+      "selected": 0
+    },
+    "430522": {
+      "available": 460,
+      "selected": 0
+    },
+    "430523": {
+      "available": 198,
+      "selected": 0
+    },
+    "430524": {
+      "available": 337,
+      "selected": 0
+    },
+    "430525": {
+      "available": 261,
+      "selected": 0
+    },
+    "430527": {
+      "available": 164,
+      "selected": 0
+    },
+    "430528": {
+      "available": 274,
+      "selected": 0
+    },
+    "430529": {
+      "available": 273,
+      "selected": 0
+    },
+    "430581": {
+      "available": 446,
+      "selected": 0
+    },
+    "430582": {
+      "available": 1012,
+      "selected": 0
+    },
+    "430602": {
+      "available": 2546,
+      "selected": 0
+    },
+    "430603": {
+      "available": 265,
+      "selected": 0
+    },
+    "430611": {
+      "available": 115,
+      "selected": 0
+    },
+    "430621": {
+      "available": 328,
+      "selected": 0
+    },
+    "430623": {
+      "available": 280,
+      "selected": 0
+    },
+    "430624": {
+      "available": 219,
+      "selected": 0
+    },
+    "430626": {
+      "available": 67,
+      "selected": 0
+    },
+    "430681": {
+      "available": 291,
+      "selected": 0
+    },
+    "430682": {
+      "available": 502,
+      "selected": 0
+    },
+    "430702": {
+      "available": 2735,
+      "selected": 26
+    },
+    "430703": {
+      "available": 899,
+      "selected": 11
+    },
+    "430721": {
+      "available": 222,
+      "selected": 6
+    },
+    "430722": {
+      "available": 244,
+      "selected": 4
+    },
+    "430723": {
+      "available": 369,
+      "selected": 3
+    },
+    "430724": {
+      "available": 213,
+      "selected": 1
+    },
+    "430725": {
+      "available": 135,
+      "selected": 0
+    },
+    "430726": {
+      "available": 350,
+      "selected": 1
+    },
+    "430781": {
+      "available": 89,
+      "selected": 1
+    },
+    "430802": {
+      "available": 1292,
+      "selected": 1
+    },
+    "430811": {
+      "available": 655,
+      "selected": 3
+    },
+    "430821": {
+      "available": 371,
+      "selected": 3
+    },
+    "430822": {
+      "available": 172,
+      "selected": 0
+    },
+    "430902": {
+      "available": 466,
+      "selected": 0
+    },
+    "430903": {
+      "available": 1562,
+      "selected": 0
+    },
+    "430921": {
+      "available": 301,
+      "selected": 0
+    },
+    "430922": {
+      "available": 492,
+      "selected": 0
+    },
+    "430981": {
+      "available": 438,
+      "selected": 0
+    },
+    "431002": {
+      "available": 671,
+      "selected": 0
+    },
+    "431003": {
+      "available": 1190,
+      "selected": 3
+    },
+    "431021": {
+      "available": 185,
+      "selected": 0
+    },
+    "431022": {
+      "available": 182,
+      "selected": 0
+    },
+    "431023": {
+      "available": 290,
+      "selected": 0
+    },
+    "431024": {
+      "available": 134,
+      "selected": 0
+    },
+    "431025": {
+      "available": 277,
+      "selected": 0
+    },
+    "431026": {
+      "available": 242,
+      "selected": 0
+    },
+    "431027": {
+      "available": 91,
+      "selected": 0
+    },
+    "431028": {
+      "available": 236,
+      "selected": 0
+    },
+    "431081": {
+      "available": 211,
+      "selected": 0
+    },
+    "431102": {
+      "available": 357,
+      "selected": 0
+    },
+    "431103": {
+      "available": 840,
+      "selected": 0
+    },
+    "431121": {
+      "available": 218,
+      "selected": 0
+    },
+    "431122": {
+      "available": 159,
+      "selected": 0
+    },
+    "431123": {
+      "available": 47,
+      "selected": 0
+    },
+    "431124": {
+      "available": 115,
+      "selected": 0
+    },
+    "431125": {
+      "available": 99,
+      "selected": 0
+    },
+    "431126": {
+      "available": 148,
+      "selected": 0
+    },
+    "431127": {
+      "available": 96,
+      "selected": 0
+    },
+    "431128": {
+      "available": 96,
+      "selected": 0
+    },
+    "431129": {
+      "available": 108,
+      "selected": 0
+    },
+    "431202": {
+      "available": 614,
+      "selected": 7
+    },
+    "431221": {
+      "available": 97,
+      "selected": 2
+    },
+    "431227": {
+      "available": 53,
+      "selected": 0
+    },
+    "431228": {
+      "available": 90,
+      "selected": 1
+    },
+    "431230": {
+      "available": 24,
+      "selected": 0
+    },
+    "431302": {
+      "available": 1230,
+      "selected": 0
+    },
+    "431321": {
+      "available": 261,
+      "selected": 0
+    },
+    "431322": {
+      "available": 238,
+      "selected": 0
+    },
+    "431381": {
+      "available": 206,
+      "selected": 0
+    },
+    "431382": {
+      "available": 206,
+      "selected": 0
+    },
+    "433101": {
+      "available": 887,
+      "selected": 0
+    },
+    "433123": {
+      "available": 129,
+      "selected": 0
+    },
+    "433124": {
+      "available": 250,
+      "selected": 0
+    },
+    "433125": {
+      "available": 145,
+      "selected": 0
+    },
+    "433126": {
+      "available": 113,
+      "selected": 0
+    },
+    "433127": {
+      "available": 68,
+      "selected": 0
+    },
+    "433130": {
+      "available": 241,
+      "selected": 0
+    },
+    "440103": {
+      "available": 9980,
+      "selected": 0
+    },
+    "440104": {
+      "available": 6029,
+      "selected": 2
+    },
+    "440105": {
+      "available": 13124,
+      "selected": 3
+    },
+    "440106": {
+      "available": 14821,
+      "selected": 7
+    },
+    "440111": {
+      "available": 37677,
+      "selected": 11
+    },
+    "440112": {
+      "available": 26549,
+      "selected": 10
+    },
+    "440113": {
+      "available": 38606,
+      "selected": 11
+    },
+    "440114": {
+      "available": 18947,
+      "selected": 6
+    },
+    "440115": {
+      "available": 8838,
+      "selected": 6
+    },
+    "440117": {
+      "available": 3741,
+      "selected": 2
+    },
+    "440118": {
+      "available": 15830,
+      "selected": 3
+    },
+    "440203": {
+      "available": 18121,
+      "selected": 0
+    },
+    "440204": {
+      "available": 14516,
+      "selected": 0
+    },
+    "440205": {
+      "available": 6506,
+      "selected": 0
+    },
+    "440222": {
+      "available": 2562,
+      "selected": 0
+    },
+    "440224": {
+      "available": 3698,
+      "selected": 0
+    },
+    "440229": {
+      "available": 1850,
+      "selected": 0
+    },
+    "440232": {
+      "available": 1270,
+      "selected": 0
+    },
+    "440233": {
+      "available": 2207,
+      "selected": 0
+    },
+    "440281": {
+      "available": 3515,
+      "selected": 0
+    },
+    "440282": {
+      "available": 1963,
+      "selected": 0
+    },
+    "440303": {
+      "available": 8502,
+      "selected": 0
+    },
+    "440304": {
+      "available": 11526,
+      "selected": 0
+    },
+    "440305": {
+      "available": 20418,
+      "selected": 1
+    },
+    "440306": {
+      "available": 55502,
+      "selected": 5
+    },
+    "440307": {
+      "available": 64151,
+      "selected": 8
+    },
+    "440308": {
+      "available": 6438,
+      "selected": 0
+    },
+    "440309": {
+      "available": 31858,
+      "selected": 0
+    },
+    "440310": {
+      "available": 14859,
+      "selected": 1
+    },
+    "440311": {
+      "available": 18688,
+      "selected": 1
+    },
+    "440402": {
+      "available": 65060,
+      "selected": 0
+    },
+    "440403": {
+      "available": 14547,
+      "selected": 0
+    },
+    "440404": {
+      "available": 29691,
+      "selected": 0
+    },
+    "440507": {
+      "available": 26890,
+      "selected": 10
+    },
+    "440511": {
+      "available": 20702,
+      "selected": 5
+    },
+    "440512": {
+      "available": 12407,
+      "selected": 3
+    },
+    "440513": {
+      "available": 23329,
+      "selected": 5
+    },
+    "440514": {
+      "available": 18524,
+      "selected": 0
+    },
+    "440515": {
+      "available": 21230,
+      "selected": 6
+    },
+    "440523": {
+      "available": 1990,
+      "selected": 0
+    },
+    "440604": {
+      "available": 25133,
+      "selected": 6
+    },
+    "440605": {
+      "available": 51092,
+      "selected": 13
+    },
+    "440606": {
+      "available": 46101,
+      "selected": 18
+    },
+    "440607": {
+      "available": 3317,
+      "selected": 1
+    },
+    "440608": {
+      "available": 3782,
+      "selected": 1
+    },
+    "440703": {
+      "available": 38809,
+      "selected": 15
+    },
+    "440704": {
+      "available": 13433,
+      "selected": 3
+    },
+    "440705": {
+      "available": 23087,
+      "selected": 3
+    },
+    "440781": {
+      "available": 12855,
+      "selected": 2
+    },
+    "440783": {
+      "available": 11209,
+      "selected": 1
+    },
+    "440784": {
+      "available": 11491,
+      "selected": 3
+    },
+    "440785": {
+      "available": 6916,
+      "selected": 0
+    },
+    "440802": {
+      "available": 15296,
+      "selected": 0
+    },
+    "440803": {
+      "available": 23630,
+      "selected": 0
+    },
+    "440804": {
+      "available": 7648,
+      "selected": 0
+    },
+    "440811": {
+      "available": 19074,
+      "selected": 0
+    },
+    "440823": {
+      "available": 8693,
+      "selected": 0
+    },
+    "440825": {
+      "available": 5026,
+      "selected": 0
+    },
+    "440881": {
+      "available": 14769,
+      "selected": 0
+    },
+    "440882": {
+      "available": 7309,
+      "selected": 0
+    },
+    "440883": {
+      "available": 13955,
+      "selected": 0
+    },
+    "440902": {
+      "available": 44208,
+      "selected": 12
+    },
+    "440904": {
+      "available": 28806,
+      "selected": 6
+    },
+    "440981": {
+      "available": 9752,
+      "selected": 3
+    },
+    "440982": {
+      "available": 22641,
+      "selected": 6
+    },
+    "440983": {
+      "available": 7523,
+      "selected": 3
+    },
+    "441202": {
+      "available": 46932,
+      "selected": 0
+    },
+    "441203": {
+      "available": 15061,
+      "selected": 0
+    },
+    "441204": {
+      "available": 15448,
+      "selected": 0
+    },
+    "441223": {
+      "available": 4351,
+      "selected": 0
+    },
+    "441224": {
+      "available": 6307,
+      "selected": 0
+    },
+    "441225": {
+      "available": 3613,
+      "selected": 0
+    },
+    "441226": {
+      "available": 4698,
+      "selected": 0
+    },
+    "441284": {
+      "available": 12750,
+      "selected": 0
+    },
+    "441302": {
+      "available": 69969,
+      "selected": 0
+    },
+    "441303": {
+      "available": 40567,
+      "selected": 1
+    },
+    "441322": {
+      "available": 8445,
+      "selected": 0
+    },
+    "441323": {
+      "available": 13457,
+      "selected": 0
+    },
+    "441324": {
+      "available": 2132,
+      "selected": 0
+    },
+    "441402": {
+      "available": 34618,
+      "selected": 6
+    },
+    "441403": {
+      "available": 25160,
+      "selected": 13
+    },
+    "441422": {
+      "available": 6002,
+      "selected": 1
+    },
+    "441423": {
+      "available": 9385,
+      "selected": 2
+    },
+    "441424": {
+      "available": 10439,
+      "selected": 1
+    },
+    "441426": {
+      "available": 5420,
+      "selected": 0
+    },
+    "441427": {
+      "available": 4420,
+      "selected": 3
+    },
+    "441481": {
+      "available": 14331,
+      "selected": 2
+    },
+    "441502": {
+      "available": 18329,
+      "selected": 8
+    },
+    "441521": {
+      "available": 21466,
+      "selected": 5
+    },
+    "441581": {
+      "available": 10941,
+      "selected": 4
+    },
+    "441602": {
+      "available": 30932,
+      "selected": 0
+    },
+    "441621": {
+      "available": 6471,
+      "selected": 0
+    },
+    "441622": {
+      "available": 3654,
+      "selected": 0
+    },
+    "441623": {
+      "available": 2411,
+      "selected": 0
+    },
+    "441624": {
+      "available": 3321,
+      "selected": 0
+    },
+    "441625": {
+      "available": 6457,
+      "selected": 0
+    },
+    "441702": {
+      "available": 1982,
+      "selected": 0
+    },
+    "441704": {
+      "available": 1088,
+      "selected": 0
+    },
+    "441721": {
+      "available": 450,
+      "selected": 0
+    },
+    "441781": {
+      "available": 814,
+      "selected": 0
+    },
+    "441802": {
+      "available": 55617,
+      "selected": 7
+    },
+    "441803": {
+      "available": 15378,
+      "selected": 0
+    },
+    "441821": {
+      "available": 6302,
+      "selected": 3
+    },
+    "441823": {
+      "available": 7332,
+      "selected": 0
+    },
+    "441825": {
+      "available": 2316,
+      "selected": 0
+    },
+    "441826": {
+      "available": 3440,
+      "selected": 4
+    },
+    "441881": {
+      "available": 13129,
+      "selected": 2
+    },
+    "441882": {
+      "available": 6471,
+      "selected": 1
+    },
+    "441900": {
+      "available": 152169,
+      "selected": 1
+    },
+    "442000": {
+      "available": 142279,
+      "selected": 1
+    },
+    "445102": {
+      "available": 15318,
+      "selected": 2
+    },
+    "445103": {
+      "available": 29680,
+      "selected": 9
+    },
+    "445122": {
+      "available": 7338,
+      "selected": 1
+    },
+    "445202": {
+      "available": 44805,
+      "selected": 9
+    },
+    "445203": {
+      "available": 26686,
+      "selected": 9
+    },
+    "445222": {
+      "available": 6948,
+      "selected": 2
+    },
+    "445224": {
+      "available": 4499,
+      "selected": 0
+    },
+    "445281": {
+      "available": 25952,
+      "selected": 4
+    },
+    "445302": {
+      "available": 25173,
+      "selected": 0
+    },
+    "445303": {
+      "available": 1606,
+      "selected": 0
+    },
+    "445321": {
+      "available": 10841,
+      "selected": 0
+    },
+    "445322": {
+      "available": 4633,
+      "selected": 0
+    },
+    "445381": {
+      "available": 8485,
+      "selected": 0
+    },
+    "450102": {
+      "available": 11803,
+      "selected": 6
+    },
+    "450103": {
+      "available": 27571,
+      "selected": 29
+    },
+    "450105": {
+      "available": 30244,
+      "selected": 20
+    },
+    "450107": {
+      "available": 29409,
+      "selected": 14
+    },
+    "450108": {
+      "available": 16186,
+      "selected": 9
+    },
+    "450109": {
+      "available": 6929,
+      "selected": 9
+    },
+    "450110": {
+      "available": 5335,
+      "selected": 2
+    },
+    "450123": {
+      "available": 1054,
+      "selected": 2
+    },
+    "450124": {
+      "available": 1053,
+      "selected": 0
+    },
+    "450125": {
+      "available": 970,
+      "selected": 0
+    },
+    "450126": {
+      "available": 4240,
+      "selected": 1
+    },
+    "450127": {
+      "available": 2322,
+      "selected": 3
+    },
+    "450202": {
+      "available": 15633,
+      "selected": 6
+    },
+    "450203": {
+      "available": 35369,
+      "selected": 23
+    },
+    "450204": {
+      "available": 29965,
+      "selected": 4
+    },
+    "450205": {
+      "available": 16528,
+      "selected": 4
+    },
+    "450206": {
+      "available": 9330,
+      "selected": 7
+    },
+    "450222": {
+      "available": 2609,
+      "selected": 3
+    },
+    "450223": {
+      "available": 3847,
+      "selected": 4
+    },
+    "450224": {
+      "available": 2806,
+      "selected": 0
+    },
+    "450225": {
+      "available": 2496,
+      "selected": 0
+    },
+    "450226": {
+      "available": 1981,
+      "selected": 2
+    },
+    "450302": {
+      "available": 8680,
+      "selected": 5
+    },
+    "450303": {
+      "available": 10460,
+      "selected": 5
+    },
+    "450304": {
+      "available": 12071,
+      "selected": 6
+    },
+    "450305": {
+      "available": 16089,
+      "selected": 15
+    },
+    "450311": {
+      "available": 3947,
+      "selected": 1
+    },
+    "450312": {
+      "available": 21709,
+      "selected": 14
+    },
+    "450321": {
+      "available": 4702,
+      "selected": 2
+    },
+    "450323": {
+      "available": 9332,
+      "selected": 8
+    },
+    "450324": {
+      "available": 3044,
+      "selected": 1
+    },
+    "450325": {
+      "available": 5549,
+      "selected": 2
+    },
+    "450326": {
+      "available": 1982,
+      "selected": 2
+    },
+    "450327": {
+      "available": 1754,
+      "selected": 1
+    },
+    "450328": {
+      "available": 1197,
+      "selected": 0
+    },
+    "450329": {
+      "available": 1216,
+      "selected": 0
+    },
+    "450330": {
+      "available": 2391,
+      "selected": 2
+    },
+    "450332": {
+      "available": 3108,
+      "selected": 2
+    },
+    "450381": {
+      "available": 2473,
+      "selected": 0
+    },
+    "450403": {
+      "available": 12469,
+      "selected": 0
+    },
+    "450405": {
+      "available": 13321,
+      "selected": 0
+    },
+    "450406": {
+      "available": 6900,
+      "selected": 0
+    },
+    "450421": {
+      "available": 21,
+      "selected": 0
+    },
+    "450422": {
+      "available": 4445,
+      "selected": 0
+    },
+    "450423": {
+      "available": 4082,
+      "selected": 0
+    },
+    "450481": {
+      "available": 9759,
+      "selected": 0
+    },
+    "450502": {
+      "available": 53863,
+      "selected": 0
+    },
+    "450503": {
+      "available": 30111,
+      "selected": 0
+    },
+    "450512": {
+      "available": 1402,
+      "selected": 0
+    },
+    "450521": {
+      "available": 16542,
+      "selected": 0
+    },
+    "450602": {
+      "available": 26759,
+      "selected": 24
+    },
+    "450603": {
+      "available": 8072,
+      "selected": 6
+    },
+    "450621": {
+      "available": 3585,
+      "selected": 2
+    },
+    "450681": {
+      "available": 12088,
+      "selected": 7
+    },
+    "450702": {
+      "available": 24173,
+      "selected": 0
+    },
+    "450703": {
+      "available": 13688,
+      "selected": 0
+    },
+    "450721": {
+      "available": 7764,
+      "selected": 0
+    },
+    "450722": {
+      "available": 4944,
+      "selected": 0
+    },
+    "450802": {
+      "available": 1366,
+      "selected": 2
+    },
+    "450803": {
+      "available": 867,
+      "selected": 0
+    },
+    "450804": {
+      "available": 178,
+      "selected": 0
+    },
+    "450821": {
+      "available": 485,
+      "selected": 0
+    },
+    "450881": {
+      "available": 383,
+      "selected": 0
+    },
+    "450902": {
+      "available": 49619,
+      "selected": 0
+    },
+    "450924": {
+      "available": 806,
+      "selected": 0
+    },
+    "451002": {
+      "available": 23970,
+      "selected": 0
+    },
+    "451003": {
+      "available": 8993,
+      "selected": 0
+    },
+    "451022": {
+      "available": 5513,
+      "selected": 0
+    },
+    "451024": {
+      "available": 189,
+      "selected": 0
+    },
+    "451027": {
+      "available": 1598,
+      "selected": 0
+    },
+    "451081": {
+      "available": 362,
+      "selected": 0
+    },
+    "451102": {
+      "available": 12088,
+      "selected": 0
+    },
+    "451103": {
+      "available": 6773,
+      "selected": 0
+    },
+    "451121": {
+      "available": 3402,
+      "selected": 0
+    },
+    "451122": {
+      "available": 4771,
+      "selected": 0
+    },
+    "451123": {
+      "available": 3637,
+      "selected": 0
+    },
+    "451202": {
+      "available": 12844,
+      "selected": 0
+    },
+    "451203": {
+      "available": 9293,
+      "selected": 0
+    },
+    "451221": {
+      "available": 3121,
+      "selected": 0
+    },
+    "451222": {
+      "available": 1698,
+      "selected": 0
+    },
+    "451223": {
+      "available": 1550,
+      "selected": 0
+    },
+    "451224": {
+      "available": 1218,
+      "selected": 0
+    },
+    "451225": {
+      "available": 1505,
+      "selected": 0
+    },
+    "451226": {
+      "available": 755,
+      "selected": 0
+    },
+    "451227": {
+      "available": 2506,
+      "selected": 0
+    },
+    "451228": {
+      "available": 3253,
+      "selected": 0
+    },
+    "451229": {
+      "available": 2934,
+      "selected": 0
+    },
+    "451302": {
+      "available": 26354,
+      "selected": 22
+    },
+    "451381": {
+      "available": 3752,
+      "selected": 3
+    },
+    "451402": {
+      "available": 9619,
+      "selected": 10
+    },
+    "451421": {
+      "available": 4148,
+      "selected": 1
+    },
+    "451422": {
+      "available": 3863,
+      "selected": 2
+    },
+    "451423": {
+      "available": 3683,
+      "selected": 5
+    },
+    "451424": {
+      "available": 2387,
+      "selected": 0
+    },
+    "451425": {
+      "available": 2287,
+      "selected": 2
+    },
+    "451481": {
+      "available": 4535,
+      "selected": 3
+    },
+    "460105": {
+      "available": 36335,
+      "selected": 59
+    },
+    "460106": {
+      "available": 20716,
+      "selected": 22
+    },
+    "460107": {
+      "available": 12417,
+      "selected": 6
+    },
+    "460108": {
+      "available": 37362,
+      "selected": 70
+    },
+    "460202": {
+      "available": 11108,
+      "selected": 38
+    },
+    "460203": {
+      "available": 21635,
+      "selected": 44
+    },
+    "460204": {
+      "available": 19887,
+      "selected": 41
+    },
+    "460205": {
+      "available": 1156,
+      "selected": 7
+    },
+    "460400": {
+      "available": 20503,
+      "selected": 10
+    },
+    "469001": {
+      "available": 169,
+      "selected": 0
+    },
+    "469002": {
+      "available": 505,
+      "selected": 0
+    },
+    "469005": {
+      "available": 527,
+      "selected": 1
+    },
+    "469006": {
+      "available": 512,
+      "selected": 2
+    },
+    "469007": {
+      "available": 1026,
+      "selected": 0
+    },
+    "469021": {
+      "available": 339,
+      "selected": 1
+    },
+    "469022": {
+      "available": 234,
+      "selected": 0
+    },
+    "469023": {
+      "available": 427,
+      "selected": 0
+    },
+    "469024": {
+      "available": 161,
+      "selected": 0
+    },
+    "469025": {
+      "available": 110,
+      "selected": 0
+    },
+    "469026": {
+      "available": 221,
+      "selected": 0
+    },
+    "469027": {
+      "available": 111,
+      "selected": 1
+    },
+    "469028": {
+      "available": 348,
+      "selected": 0
+    },
+    "469029": {
+      "available": 234,
+      "selected": 0
+    },
+    "469030": {
+      "available": 102,
+      "selected": 1
+    },
+    "500101": {
+      "available": 6695,
+      "selected": 0
+    },
+    "500102": {
+      "available": 4712,
+      "selected": 11
+    },
+    "500103": {
+      "available": 2653,
+      "selected": 4
+    },
+    "500104": {
+      "available": 4392,
+      "selected": 17
+    },
+    "500105": {
+      "available": 3633,
+      "selected": 13
+    },
+    "500106": {
+      "available": 10626,
+      "selected": 16
+    },
+    "500107": {
+      "available": 13912,
+      "selected": 18
+    },
+    "500108": {
+      "available": 9600,
+      "selected": 32
+    },
+    "500109": {
+      "available": 4489,
+      "selected": 16
+    },
+    "500110": {
+      "available": 1542,
+      "selected": 0
+    },
+    "500111": {
+      "available": 4239,
+      "selected": 8
+    },
+    "500112": {
+      "available": 22183,
+      "selected": 75
+    },
+    "500113": {
+      "available": 9207,
+      "selected": 25
+    },
+    "500114": {
+      "available": 3485,
+      "selected": 2
+    },
+    "500115": {
+      "available": 7964,
+      "selected": 13
+    },
+    "500116": {
+      "available": 5704,
+      "selected": 2
+    },
+    "500117": {
+      "available": 3425,
+      "selected": 3
+    },
+    "500118": {
+      "available": 4662,
+      "selected": 5
+    },
+    "500119": {
+      "available": 3036,
+      "selected": 2
+    },
+    "500120": {
+      "available": 3538,
+      "selected": 16
+    },
+    "500151": {
+      "available": 2730,
+      "selected": 4
+    },
+    "500152": {
+      "available": 2662,
+      "selected": 1
+    },
+    "500153": {
+      "available": 1293,
+      "selected": 1
+    },
+    "500154": {
+      "available": 4997,
+      "selected": 3
+    },
+    "500155": {
+      "available": 2636,
+      "selected": 0
+    },
+    "500156": {
+      "available": 333,
+      "selected": 2
+    },
+    "500229": {
+      "available": 620,
+      "selected": 0
+    },
+    "500230": {
+      "available": 2737,
+      "selected": 1
+    },
+    "500231": {
+      "available": 2913,
+      "selected": 2
+    },
+    "500233": {
+      "available": 3047,
+      "selected": 2
+    },
+    "500235": {
+      "available": 1966,
+      "selected": 2
+    },
+    "500236": {
+      "available": 460,
+      "selected": 1
+    },
+    "500237": {
+      "available": 1466,
+      "selected": 0
+    },
+    "500238": {
+      "available": 78,
+      "selected": 0
+    },
+    "500240": {
+      "available": 2922,
+      "selected": 1
+    },
+    "500241": {
+      "available": 2445,
+      "selected": 4
+    },
+    "500242": {
+      "available": 2135,
+      "selected": 1
+    },
+    "500243": {
+      "available": 1199,
+      "selected": 0
+    },
+    "510104": {
+      "available": 2842,
+      "selected": 109
+    },
+    "510105": {
+      "available": 2784,
+      "selected": 109
+    },
+    "510106": {
+      "available": 4990,
+      "selected": 109
+    },
+    "510107": {
+      "available": 5999,
+      "selected": 109
+    },
+    "510108": {
+      "available": 4854,
+      "selected": 109
+    },
+    "510112": {
+      "available": 4924,
+      "selected": 109
+    },
+    "510113": {
+      "available": 2616,
+      "selected": 109
+    },
+    "510114": {
+      "available": 4653,
+      "selected": 109
+    },
+    "510115": {
+      "available": 3901,
+      "selected": 109
+    },
+    "510116": {
+      "available": 9962,
+      "selected": 109
+    },
+    "510117": {
+      "available": 6375,
+      "selected": 109
+    },
+    "510118": {
+      "available": 803,
+      "selected": 108
+    },
+    "510121": {
+      "available": 1018,
+      "selected": 109
+    },
+    "510129": {
+      "available": 645,
+      "selected": 109
+    },
+    "510131": {
+      "available": 363,
+      "selected": 54
+    },
+    "510181": {
+      "available": 1675,
+      "selected": 109
+    },
+    "510182": {
+      "available": 1244,
+      "selected": 109
+    },
+    "510183": {
+      "available": 647,
+      "selected": 109
+    },
+    "510184": {
+      "available": 1382,
+      "selected": 109
+    },
+    "510185": {
+      "available": 299,
+      "selected": 109
+    },
+    "510302": {
+      "available": 538,
+      "selected": 109
+    },
+    "510303": {
+      "available": 251,
+      "selected": 109
+    },
+    "510304": {
+      "available": 690,
+      "selected": 109
+    },
+    "510311": {
+      "available": 406,
+      "selected": 109
+    },
+    "510321": {
+      "available": 177,
+      "selected": 73
+    },
+    "510322": {
+      "available": 193,
+      "selected": 81
+    },
+    "510402": {
+      "available": 993,
+      "selected": 109
+    },
+    "510403": {
+      "available": 180,
+      "selected": 56
+    },
+    "510411": {
+      "available": 529,
+      "selected": 109
+    },
+    "510421": {
+      "available": 141,
+      "selected": 45
+    },
+    "510422": {
+      "available": 61,
+      "selected": 24
+    },
+    "510502": {
+      "available": 1521,
+      "selected": 109
+    },
+    "510503": {
+      "available": 406,
+      "selected": 109
+    },
+    "510504": {
+      "available": 866,
+      "selected": 109
+    },
+    "510521": {
+      "available": 226,
+      "selected": 91
+    },
+    "510522": {
+      "available": 157,
+      "selected": 62
+    },
+    "510524": {
+      "available": 116,
+      "selected": 50
+    },
+    "510525": {
+      "available": 121,
+      "selected": 42
+    },
+    "510603": {
+      "available": 2054,
+      "selected": 109
+    },
+    "510604": {
+      "available": 263,
+      "selected": 85
+    },
+    "510623": {
+      "available": 534,
+      "selected": 109
+    },
+    "510681": {
+      "available": 962,
+      "selected": 109
+    },
+    "510682": {
+      "available": 586,
+      "selected": 109
+    },
+    "510683": {
+      "available": 434,
+      "selected": 109
+    },
+    "510703": {
+      "available": 2939,
+      "selected": 109
+    },
+    "510704": {
+      "available": 712,
+      "selected": 109
+    },
+    "510705": {
+      "available": 395,
+      "selected": 106
+    },
+    "510722": {
+      "available": 418,
+      "selected": 109
+    },
+    "510723": {
+      "available": 234,
+      "selected": 75
+    },
+    "510725": {
+      "available": 247,
+      "selected": 99
+    },
+    "510726": {
+      "available": 250,
+      "selected": 85
+    },
+    "510727": {
+      "available": 139,
+      "selected": 50
+    },
+    "510781": {
+      "available": 789,
+      "selected": 109
+    },
+    "510802": {
+      "available": 796,
+      "selected": 109
+    },
+    "510812": {
+      "available": 11,
+      "selected": 6
+    },
+    "510903": {
+      "available": 881,
+      "selected": 109
+    },
+    "510904": {
+      "available": 174,
+      "selected": 66
+    },
+    "510921": {
+      "available": 179,
+      "selected": 70
+    },
+    "510923": {
+      "available": 159,
+      "selected": 68
+    },
+    "510981": {
+      "available": 290,
+      "selected": 109
+    },
+    "511002": {
+      "available": 214,
+      "selected": 92
+    },
+    "511011": {
+      "available": 273,
+      "selected": 106
+    },
+    "511024": {
+      "available": 172,
+      "selected": 72
+    },
+    "511025": {
+      "available": 216,
+      "selected": 87
+    },
+    "511083": {
+      "available": 195,
+      "selected": 85
+    },
+    "511102": {
+      "available": 1069,
+      "selected": 109
+    },
+    "511111": {
+      "available": 201,
+      "selected": 77
+    },
+    "511112": {
+      "available": 316,
+      "selected": 109
+    },
+    "511113": {
+      "available": 81,
+      "selected": 28
+    },
+    "511123": {
+      "available": 358,
+      "selected": 109
+    },
+    "511124": {
+      "available": 157,
+      "selected": 60
+    },
+    "511126": {
+      "available": 307,
+      "selected": 104
+    },
+    "511129": {
+      "available": 68,
+      "selected": 26
+    },
+    "511132": {
+      "available": 121,
+      "selected": 40
+    },
+    "511133": {
+      "available": 166,
+      "selected": 57
+    },
+    "511181": {
+      "available": 493,
+      "selected": 109
+    },
+    "511302": {
+      "available": 781,
+      "selected": 109
+    },
+    "511303": {
+      "available": 673,
+      "selected": 109
+    },
+    "511304": {
+      "available": 361,
+      "selected": 109
+    },
+    "511321": {
+      "available": 256,
+      "selected": 108
+    },
+    "511322": {
+      "available": 145,
+      "selected": 64
+    },
+    "511323": {
+      "available": 123,
+      "selected": 55
+    },
+    "511324": {
+      "available": 218,
+      "selected": 95
+    },
+    "511325": {
+      "available": 243,
+      "selected": 105
+    },
+    "511381": {
+      "available": 396,
+      "selected": 109
+    },
+    "511402": {
+      "available": 924,
+      "selected": 109
+    },
+    "511403": {
+      "available": 289,
+      "selected": 103
+    },
+    "511421": {
+      "available": 274,
+      "selected": 99
+    },
+    "511423": {
+      "available": 259,
+      "selected": 102
+    },
+    "511424": {
+      "available": 298,
+      "selected": 96
+    },
+    "511425": {
+      "available": 114,
+      "selected": 45
+    },
+    "511502": {
+      "available": 865,
+      "selected": 109
+    },
+    "511503": {
+      "available": 170,
+      "selected": 68
+    },
+    "511504": {
+      "available": 507,
+      "selected": 109
+    },
+    "511523": {
+      "available": 133,
+      "selected": 58
+    },
+    "511524": {
+      "available": 130,
+      "selected": 53
+    },
+    "511525": {
+      "available": 101,
+      "selected": 39
+    },
+    "511526": {
+      "available": 106,
+      "selected": 43
+    },
+    "511527": {
+      "available": 106,
+      "selected": 37
+    },
+    "511528": {
+      "available": 128,
+      "selected": 46
+    },
+    "511529": {
+      "available": 201,
+      "selected": 78
+    },
+    "511602": {
+      "available": 533,
+      "selected": 109
+    },
+    "511621": {
+      "available": 156,
+      "selected": 62
+    },
+    "511622": {
+      "available": 143,
+      "selected": 61
+    },
+    "511623": {
+      "available": 171,
+      "selected": 67
+    },
+    "511681": {
+      "available": 191,
+      "selected": 69
+    },
+    "511702": {
+      "available": 502,
+      "selected": 109
+    },
+    "511703": {
+      "available": 348,
+      "selected": 109
+    },
+    "511722": {
+      "available": 62,
+      "selected": 29
+    },
+    "511723": {
+      "available": 83,
+      "selected": 33
+    },
+    "511724": {
+      "available": 197,
+      "selected": 89
+    },
+    "511725": {
+      "available": 86,
+      "selected": 40
+    },
+    "511781": {
+      "available": 117,
+      "selected": 42
+    },
+    "511802": {
+      "available": 553,
+      "selected": 109
+    },
+    "511803": {
+      "available": 119,
+      "selected": 46
+    },
+    "511822": {
+      "available": 90,
+      "selected": 33
+    },
+    "511823": {
+      "available": 236,
+      "selected": 85
+    },
+    "511824": {
+      "available": 153,
+      "selected": 44
+    },
+    "511825": {
+      "available": 107,
+      "selected": 41
+    },
+    "511826": {
+      "available": 135,
+      "selected": 55
+    },
+    "511827": {
+      "available": 61,
+      "selected": 18
+    },
+    "511902": {
+      "available": 348,
+      "selected": 109
+    },
+    "511903": {
+      "available": 13,
+      "selected": 6
+    },
+    "511921": {
+      "available": 77,
+      "selected": 52
+    },
+    "511922": {
+      "available": 3,
+      "selected": 1
+    },
+    "511923": {
+      "available": 15,
+      "selected": 8
+    },
+    "512002": {
+      "available": 1076,
+      "selected": 109
+    },
+    "512021": {
+      "available": 128,
+      "selected": 51
+    },
+    "512022": {
+      "available": 312,
+      "selected": 109
+    },
+    "513201": {
+      "available": 157,
+      "selected": 43
+    },
+    "513221": {
+      "available": 227,
+      "selected": 65
+    },
+    "513222": {
+      "available": 54,
+      "selected": 13
+    },
+    "513223": {
+      "available": 131,
+      "selected": 45
+    },
+    "513224": {
+      "available": 277,
+      "selected": 72
+    },
+    "513225": {
+      "available": 423,
+      "selected": 103
+    },
+    "513226": {
+      "available": 37,
+      "selected": 14
+    },
+    "513227": {
+      "available": 41,
+      "selected": 14
+    },
+    "513228": {
+      "available": 103,
+      "selected": 34
+    },
+    "513230": {
+      "available": 19,
+      "selected": 4
+    },
+    "513231": {
+      "available": 95,
+      "selected": 38
+    },
+    "513232": {
+      "available": 54,
+      "selected": 17
+    },
+    "513233": {
+      "available": 66,
+      "selected": 22
+    },
+    "513301": {
+      "available": 385,
+      "selected": 109
+    },
+    "513322": {
+      "available": 128,
+      "selected": 43
+    },
+    "513323": {
+      "available": 63,
+      "selected": 14
+    },
+    "513324": {
+      "available": 44,
+      "selected": 15
+    },
+    "513325": {
+      "available": 26,
+      "selected": 8
+    },
+    "513326": {
+      "available": 27,
+      "selected": 7
+    },
+    "513327": {
+      "available": 86,
+      "selected": 25
+    },
+    "513328": {
+      "available": 76,
+      "selected": 29
+    },
+    "513329": {
+      "available": 35,
+      "selected": 12
+    },
+    "513330": {
+      "available": 40,
+      "selected": 13
+    },
+    "513331": {
+      "available": 29,
+      "selected": 9
+    },
+    "513332": {
+      "available": 76,
+      "selected": 24
+    },
+    "513333": {
+      "available": 101,
+      "selected": 34
+    },
+    "513334": {
+      "available": 609,
+      "selected": 109
+    },
+    "513335": {
+      "available": 44,
+      "selected": 10
+    },
+    "513336": {
+      "available": 23,
+      "selected": 9
+    },
+    "513337": {
+      "available": 97,
+      "selected": 31
+    },
+    "513338": {
+      "available": 26,
+      "selected": 7
+    },
+    "513401": {
+      "available": 888,
+      "selected": 109
+    },
+    "513422": {
+      "available": 27,
+      "selected": 9
+    },
+    "513423": {
+      "available": 73,
+      "selected": 28
+    },
+    "513424": {
+      "available": 85,
+      "selected": 35
+    },
+    "513425": {
+      "available": 154,
+      "selected": 70
+    },
+    "513426": {
+      "available": 75,
+      "selected": 29
+    },
+    "513427": {
+      "available": 89,
+      "selected": 32
+    },
+    "513428": {
+      "available": 22,
+      "selected": 8
+    },
+    "513429": {
+      "available": 59,
+      "selected": 16
+    },
+    "513430": {
+      "available": 29,
+      "selected": 8
+    },
+    "513431": {
+      "available": 43,
+      "selected": 15
+    },
+    "513432": {
+      "available": 64,
+      "selected": 17
+    },
+    "513433": {
+      "available": 60,
+      "selected": 20
+    },
+    "513434": {
+      "available": 56,
+      "selected": 25
+    },
+    "513435": {
+      "available": 73,
+      "selected": 23
+    },
+    "513436": {
+      "available": 37,
+      "selected": 11
+    },
+    "513437": {
+      "available": 51,
+      "selected": 14
+    },
+    "520102": {
+      "available": 2412,
+      "selected": 35
+    },
+    "520103": {
+      "available": 1739,
+      "selected": 38
+    },
+    "520111": {
+      "available": 4735,
+      "selected": 82
+    },
+    "520112": {
+      "available": 1345,
+      "selected": 30
+    },
+    "520113": {
+      "available": 2325,
+      "selected": 43
+    },
+    "520115": {
+      "available": 2218,
+      "selected": 40
+    },
+    "520121": {
+      "available": 179,
+      "selected": 5
+    },
+    "520122": {
+      "available": 160,
+      "selected": 2
+    },
+    "520123": {
+      "available": 291,
+      "selected": 6
+    },
+    "520181": {
+      "available": 1142,
+      "selected": 21
+    },
+    "520201": {
+      "available": 1044,
+      "selected": 0
+    },
+    "520203": {
+      "available": 188,
+      "selected": 0
+    },
+    "520221": {
+      "available": 160,
+      "selected": 0
+    },
+    "520281": {
+      "available": 307,
+      "selected": 0
+    },
+    "520302": {
+      "available": 1352,
+      "selected": 0
+    },
+    "520303": {
+      "available": 953,
+      "selected": 0
+    },
+    "520304": {
+      "available": 584,
+      "selected": 0
+    },
+    "520322": {
+      "available": 257,
+      "selected": 0
+    },
+    "520323": {
+      "available": 232,
+      "selected": 0
+    },
+    "520324": {
+      "available": 85,
+      "selected": 0
+    },
+    "520325": {
+      "available": 123,
+      "selected": 0
+    },
+    "520326": {
+      "available": 23,
+      "selected": 0
+    },
+    "520327": {
+      "available": 98,
+      "selected": 0
+    },
+    "520328": {
+      "available": 333,
+      "selected": 0
+    },
+    "520329": {
+      "available": 104,
+      "selected": 0
+    },
+    "520330": {
+      "available": 223,
+      "selected": 0
+    },
+    "520381": {
+      "available": 391,
+      "selected": 0
+    },
+    "520382": {
+      "available": 188,
+      "selected": 0
+    },
+    "520402": {
+      "available": 756,
+      "selected": 0
+    },
+    "520403": {
+      "available": 86,
+      "selected": 0
+    },
+    "520423": {
+      "available": 112,
+      "selected": 0
+    },
+    "520424": {
+      "available": 178,
+      "selected": 0
+    },
+    "520425": {
+      "available": 51,
+      "selected": 0
+    },
+    "520502": {
+      "available": 371,
+      "selected": 0
+    },
+    "520521": {
+      "available": 4,
+      "selected": 0
+    },
+    "520526": {
+      "available": 48,
+      "selected": 0
+    },
+    "520527": {
+      "available": 4,
+      "selected": 0
+    },
+    "520602": {
+      "available": 244,
+      "selected": 0
+    },
+    "520621": {
+      "available": 157,
+      "selected": 0
+    },
+    "520622": {
+      "available": 134,
+      "selected": 0
+    },
+    "520623": {
+      "available": 135,
+      "selected": 0
+    },
+    "520624": {
+      "available": 146,
+      "selected": 0
+    },
+    "520625": {
+      "available": 170,
+      "selected": 0
+    },
+    "520626": {
+      "available": 316,
+      "selected": 0
+    },
+    "520627": {
+      "available": 134,
+      "selected": 0
+    },
+    "520628": {
+      "available": 200,
+      "selected": 0
+    },
+    "522301": {
+      "available": 715,
+      "selected": 0
+    },
+    "522302": {
+      "available": 154,
+      "selected": 0
+    },
+    "522323": {
+      "available": 65,
+      "selected": 0
+    },
+    "522324": {
+      "available": 36,
+      "selected": 0
+    },
+    "522325": {
+      "available": 97,
+      "selected": 0
+    },
+    "522326": {
+      "available": 74,
+      "selected": 0
+    },
+    "522327": {
+      "available": 28,
+      "selected": 0
+    },
+    "522328": {
+      "available": 124,
+      "selected": 0
+    },
+    "522601": {
+      "available": 501,
+      "selected": 0
+    },
+    "522622": {
+      "available": 68,
+      "selected": 0
+    },
+    "522623": {
+      "available": 101,
+      "selected": 0
+    },
+    "522624": {
+      "available": 86,
+      "selected": 0
+    },
+    "522625": {
+      "available": 155,
+      "selected": 0
+    },
+    "522626": {
+      "available": 50,
+      "selected": 0
+    },
+    "522627": {
+      "available": 73,
+      "selected": 0
+    },
+    "522628": {
+      "available": 48,
+      "selected": 0
+    },
+    "522629": {
+      "available": 109,
+      "selected": 0
+    },
+    "522630": {
+      "available": 75,
+      "selected": 0
+    },
+    "522631": {
+      "available": 96,
+      "selected": 0
+    },
+    "522632": {
+      "available": 180,
+      "selected": 0
+    },
+    "522633": {
+      "available": 88,
+      "selected": 0
+    },
+    "522634": {
+      "available": 72,
+      "selected": 0
+    },
+    "522635": {
+      "available": 59,
+      "selected": 0
+    },
+    "522636": {
+      "available": 60,
+      "selected": 0
+    },
+    "522701": {
+      "available": 568,
+      "selected": 0
+    },
+    "522702": {
+      "available": 152,
+      "selected": 0
+    },
+    "522722": {
+      "available": 127,
+      "selected": 0
+    },
+    "522723": {
+      "available": 110,
+      "selected": 0
+    },
+    "522725": {
+      "available": 123,
+      "selected": 0
+    },
+    "522726": {
+      "available": 121,
+      "selected": 0
+    },
+    "522727": {
+      "available": 69,
+      "selected": 0
+    },
+    "522728": {
+      "available": 72,
+      "selected": 0
+    },
+    "522729": {
+      "available": 57,
+      "selected": 0
+    },
+    "522730": {
+      "available": 170,
+      "selected": 1
+    },
+    "522731": {
+      "available": 136,
+      "selected": 0
+    },
+    "522732": {
+      "available": 58,
+      "selected": 0
+    },
+    "530102": {
+      "available": 16281,
+      "selected": 6
+    },
+    "530103": {
+      "available": 16929,
+      "selected": 12
+    },
+    "530111": {
+      "available": 35549,
+      "selected": 35
+    },
+    "530112": {
+      "available": 18067,
+      "selected": 15
+    },
+    "530113": {
+      "available": 1271,
+      "selected": 0
+    },
+    "530114": {
+      "available": 30914,
+      "selected": 21
+    },
+    "530115": {
+      "available": 5398,
+      "selected": 7
+    },
+    "530124": {
+      "available": 1536,
+      "selected": 1
+    },
+    "530125": {
+      "available": 2084,
+      "selected": 0
+    },
+    "530126": {
+      "available": 7524,
+      "selected": 5
+    },
+    "530127": {
+      "available": 2642,
+      "selected": 1
+    },
+    "530128": {
+      "available": 1162,
+      "selected": 3
+    },
+    "530129": {
+      "available": 1295,
+      "selected": 1
+    },
+    "530181": {
+      "available": 10680,
+      "selected": 8
+    },
+    "530302": {
+      "available": 46193,
+      "selected": 27
+    },
+    "530303": {
+      "available": 8072,
+      "selected": 4
+    },
+    "530304": {
+      "available": 4749,
+      "selected": 2
+    },
+    "530322": {
+      "available": 7990,
+      "selected": 6
+    },
+    "530323": {
+      "available": 4368,
+      "selected": 1
+    },
+    "530324": {
+      "available": 7947,
+      "selected": 9
+    },
+    "530325": {
+      "available": 2926,
+      "selected": 2
+    },
+    "530326": {
+      "available": 6245,
+      "selected": 3
+    },
+    "530381": {
+      "available": 12153,
+      "selected": 6
+    },
+    "530402": {
+      "available": 33001,
+      "selected": 0
+    },
+    "530403": {
+      "available": 93,
+      "selected": 0
+    },
+    "530423": {
+      "available": 2466,
+      "selected": 0
+    },
+    "530424": {
+      "available": 3234,
+      "selected": 0
+    },
+    "530425": {
+      "available": 3064,
+      "selected": 0
+    },
+    "530426": {
+      "available": 1858,
+      "selected": 0
+    },
+    "530427": {
+      "available": 1896,
+      "selected": 0
+    },
+    "530428": {
+      "available": 1765,
+      "selected": 0
+    },
+    "530481": {
+      "available": 3290,
+      "selected": 1
+    },
+    "530502": {
+      "available": 20051,
+      "selected": 10
+    },
+    "530521": {
+      "available": 1955,
+      "selected": 0
+    },
+    "530523": {
+      "available": 2583,
+      "selected": 5
+    },
+    "530524": {
+      "available": 3806,
+      "selected": 1
+    },
+    "530581": {
+      "available": 12059,
+      "selected": 9
+    },
+    "530602": {
+      "available": 5568,
+      "selected": 0
+    },
+    "530621": {
+      "available": 1298,
+      "selected": 0
+    },
+    "530622": {
+      "available": 679,
+      "selected": 0
+    },
+    "530623": {
+      "available": 95,
+      "selected": 0
+    },
+    "530624": {
+      "available": 292,
+      "selected": 0
+    },
+    "530625": {
+      "available": 1426,
+      "selected": 0
+    },
+    "530626": {
+      "available": 2645,
+      "selected": 0
+    },
+    "530627": {
+      "available": 1374,
+      "selected": 0
+    },
+    "530628": {
+      "available": 413,
+      "selected": 0
+    },
+    "530629": {
+      "available": 1111,
+      "selected": 0
+    },
+    "530681": {
+      "available": 1307,
+      "selected": 0
+    },
+    "530702": {
+      "available": 36461,
+      "selected": 23
+    },
+    "530721": {
+      "available": 13469,
+      "selected": 12
+    },
+    "530722": {
+      "available": 2127,
+      "selected": 0
+    },
+    "530723": {
+      "available": 1359,
+      "selected": 1
+    },
+    "530724": {
+      "available": 2493,
+      "selected": 0
+    },
+    "530802": {
+      "available": 22801,
+      "selected": 17
+    },
+    "530821": {
+      "available": 1982,
+      "selected": 0
+    },
+    "530822": {
+      "available": 2253,
+      "selected": 2
+    },
+    "530823": {
+      "available": 1698,
+      "selected": 1
+    },
+    "530824": {
+      "available": 2700,
+      "selected": 3
+    },
+    "530825": {
+      "available": 1544,
+      "selected": 0
+    },
+    "530826": {
+      "available": 1587,
+      "selected": 1
+    },
+    "530827": {
+      "available": 2708,
+      "selected": 1
+    },
+    "530828": {
+      "available": 2744,
+      "selected": 1
+    },
+    "530829": {
+      "available": 772,
+      "selected": 0
+    },
+    "530902": {
+      "available": 609,
+      "selected": 0
+    },
+    "530921": {
+      "available": 124,
+      "selected": 1
+    },
+    "530922": {
+      "available": 139,
+      "selected": 0
+    },
+    "530923": {
+      "available": 80,
+      "selected": 0
+    },
+    "530924": {
+      "available": 113,
+      "selected": 0
+    },
+    "530925": {
+      "available": 85,
+      "selected": 0
+    },
+    "530926": {
+      "available": 95,
+      "selected": 0
+    },
+    "530927": {
+      "available": 118,
+      "selected": 0
+    },
+    "532301": {
+      "available": 856,
+      "selected": 0
+    },
+    "532329": {
+      "available": 22,
+      "selected": 0
+    },
+    "532501": {
+      "available": 10246,
+      "selected": 0
+    },
+    "532502": {
+      "available": 15752,
+      "selected": 0
+    },
+    "532503": {
+      "available": 33952,
+      "selected": 0
+    },
+    "532504": {
+      "available": 11489,
+      "selected": 0
+    },
+    "532523": {
+      "available": 848,
+      "selected": 0
+    },
+    "532524": {
+      "available": 10994,
+      "selected": 0
+    },
+    "532525": {
+      "available": 3523,
+      "selected": 0
+    },
+    "532527": {
+      "available": 5623,
+      "selected": 0
+    },
+    "532528": {
+      "available": 1750,
+      "selected": 0
+    },
+    "532529": {
+      "available": 1434,
+      "selected": 0
+    },
+    "532530": {
+      "available": 2334,
+      "selected": 0
+    },
+    "532531": {
+      "available": 673,
+      "selected": 0
+    },
+    "532532": {
+      "available": 3879,
+      "selected": 0
+    },
+    "532601": {
+      "available": 26728,
+      "selected": 6
+    },
+    "532622": {
+      "available": 6679,
+      "selected": 1
+    },
+    "532623": {
+      "available": 1457,
+      "selected": 0
+    },
+    "532625": {
+      "available": 2705,
+      "selected": 0
+    },
+    "532626": {
+      "available": 5512,
+      "selected": 0
+    },
+    "532627": {
+      "available": 4850,
+      "selected": 0
+    },
+    "532628": {
+      "available": 2716,
+      "selected": 0
+    },
+    "532801": {
+      "available": 43231,
+      "selected": 0
+    },
+    "532822": {
+      "available": 4597,
+      "selected": 0
+    },
+    "532823": {
+      "available": 4111,
+      "selected": 0
+    },
+    "532901": {
+      "available": 91494,
+      "selected": 0
+    },
+    "532922": {
+      "available": 599,
+      "selected": 0
+    },
+    "532923": {
+      "available": 4762,
+      "selected": 0
+    },
+    "532924": {
+      "available": 3863,
+      "selected": 0
+    },
+    "532925": {
+      "available": 2073,
+      "selected": 0
+    },
+    "532926": {
+      "available": 1080,
+      "selected": 0
+    },
+    "532928": {
+      "available": 1256,
+      "selected": 0
+    },
+    "532930": {
+      "available": 2344,
+      "selected": 0
+    },
+    "532931": {
+      "available": 2034,
+      "selected": 0
+    },
+    "532932": {
+      "available": 2280,
+      "selected": 0
+    },
+    "533102": {
+      "available": 23400,
+      "selected": 15
+    },
+    "533103": {
+      "available": 15886,
+      "selected": 6
+    },
+    "533122": {
+      "available": 1642,
+      "selected": 2
+    },
+    "533123": {
+      "available": 5268,
+      "selected": 5
+    },
+    "533124": {
+      "available": 3918,
+      "selected": 4
+    },
+    "533301": {
+      "available": 164,
+      "selected": 0
+    },
+    "533323": {
+      "available": 39,
+      "selected": 0
+    },
+    "533324": {
+      "available": 36,
+      "selected": 0
+    },
+    "533325": {
+      "available": 111,
+      "selected": 0
+    },
+    "533401": {
+      "available": 21592,
+      "selected": 0
+    },
+    "533422": {
+      "available": 1594,
+      "selected": 0
+    },
+    "533423": {
+      "available": 2070,
+      "selected": 0
+    },
+    "540102": {
+      "available": 39305,
+      "selected": 68
+    },
+    "540103": {
+      "available": 24344,
+      "selected": 41
+    },
+    "540104": {
+      "available": 4530,
+      "selected": 26
+    },
+    "540121": {
+      "available": 1841,
+      "selected": 0
+    },
+    "540122": {
+      "available": 11264,
+      "selected": 60
+    },
+    "540123": {
+      "available": 2081,
+      "selected": 16
+    },
+    "540124": {
+      "available": 8472,
+      "selected": 45
+    },
+    "540127": {
+      "available": 9398,
+      "selected": 43
+    },
+    "540202": {
+      "available": 408,
+      "selected": 1
+    },
+    "540221": {
+      "available": 36,
+      "selected": 0
+    },
+    "540222": {
+      "available": 71,
+      "selected": 0
+    },
+    "540223": {
+      "available": 37,
+      "selected": 0
+    },
+    "540224": {
+      "available": 27,
+      "selected": 0
+    },
+    "540225": {
+      "available": 69,
+      "selected": 0
+    },
+    "540226": {
+      "available": 23,
+      "selected": 0
+    },
+    "540227": {
+      "available": 57,
+      "selected": 0
+    },
+    "540228": {
+      "available": 58,
+      "selected": 0
+    },
+    "540229": {
+      "available": 38,
+      "selected": 0
+    },
+    "540230": {
+      "available": 24,
+      "selected": 0
+    },
+    "540233": {
+      "available": 29,
+      "selected": 0
+    },
+    "540235": {
+      "available": 20,
+      "selected": 0
+    },
+    "540302": {
+      "available": 37,
+      "selected": 0
+    },
+    "540322": {
+      "available": 7,
+      "selected": 0
+    },
+    "540323": {
+      "available": 13,
+      "selected": 0
+    },
+    "540324": {
+      "available": 12,
+      "selected": 0
+    },
+    "540327": {
+      "available": 9,
+      "selected": 0
+    },
+    "540328": {
+      "available": 26,
+      "selected": 0
+    },
+    "540329": {
+      "available": 1,
+      "selected": 0
+    },
+    "540402": {
+      "available": 114,
+      "selected": 0
+    },
+    "540421": {
+      "available": 40,
+      "selected": 1
+    },
+    "540422": {
+      "available": 25,
+      "selected": 0
+    },
+    "540424": {
+      "available": 33,
+      "selected": 0
+    },
+    "540425": {
+      "available": 12,
+      "selected": 0
+    },
+    "540426": {
+      "available": 19,
+      "selected": 0
+    },
+    "540502": {
+      "available": 169,
+      "selected": 0
+    },
+    "540521": {
+      "available": 51,
+      "selected": 0
+    },
+    "540522": {
+      "available": 63,
+      "selected": 0
+    },
+    "540523": {
+      "available": 19,
+      "selected": 0
+    },
+    "540524": {
+      "available": 47,
+      "selected": 0
+    },
+    "540525": {
+      "available": 45,
+      "selected": 0
+    },
+    "540526": {
+      "available": 16,
+      "selected": 0
+    },
+    "540527": {
+      "available": 22,
+      "selected": 0
+    },
+    "540528": {
+      "available": 30,
+      "selected": 0
+    },
+    "540529": {
+      "available": 22,
+      "selected": 0
+    },
+    "540530": {
+      "available": 29,
+      "selected": 0
+    },
+    "540531": {
+      "available": 13,
+      "selected": 0
+    },
+    "540602": {
+      "available": 122,
+      "selected": 1
+    },
+    "540622": {
+      "available": 9,
+      "selected": 1
+    },
+    "540624": {
+      "available": 25,
+      "selected": 0
+    },
+    "540625": {
+      "available": 6,
+      "selected": 0
+    },
+    "540627": {
+      "available": 57,
+      "selected": 0
+    },
+    "540628": {
+      "available": 10,
+      "selected": 0
+    },
+    "542521": {
+      "available": 9,
+      "selected": 0
+    },
+    "542522": {
+      "available": 12,
+      "selected": 0
+    },
+    "542523": {
+      "available": 41,
+      "selected": 0
+    },
+    "542527": {
+      "available": 11,
+      "selected": 0
+    },
+    "610102": {
+      "available": 1105,
+      "selected": 3
+    },
+    "610103": {
+      "available": 1251,
+      "selected": 7
+    },
+    "610104": {
+      "available": 1475,
+      "selected": 11
+    },
+    "610111": {
+      "available": 2890,
+      "selected": 17
+    },
+    "610112": {
+      "available": 5967,
+      "selected": 35
+    },
+    "610113": {
+      "available": 4255,
+      "selected": 16
+    },
+    "610114": {
+      "available": 594,
+      "selected": 4
+    },
+    "610115": {
+      "available": 1588,
+      "selected": 20
+    },
+    "610116": {
+      "available": 3652,
+      "selected": 19
+    },
+    "610117": {
+      "available": 315,
+      "selected": 2
+    },
+    "610118": {
+      "available": 436,
+      "selected": 1
+    },
+    "610122": {
+      "available": 208,
+      "selected": 1
+    },
+    "610124": {
+      "available": 239,
+      "selected": 0
+    },
+    "610202": {
+      "available": 279,
+      "selected": 0
+    },
+    "610203": {
+      "available": 61,
+      "selected": 0
+    },
+    "610204": {
+      "available": 985,
+      "selected": 0
+    },
+    "610222": {
+      "available": 84,
+      "selected": 0
+    },
+    "610302": {
+      "available": 1459,
+      "selected": 14
+    },
+    "610303": {
+      "available": 1157,
+      "selected": 15
+    },
+    "610304": {
+      "available": 993,
+      "selected": 12
+    },
+    "610322": {
+      "available": 249,
+      "selected": 1
+    },
+    "610323": {
+      "available": 344,
+      "selected": 1
+    },
+    "610324": {
+      "available": 266,
+      "selected": 5
+    },
+    "610326": {
+      "available": 317,
+      "selected": 1
+    },
+    "610327": {
+      "available": 100,
+      "selected": 0
+    },
+    "610328": {
+      "available": 70,
+      "selected": 1
+    },
+    "610329": {
+      "available": 103,
+      "selected": 1
+    },
+    "610330": {
+      "available": 113,
+      "selected": 0
+    },
+    "610331": {
+      "available": 33,
+      "selected": 0
+    },
+    "610402": {
+      "available": 2074,
+      "selected": 1
+    },
+    "610403": {
+      "available": 389,
+      "selected": 0
+    },
+    "610404": {
+      "available": 1135,
+      "selected": 0
+    },
+    "610422": {
+      "available": 365,
+      "selected": 0
+    },
+    "610423": {
+      "available": 380,
+      "selected": 0
+    },
+    "610424": {
+      "available": 303,
+      "selected": 0
+    },
+    "610425": {
+      "available": 252,
+      "selected": 0
+    },
+    "610426": {
+      "available": 139,
+      "selected": 0
+    },
+    "610428": {
+      "available": 105,
+      "selected": 0
+    },
+    "610429": {
+      "available": 454,
+      "selected": 0
+    },
+    "610430": {
+      "available": 97,
+      "selected": 0
+    },
+    "610431": {
+      "available": 123,
+      "selected": 0
+    },
+    "610481": {
+      "available": 576,
+      "selected": 0
+    },
+    "610482": {
+      "available": 261,
+      "selected": 0
+    },
+    "610502": {
+      "available": 1839,
+      "selected": 18
+    },
+    "610503": {
+      "available": 329,
+      "selected": 2
+    },
+    "610522": {
+      "available": 245,
+      "selected": 6
+    },
+    "610523": {
+      "available": 387,
+      "selected": 6
+    },
+    "610524": {
+      "available": 495,
+      "selected": 3
+    },
+    "610525": {
+      "available": 371,
+      "selected": 2
+    },
+    "610526": {
+      "available": 475,
+      "selected": 2
+    },
+    "610527": {
+      "available": 200,
+      "selected": 4
+    },
+    "610528": {
+      "available": 590,
+      "selected": 6
+    },
+    "610581": {
+      "available": 605,
+      "selected": 8
+    },
+    "610582": {
+      "available": 454,
+      "selected": 7
+    },
+    "610602": {
+      "available": 1887,
+      "selected": 0
+    },
+    "610603": {
+      "available": 78,
+      "selected": 0
+    },
+    "610621": {
+      "available": 96,
+      "selected": 0
+    },
+    "610622": {
+      "available": 144,
+      "selected": 0
+    },
+    "610625": {
+      "available": 152,
+      "selected": 0
+    },
+    "610627": {
+      "available": 65,
+      "selected": 0
+    },
+    "610628": {
+      "available": 175,
+      "selected": 0
+    },
+    "610629": {
+      "available": 141,
+      "selected": 0
+    },
+    "610630": {
+      "available": 168,
+      "selected": 0
+    },
+    "610631": {
+      "available": 43,
+      "selected": 0
+    },
+    "610632": {
+      "available": 113,
+      "selected": 0
+    },
+    "610681": {
+      "available": 99,
+      "selected": 0
+    },
+    "610702": {
+      "available": 778,
+      "selected": 0
+    },
+    "610703": {
+      "available": 457,
+      "selected": 0
+    },
+    "610722": {
+      "available": 180,
+      "selected": 0
+    },
+    "610723": {
+      "available": 98,
+      "selected": 0
+    },
+    "610724": {
+      "available": 133,
+      "selected": 0
+    },
+    "610725": {
+      "available": 586,
+      "selected": 0
+    },
+    "610726": {
+      "available": 150,
+      "selected": 0
+    },
+    "610727": {
+      "available": 35,
+      "selected": 0
+    },
+    "610728": {
+      "available": 90,
+      "selected": 0
+    },
+    "610730": {
+      "available": 65,
+      "selected": 0
+    },
+    "610802": {
+      "available": 4633,
+      "selected": 27
+    },
+    "610803": {
+      "available": 318,
+      "selected": 2
+    },
+    "610822": {
+      "available": 215,
+      "selected": 0
+    },
+    "610824": {
+      "available": 314,
+      "selected": 0
+    },
+    "610825": {
+      "available": 341,
+      "selected": 0
+    },
+    "610826": {
+      "available": 161,
+      "selected": 0
+    },
+    "610827": {
+      "available": 87,
+      "selected": 0
+    },
+    "610828": {
+      "available": 43,
+      "selected": 0
+    },
+    "610829": {
+      "available": 59,
+      "selected": 0
+    },
+    "610830": {
+      "available": 78,
+      "selected": 0
+    },
+    "610831": {
+      "available": 78,
+      "selected": 0
+    },
+    "610881": {
+      "available": 372,
+      "selected": 0
+    },
+    "610902": {
+      "available": 443,
+      "selected": 9
+    },
+    "610921": {
+      "available": 112,
+      "selected": 2
+    },
+    "610922": {
+      "available": 83,
+      "selected": 1
+    },
+    "610923": {
+      "available": 72,
+      "selected": 0
+    },
+    "610924": {
+      "available": 46,
+      "selected": 0
+    },
+    "610925": {
+      "available": 9,
+      "selected": 0
+    },
+    "610926": {
+      "available": 164,
+      "selected": 2
+    },
+    "610927": {
+      "available": 60,
+      "selected": 0
+    },
+    "610928": {
+      "available": 129,
+      "selected": 0
+    },
+    "610929": {
+      "available": 93,
+      "selected": 1
+    },
+    "611002": {
+      "available": 252,
+      "selected": 3
+    },
+    "611021": {
+      "available": 114,
+      "selected": 1
+    },
+    "611022": {
+      "available": 107,
+      "selected": 0
+    },
+    "611023": {
+      "available": 135,
+      "selected": 1
+    },
+    "611024": {
+      "available": 105,
+      "selected": 1
+    },
+    "611025": {
+      "available": 87,
+      "selected": 1
+    },
+    "611026": {
+      "available": 39,
+      "selected": 0
+    },
+    "620102": {
+      "available": 3029,
+      "selected": 8
+    },
+    "620103": {
+      "available": 2519,
+      "selected": 8
+    },
+    "620104": {
+      "available": 1425,
+      "selected": 4
+    },
+    "620105": {
+      "available": 1698,
+      "selected": 4
+    },
+    "620111": {
+      "available": 229,
+      "selected": 0
+    },
+    "620121": {
+      "available": 2757,
+      "selected": 18
+    },
+    "620122": {
+      "available": 3709,
+      "selected": 29
+    },
+    "620123": {
+      "available": 3091,
+      "selected": 21
+    },
+    "620200": {
+      "available": 1741,
+      "selected": 18
+    },
+    "620302": {
+      "available": 688,
+      "selected": 5
+    },
+    "620321": {
+      "available": 197,
+      "selected": 0
+    },
+    "620402": {
+      "available": 565,
+      "selected": 0
+    },
+    "620403": {
+      "available": 525,
+      "selected": 0
+    },
+    "620421": {
+      "available": 284,
+      "selected": 0
+    },
+    "620422": {
+      "available": 251,
+      "selected": 0
+    },
+    "620423": {
+      "available": 261,
+      "selected": 0
+    },
+    "620502": {
+      "available": 618,
+      "selected": 0
+    },
+    "620503": {
+      "available": 1254,
+      "selected": 0
+    },
+    "620521": {
+      "available": 212,
+      "selected": 0
+    },
+    "620522": {
+      "available": 262,
+      "selected": 0
+    },
+    "620523": {
+      "available": 427,
+      "selected": 0
+    },
+    "620524": {
+      "available": 164,
+      "selected": 0
+    },
+    "620525": {
+      "available": 142,
+      "selected": 0
+    },
+    "620602": {
+      "available": 1182,
+      "selected": 11
+    },
+    "620621": {
+      "available": 291,
+      "selected": 0
+    },
+    "620622": {
+      "available": 133,
+      "selected": 0
+    },
+    "620702": {
+      "available": 2070,
+      "selected": 14
+    },
+    "620721": {
+      "available": 39,
+      "selected": 0
+    },
+    "620723": {
+      "available": 299,
+      "selected": 4
+    },
+    "620802": {
+      "available": 1024,
+      "selected": 0
+    },
+    "620821": {
+      "available": 137,
+      "selected": 0
+    },
+    "620823": {
+      "available": 116,
+      "selected": 0
+    },
+    "620881": {
+      "available": 137,
+      "selected": 0
+    },
+    "620902": {
+      "available": 4462,
+      "selected": 47
+    },
+    "620921": {
+      "available": 342,
+      "selected": 6
+    },
+    "620981": {
+      "available": 900,
+      "selected": 14
+    },
+    "620982": {
+      "available": 8464,
+      "selected": 92
+    },
+    "621002": {
+      "available": 1166,
+      "selected": 0
+    },
+    "621021": {
+      "available": 154,
+      "selected": 0
+    },
+    "621022": {
+      "available": 145,
+      "selected": 0
+    },
+    "621023": {
+      "available": 48,
+      "selected": 0
+    },
+    "621024": {
+      "available": 90,
+      "selected": 0
+    },
+    "621025": {
+      "available": 115,
+      "selected": 0
+    },
+    "621026": {
+      "available": 76,
+      "selected": 0
+    },
+    "621027": {
+      "available": 114,
+      "selected": 0
+    },
+    "621102": {
+      "available": 435,
+      "selected": 0
+    },
+    "621121": {
+      "available": 123,
+      "selected": 0
+    },
+    "621122": {
+      "available": 109,
+      "selected": 0
+    },
+    "621123": {
+      "available": 82,
+      "selected": 0
+    },
+    "621124": {
+      "available": 123,
+      "selected": 0
+    },
+    "621125": {
+      "available": 99,
+      "selected": 0
+    },
+    "621126": {
+      "available": 130,
+      "selected": 0
+    },
+    "621202": {
+      "available": 154,
+      "selected": 0
+    },
+    "621221": {
+      "available": 164,
+      "selected": 0
+    },
+    "621222": {
+      "available": 79,
+      "selected": 0
+    },
+    "621223": {
+      "available": 197,
+      "selected": 0
+    },
+    "621224": {
+      "available": 112,
+      "selected": 0
+    },
+    "621225": {
+      "available": 100,
+      "selected": 0
+    },
+    "621226": {
+      "available": 102,
+      "selected": 0
+    },
+    "621227": {
+      "available": 119,
+      "selected": 0
+    },
+    "621228": {
+      "available": 101,
+      "selected": 0
+    },
+    "622901": {
+      "available": 425,
+      "selected": 0
+    },
+    "622922": {
+      "available": 90,
+      "selected": 0
+    },
+    "622923": {
+      "available": 312,
+      "selected": 0
+    },
+    "622924": {
+      "available": 94,
+      "selected": 0
+    },
+    "622925": {
+      "available": 92,
+      "selected": 0
+    },
+    "622926": {
+      "available": 30,
+      "selected": 0
+    },
+    "622927": {
+      "available": 149,
+      "selected": 0
+    },
+    "623001": {
+      "available": 98,
+      "selected": 0
+    },
+    "623021": {
+      "available": 100,
+      "selected": 0
+    },
+    "623024": {
+      "available": 103,
+      "selected": 0
+    },
+    "623025": {
+      "available": 137,
+      "selected": 0
+    },
+    "630102": {
+      "available": 1250,
+      "selected": 5
+    },
+    "630103": {
+      "available": 1114,
+      "selected": 7
+    },
+    "630104": {
+      "available": 619,
+      "selected": 0
+    },
+    "630105": {
+      "available": 1543,
+      "selected": 14
+    },
+    "630106": {
+      "available": 1874,
+      "selected": 33
+    },
+    "630121": {
+      "available": 1173,
+      "selected": 24
+    },
+    "630123": {
+      "available": 1625,
+      "selected": 37
+    },
+    "630202": {
+      "available": 182,
+      "selected": 0
+    },
+    "630203": {
+      "available": 373,
+      "selected": 0
+    },
+    "630222": {
+      "available": 117,
+      "selected": 0
+    },
+    "630223": {
+      "available": 299,
+      "selected": 0
+    },
+    "630225": {
+      "available": 102,
+      "selected": 0
+    },
+    "632221": {
+      "available": 289,
+      "selected": 0
+    },
+    "632222": {
+      "available": 170,
+      "selected": 0
+    },
+    "632223": {
+      "available": 245,
+      "selected": 1
+    },
+    "632224": {
+      "available": 45,
+      "selected": 0
+    },
+    "632301": {
+      "available": 107,
+      "selected": 0
+    },
+    "632322": {
+      "available": 71,
+      "selected": 0
+    },
+    "632323": {
+      "available": 75,
+      "selected": 0
+    },
+    "632324": {
+      "available": 80,
+      "selected": 0
+    },
+    "632521": {
+      "available": 3261,
+      "selected": 78
+    },
+    "632522": {
+      "available": 106,
+      "selected": 0
+    },
+    "632523": {
+      "available": 183,
+      "selected": 0
+    },
+    "632524": {
+      "available": 90,
+      "selected": 0
+    },
+    "632525": {
+      "available": 87,
+      "selected": 0
+    },
+    "632621": {
+      "available": 184,
+      "selected": 0
+    },
+    "632622": {
+      "available": 87,
+      "selected": 0
+    },
+    "632623": {
+      "available": 46,
+      "selected": 0
+    },
+    "632624": {
+      "available": 84,
+      "selected": 0
+    },
+    "632626": {
+      "available": 42,
+      "selected": 0
+    },
+    "632701": {
+      "available": 897,
+      "selected": 0
+    },
+    "632723": {
+      "available": 53,
+      "selected": 0
+    },
+    "632725": {
+      "available": 104,
+      "selected": 0
+    },
+    "632726": {
+      "available": 151,
+      "selected": 0
+    },
+    "632801": {
+      "available": 6324,
+      "selected": 104
+    },
+    "632802": {
+      "available": 745,
+      "selected": 0
+    },
+    "632821": {
+      "available": 193,
+      "selected": 0
+    },
+    "632823": {
+      "available": 242,
+      "selected": 0
+    },
+    "632825": {
+      "available": 108,
+      "selected": 0
+    },
+    "640104": {
+      "available": 7185,
+      "selected": 39
+    },
+    "640105": {
+      "available": 6952,
+      "selected": 31
+    },
+    "640106": {
+      "available": 5493,
+      "selected": 20
+    },
+    "640121": {
+      "available": 8971,
+      "selected": 52
+    },
+    "640122": {
+      "available": 7022,
+      "selected": 48
+    },
+    "640181": {
+      "available": 11872,
+      "selected": 104
+    },
+    "640202": {
+      "available": 1734,
+      "selected": 0
+    },
+    "640205": {
+      "available": 440,
+      "selected": 0
+    },
+    "640221": {
+      "available": 1288,
+      "selected": 1
+    },
+    "640302": {
+      "available": 1710,
+      "selected": 5
+    },
+    "640303": {
+      "available": 510,
+      "selected": 0
+    },
+    "640323": {
+      "available": 391,
+      "selected": 1
+    },
+    "640324": {
+      "available": 145,
+      "selected": 0
+    },
+    "640381": {
+      "available": 583,
+      "selected": 1
+    },
+    "640402": {
+      "available": 1082,
+      "selected": 0
+    },
+    "640422": {
+      "available": 208,
+      "selected": 0
+    },
+    "640423": {
+      "available": 184,
+      "selected": 0
+    },
+    "640424": {
+      "available": 131,
+      "selected": 0
+    },
+    "640425": {
+      "available": 201,
+      "selected": 0
+    },
+    "640502": {
+      "available": 2509,
+      "selected": 1
+    },
+    "640521": {
+      "available": 455,
+      "selected": 0
+    },
+    "640522": {
+      "available": 396,
+      "selected": 0
+    },
+    "650102": {
+      "available": 416,
+      "selected": 1
+    },
+    "650103": {
+      "available": 811,
+      "selected": 10
+    },
+    "650104": {
+      "available": 1027,
+      "selected": 11
+    },
+    "650105": {
+      "available": 474,
+      "selected": 7
+    },
+    "650106": {
+      "available": 674,
+      "selected": 19
+    },
+    "650107": {
+      "available": 122,
+      "selected": 0
+    },
+    "650109": {
+      "available": 923,
+      "selected": 14
+    },
+    "650121": {
+      "available": 352,
+      "selected": 8
+    },
+    "650202": {
+      "available": 264,
+      "selected": 1
+    },
+    "650203": {
+      "available": 723,
+      "selected": 18
+    },
+    "650204": {
+      "available": 204,
+      "selected": 4
+    },
+    "650205": {
+      "available": 50,
+      "selected": 1
+    },
+    "650402": {
+      "available": 538,
+      "selected": 20
+    },
+    "650502": {
+      "available": 405,
+      "selected": 13
+    },
+    "650521": {
+      "available": 60,
+      "selected": 4
+    },
+    "650522": {
+      "available": 31,
+      "selected": 0
+    },
+    "652301": {
+      "available": 491,
+      "selected": 23
+    },
+    "652302": {
+      "available": 193,
+      "selected": 10
+    },
+    "652323": {
+      "available": 130,
+      "selected": 8
+    },
+    "652324": {
+      "available": 144,
+      "selected": 7
+    },
+    "652327": {
+      "available": 90,
+      "selected": 6
+    },
+    "652701": {
+      "available": 466,
+      "selected": 16
+    },
+    "652722": {
+      "available": 96,
+      "selected": 3
+    },
+    "652723": {
+      "available": 39,
+      "selected": 2
+    },
+    "652801": {
+      "available": 465,
+      "selected": 14
+    },
+    "652901": {
+      "available": 400,
+      "selected": 7
+    },
+    "652922": {
+      "available": 19,
+      "selected": 0
+    },
+    "653001": {
+      "available": 132,
+      "selected": 0
+    },
+    "653022": {
+      "available": 66,
+      "selected": 0
+    },
+    "653023": {
+      "available": 23,
+      "selected": 0
+    },
+    "653024": {
+      "available": 84,
+      "selected": 0
+    },
+    "653101": {
+      "available": 577,
+      "selected": 9
+    },
+    "653121": {
+      "available": 32,
+      "selected": 0
+    },
+    "653122": {
+      "available": 103,
+      "selected": 0
+    },
+    "653201": {
+      "available": 878,
+      "selected": 3
+    },
+    "653221": {
+      "available": 6,
+      "selected": 0
+    },
+    "653222": {
+      "available": 186,
+      "selected": 0
+    },
+    "653224": {
+      "available": 194,
+      "selected": 0
+    },
+    "654002": {
+      "available": 546,
+      "selected": 10
+    },
+    "654021": {
+      "available": 9,
+      "selected": 1
+    },
+    "654025": {
+      "available": 6,
+      "selected": 0
+    },
+    "654201": {
+      "available": 160,
+      "selected": 0
+    },
+    "654202": {
+      "available": 148,
+      "selected": 0
+    },
+    "654221": {
+      "available": 107,
+      "selected": 0
+    },
+    "654223": {
+      "available": 144,
+      "selected": 0
+    },
+    "654224": {
+      "available": 50,
+      "selected": 0
+    },
+    "654225": {
+      "available": 49,
+      "selected": 0
+    },
+    "654226": {
+      "available": 36,
+      "selected": 0
+    },
+    "654301": {
+      "available": 101,
+      "selected": 5
+    },
+    "654321": {
+      "available": 57,
+      "selected": 6
+    },
+    "654322": {
+      "available": 28,
+      "selected": 3
+    },
+    "654323": {
+      "available": 51,
+      "selected": 3
+    },
+    "654324": {
+      "available": 62,
+      "selected": 1
+    },
+    "654325": {
+      "available": 53,
+      "selected": 0
+    },
+    "654326": {
+      "available": 82,
+      "selected": 4
+    },
+    "659001": {
+      "available": 583,
+      "selected": 18
+    },
+    "659002": {
+      "available": 202,
+      "selected": 6
+    },
+    "659003": {
+      "available": 179,
+      "selected": 5
+    },
+    "659004": {
+      "available": 143,
+      "selected": 0
+    },
+    "659007": {
+      "available": 23,
+      "selected": 2
+    },
+    "810001": {
+      "available": 3038,
+      "selected": 4
+    },
+    "810002": {
+      "available": 1520,
+      "selected": 4
+    },
+    "810003": {
+      "available": 3116,
+      "selected": 21
+    },
+    "810004": {
+      "available": 3558,
+      "selected": 21
+    },
+    "810005": {
+      "available": 2049,
+      "selected": 10
+    },
+    "810006": {
+      "available": 1575,
+      "selected": 8
+    },
+    "810007": {
+      "available": 1357,
+      "selected": 11
+    },
+    "810008": {
+      "available": 1161,
+      "selected": 8
+    },
+    "810009": {
+      "available": 2450,
+      "selected": 13
+    },
+    "810010": {
+      "available": 3241,
+      "selected": 17
+    },
+    "810011": {
+      "available": 6080,
+      "selected": 40
+    },
+    "810012": {
+      "available": 14560,
+      "selected": 33
+    },
+    "810013": {
+      "available": 6321,
+      "selected": 29
+    },
+    "810014": {
+      "available": 5742,
+      "selected": 12
+    },
+    "810015": {
+      "available": 6282,
+      "selected": 29
+    },
+    "810016": {
+      "available": 7149,
+      "selected": 8
+    },
+    "810017": {
+      "available": 4419,
+      "selected": 23
+    },
+    "810018": {
+      "available": 2808,
+      "selected": 12
+    },
+    "820001": {
+      "available": 2891,
+      "selected": 20
+    },
+    "820002": {
+      "available": 862,
+      "selected": 6
+    },
+    "820003": {
+      "available": 1549,
+      "selected": 12
+    },
+    "820004": {
+      "available": 2163,
+      "selected": 29
+    },
+    "820005": {
+      "available": 1858,
+      "selected": 26
+    },
+    "820006": {
+      "available": 5363,
+      "selected": 55
+    },
+    "820007": {
+      "available": 1869,
+      "selected": 32
+    },
+    "820008": {
+      "available": 3789,
+      "selected": 43
+    }
+  }
+}
