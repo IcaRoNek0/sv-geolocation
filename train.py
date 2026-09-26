@@ -259,6 +259,15 @@ def main():
 
     # ── 数据集 ──────────────────────────────────────────────────────
     vcfg = ViewConfig(**cfg.get("views", {}))
+    if args.overfit:
+        # 冒烟测试要验证的是**管线**，不是增强鲁棒性。全开增强时每轮看到
+        # 的都是同一张全景的不同裁切，64 条样本 230 轮才到 top1 0.70
+        # （实测），判断"管线通不通"因此变得含糊。关掉裁切与模糊后，
+        # 过拟合应当既快又干净。
+        vcfg.crop_scale = None
+        vcfg.blur_prob = 0.0
+        vcfg.brightness = vcfg.contrast = vcfg.saturation = 0.1
+        vcfg.channel_gain = 0.0
     idx_cache = {}          # 各划分共用一份索引，避免重复扫 tar
 
     def dataset(split_name, augment):
