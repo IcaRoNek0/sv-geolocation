@@ -26,6 +26,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import yaml
+from tqdm import tqdm
 
 from data.dataset import PanoramaDataset, make_loader
 from data.labels import (build_classes, centroids, city_of_adcode,
@@ -155,6 +156,9 @@ def main():
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--overfit", type=int, default=0,
                     help="只用 N 条样本训练，验证能否过拟合（M0 冒烟）")
+    ap.add_argument("--eval-every", type=int, default=None,
+                    help="每 N 轮验证一次。冒烟测试不需要每轮都验，"
+                         "验证集上的前向和训练一样贵")
     ap.add_argument("--seed", type=int, default=20260926)
     args = ap.parse_args()
 
@@ -172,7 +176,10 @@ def main():
             print("提示：当前是 Turing 及更早架构，只能 fp16；若换到 L4/A100 会自动切 bf16")
 
     args.out.mkdir(parents=True, exist_ok=True)
+    t_idx = time.time()
     shard_paths = sorted(args.data.glob("*.tar"))
+    if not shard_paths:
+        raise SystemExit(f"{args.data} 下没有 .tar 分片——第 ⑥ 格拷盘跑了吗？")
     samples = load_samples(args.data / "samples.jsonl")
     split, split_payload = load_split(args.data / "split.json")
     cp = CountyPoints(args.points)
@@ -182,7 +189,8 @@ def main():
     soft = soft_targets(cent, half_km=cfg.get("soft_half_km", 50.0))
     (county_index, coord_index, city_index, prov_index,
      city_list, prov_list) = build_indices(samples, class_index)
-    print(f"类别 {len(adcodes)} 县 / {len(city_list)} 市 / {len(prov_list)} 省")
+    print(f"类别 {len(adcodes)} 县 / {len(city_list)} 市 / {len(prov_list)} 省"
+          f"  （索引扫描 {time.time()-t_idx:.1f}s）")
 
     # 类别表随 checkpoint 一起存：推理端靠它把 logit 下标映回县码。
     # 不这样做的话，推理时重建类别表一旦与训练时不一致，预测会被静默地
@@ -215,6 +223,14 @@ def main():
             ds.keys = ds.keys[: args.overfit]
         return ds
 
+    # 各类样本量分布：长尾有多长直接决定县级能做到什么程度
+    from collections import Counter
+    cnt = Counter(samples[k]["adcode"] for k, v in split.items() if v == "train")
+    dist = Counter(cnt.values())
+    print(f"训练集类别分布：{len(cnt)} 个县有样本；"
+          f"≥100 条的 {sum(1 for v in cnt.values() if v >= 100)} 个，"
+          f"<10 条的 {sum(1 for v in cnt.values() if v < 10)} 个")
+
     train_ds = dataset("train", augment=True)
     val_loaders = {}
     for name in ("val_same", "val_national", "test_county"):
@@ -224,7 +240,8 @@ def main():
                                             num_workers=cfg.get("workers", 2))
         except ValueError:
             print(f"划分 {name} 为空，跳过")
-    train_loader = make_loader(train_ds, cfg.get("batch_size", 8), True,
+    batch_size = cfg.get("batch_size", 8)
+    train_loader = make_loader(train_ds, batch_size, True,
                                num_workers=cfg.get("workers", 2), seed=args.seed)
     print(f"训练样本 {len(train_ds):,}  验证 {[f'{k}:{len(v.dataset)}' for k, v in val_loaders.items()]}")
 
@@ -262,6 +279,10 @@ def main():
     ckpt_minutes = cfg.get("ckpt_minutes", 30)
     last_ckpt = time.time()
     accum = cfg.get("accum", 1)
+    eval_every = (args.eval_every if args.eval_every is not None
+                  else cfg.get("eval_every", 1))
+    if eval_every > 1:
+        print(f"每 {eval_every} 轮验证一次")
 
     for epoch in range(start_epoch, epochs):
         model.train()
@@ -270,9 +291,24 @@ def main():
         if was_frozen and not model.freeze_backbone:
             print(f"epoch {epoch}：解冻主干")
 
+        do_eval = (eval_every <= 1 or epoch % eval_every == 0
+                   or epoch == epochs - 1)
         t0, running, seen = time.time(), 0.0, 0
+        t_data = t_compute = 0.0
+        hit_num = hit_den = 0
         opt.zero_grad(set_to_none=True)
-        for step, batch in enumerate(train_loader):
+
+        # 手动迭代而非直接迭代 loader：这样才能把"等数据"和"算梯度"的时间
+        # 分开计。数据管线是瓶颈时，这个数字是唯一能说明问题的证据。
+        loader_it = iter(train_loader)
+        pbar = tqdm(range(len(train_loader)), desc=f"e{epoch:02d}",
+                    unit="batch", leave=False)
+        for step in pbar:
+            t_batch = time.time()
+            batch = next(loader_it)
+            t_data += time.time() - t_batch
+            t_work = time.time()
+
             views = batch["views"].to(device, non_blocking=True)
             vmask = batch["vmask"].to(device, non_blocking=True)
             targets = {k: v.to(device, non_blocking=True)
@@ -294,22 +330,51 @@ def main():
                 if sched.last_epoch < sched.total_steps - 1:
                     sched.step()
 
+            # 训练集上的即时准确率：冒烟测试里"能否过拟合"靠它看，
+            # 不必等验证集跑完
+            with torch.no_grad():
+                tgt = targets["county"]
+                ok = tgt >= 0
+                if ok.any():
+                    pred = out["county"].argmax(dim=1)
+                    hit_num += int((pred[ok] == tgt[ok]).sum())
+                    hit_den += int(ok.sum())
+
             running += float(loss) * accum
             seen += 1
-            if step % cfg.get("log_every", 20) == 0:
-                lr = opt.param_groups[0]["lr"]
-                print(f"  e{epoch} {step}/{len(train_loader)} "
-                      f"loss {running/max(1,seen):.4f} lr {lr:.2e}")
+            t_compute += time.time() - t_work
+            pbar.set_postfix(
+                loss=f"{running/seen:.3f}",
+                acc=f"{hit_num/max(1,hit_den):.3f}",
+                lr=f"{opt.param_groups[0]['lr']:.1e}",
+                s=f"{(time.time()-t0)/seen:.2f}",
+            )
 
             # 到点就存盘——Colab 随时会断，不能等到 epoch 结束
             if time.time() - last_ckpt > ckpt_minutes * 60:
                 save(ckpt_path, model, opt, sched, scaler, epoch, best)
-                print(f"  [checkpoint] epoch {epoch} step {step}")
+                pbar.write(f"  [checkpoint] epoch {epoch} step {step}")
                 last_ckpt = time.time()
+        pbar.close()
 
         train_loss = running / max(1, seen)
+        epoch_sec = time.time() - t0
         rec = {"epoch": epoch, "train_loss": train_loss,
-               "minutes": round((time.time() - t0) / 60, 1)}
+               "train_acc": hit_num / max(1, hit_den),
+               "minutes": round(epoch_sec / 60, 1),
+               "data_seconds": round(t_data, 1),
+               "compute_seconds": round(t_compute, 1),
+               "samples_per_sec": round(seen * batch_size / max(epoch_sec, 1e-6), 1)}
+        left = (epochs - epoch - 1) * epoch_sec
+        print(f"  e{epoch:02d} 损失 {train_loss:.4f} 训练top1 "
+              f"{rec['train_acc']:.3f}  {epoch_sec:.0f}s "
+              f"({t_data:.0f}s 等数据 / {t_compute:.0f}s 计算)  "
+              f"{rec['samples_per_sec']:.0f} 样本/s  剩余约 {left/60:.0f} 分钟")
+
+        if not do_eval:
+            log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
+            log_fh.flush()
+            continue
 
         for name, loader in val_loaders.items():
             m = evaluate(model, loader, device, amp_dtype, len(adcodes), cent)

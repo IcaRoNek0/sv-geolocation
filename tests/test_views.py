@@ -108,6 +108,38 @@ class TestGeometry(unittest.TestCase):
         self.assertGreater(cols.max(), w * 0.95)
         self.assertLess(cols.min(), w * 0.05)
 
+    def test_heading_shift_path_matches_general_path(self):
+        """俯仰为 0 时，"u 整体平移"的快速路径必须与一般路径等价。
+
+        这是性能优化的正确性前提，不是近似——绕竖直轴旋转不改变任何射线
+        的纬度，所以 v 真的不变，u 真的只是平移。训练时俯仰恒为 0，
+        走的就是这条路径。
+        """
+        from utils.views import _general_maps, _sample_maps
+        w, h = 512, 256
+        for heading in (0.0, 37.5, 90.0, 180.0, 270.0, 359.9):
+            uf, vf = _sample_maps(64, 64, 90.0, heading, 0.0, w, h)
+            ug, vg = _general_maps(64, 64, 90.0, heading, 0.0, w, h)
+            np.testing.assert_allclose(uf, ug, atol=0.05,
+                                       err_msg=f"朝向 {heading}：u 不等价")
+            np.testing.assert_allclose(vf, vg, atol=0.01,
+                                       err_msg=f"朝向 {heading}：v 不等价")
+
+    def test_heading_shift_yields_identical_pixels(self):
+        """两条路径切出的图像必须完全一致。"""
+        from utils.views import _bilinear, _general_maps, _sample_maps, _wrapped
+        rng = np.random.default_rng(3)
+        pano = rng.integers(0, 256, size=(128, 256, 3), dtype=np.uint8)
+        src = _wrapped(pano)
+        for heading in (0.0, 45.0, 180.0, 300.0):
+            uf, vf = _sample_maps(48, 48, 90.0, heading, 0.0, 256, 128)
+            ug, vg = _general_maps(48, 48, 90.0, heading, 0.0, 256, 128)
+            a = _bilinear(src, uf, vf)
+            b = _bilinear(src, ug, vg)
+            diff = np.abs(a.astype(int) - b.astype(int)).max()
+            self.assertLessEqual(diff, 1,
+                                 f"朝向 {heading}：两条路径切出的像素差 {diff}")
+
     def test_constant_panorama_gives_constant_view(self):
         """常量图在任何朝向下都应输出常量——几何错误的通用探测器。"""
         pano = np.full((128, 256, 3), 77, dtype=np.uint8)
