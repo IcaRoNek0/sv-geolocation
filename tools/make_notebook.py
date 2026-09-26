@@ -92,9 +92,17 @@ from getpass import getpass
 REPO = 'IcaRoNek0/sv-geolocation'
 BRANCH = 'main'
 
+EXPECT = '1c2338a'      # 本 notebook 对应的代码版本，见 README
+
 if os.path.isdir('/content/ai/.git'):
     print('代码已存在，拉取最新')
-    subprocess.run(['git', '-C', '/content/ai', 'pull', '-q'], check=False)
+    r = subprocess.run(['git', '-C', '/content/ai', 'pull'],
+                       capture_output=True, text=True)
+    print((r.stdout + r.stderr).strip() or '(无输出)')
+    if r.returncode != 0:
+        # 拉取失败必须报错：静默失败会让你拿旧代码跑，还以为是新代码
+        raise SystemExit('拉取失败。常见原因：/content/ai 里有本地改动。\\n'
+                         '删掉 /content/ai 重跑本格即可（分片在 /content/data，不受影响）。')
 else:
     tok = getpass('GitHub token（仓库已公开则直接回车）: ').strip()
     url = (f'https://{tok}@github.com/{REPO}.git' if tok
@@ -106,8 +114,11 @@ else:
         raise SystemExit('克隆失败（token 无效？仓库名不对？）\\n' + r.stderr[-500:])
 
 os.chdir('/content/ai')
-print(subprocess.run(['git', 'log', '--oneline', '-1'],
-                     capture_output=True, text=True).stdout.strip())
+head = subprocess.run(['git', 'log', '--oneline', '-1'],
+                      capture_output=True, text=True).stdout.strip()
+print('当前代码：', head)
+if EXPECT not in head:
+    print(f'⚠ 期望版本含 {EXPECT}。若刚拉取过仍不符，说明服务器上的 main 还没更新。')
 """, title="② 取代码")
 
 code("""
