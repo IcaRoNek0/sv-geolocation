@@ -18,8 +18,8 @@
                     --overfit 64          # M0 冒烟：应当迅速过拟合到接近 100%
 """
 import argparse
+import contextlib
 import json
-import math
 import time
 from pathlib import Path
 
@@ -29,7 +29,7 @@ import yaml
 
 from data.dataset import PanoramaDataset, make_loader
 from data.labels import (build_classes, centroids, city_of_adcode,
-                         hierarchical_labels, province_of_adcode, soft_targets)
+                         province_of_adcode, soft_targets)
 from data.prepare import ViewConfig
 from data.shards import ShardIndex, load_samples, load_split
 from models.env_model import build_model
@@ -38,12 +38,33 @@ from utils.geo_utils import CountyPoints, denormalize_coords, normalize_coords
 from utils.metrics import summarize
 
 
+def autocast_ctx(device, amp_dtype):
+    """autocast 上下文。dtype=None 在 CPU 上会报错，所以显式走空上下文。"""
+    if amp_dtype is None:
+        return contextlib.nullcontext()
+    return torch.autocast(device_type=device.type, dtype=amp_dtype)
+
+
 def pick_amp_dtype(device):
     """T4（sm_75）不支持 bf16，只能 fp16；sm≥8 用 bf16 更稳。"""
     if device.type != "cuda":
         return None
     cc = torch.cuda.get_device_capability(device)
     return torch.bfloat16 if cc[0] >= 8 else torch.float16
+
+
+def apply_freeze_policy(model, epoch, cfg):
+    """按当前 epoch 设定主干是否可训练。
+
+    做成幂等的、每个 epoch 开头都调一次，而不是"到某个 epoch 就解冻一次"：
+    续跑时 start_epoch 已经越过解冻点，那种写法永远不触发，主干会一直冻着，
+    而优化器状态却是按解冻后存的。
+    """
+    if not cfg.get("freeze_backbone", False):
+        model.set_backbone_trainable(True)
+        return
+    at = cfg.get("unfreeze_after", 0)
+    model.set_backbone_trainable(bool(at) and epoch >= at)
 
 
 def build_indices(samples, class_index):
@@ -75,13 +96,12 @@ def build_indices(samples, class_index):
 @torch.no_grad()
 def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
     model.eval()
-    all_scores, all_targets, all_coord, all_true_coord = [], [], [], []
+    all_scores, all_targets, all_true_coord = [], [], []
     losses = []
     for batch in loader:
         views = batch["views"].to(device, non_blocking=True)
         vmask = batch["vmask"].to(device, non_blocking=True)
-        with torch.autocast(device_type=device.type, dtype=amp_dtype,
-                            enabled=amp_dtype is not None):
+        with autocast_ctx(device, amp_dtype):
             out = model(views, vmask)
         if loss_fn is not None:
             b = {k: v.to(device) for k, v in batch.items()
@@ -89,12 +109,14 @@ def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
             _, parts = loss_fn(out, b)
             losses.append(parts)
         scores = out["county"].float().cpu().numpy()
-        coord = out["coord"].float().cpu().numpy()
         all_scores.append(scores)
         all_targets.append(batch["county"].numpy())
-        all_coord.append(denormalize_coords(coord[:, 0], coord[:, 1]))
-        all_true_coord.append(denormalize_coords(batch["coord"][:, 0].numpy(),
-                                                 batch["coord"][:, 1].numpy()))
+        # 必须 stack 成 (N, 2)，不能留着元组列表去 concatenate：
+        # np.concatenate 会把每个 (lon, lat) 元组当一维序列拼起来，
+        # 得到长度 2N 的平铺数组，后面的布尔索引会静默取错行。
+        lon, lat = denormalize_coords(batch["coord"][:, 0].numpy(),
+                                      batch["coord"][:, 1].numpy())
+        all_true_coord.append(np.stack([lon, lat], axis=1))
     model.train()
 
     scores = np.concatenate(all_scores)
@@ -112,7 +134,7 @@ def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
         cent[scores[i].argmax()] if len(cent) > scores[i].argmax() else (np.nan, np.nan)
         for i in range(len(scores))
     ])
-    true_loc = np.concatenate(all_true_coord)[valid]
+    true_loc = np.concatenate(all_true_coord, axis=0)[valid]
     ok = np.isfinite(pred_loc).all(axis=1)
     if ok.any():
         from utils.metrics import distance_summary
@@ -184,7 +206,11 @@ def main():
             shard_paths, split, samples, county_index, coord_index,
             city_index, prov_index, split=split_name, view_cfg=vcfg,
             augment=augment, seed=args.seed)
-        ds._idx = idx_cache.setdefault("idx", ShardIndex(shard_paths))
+        # 索引只在父进程建一次（扫 tar 头要几秒）。fd 跨 fork 共享是安全的，
+        # 因为 read() 用 os.pread——它在偏移量处读、不移动文件位置。
+        if "idx" not in idx_cache:
+            idx_cache["idx"] = ShardIndex(shard_paths)
+        ds._idx = idx_cache["idx"]
         if args.overfit:
             ds.keys = ds.keys[: args.overfit]
         return ds
@@ -205,8 +231,11 @@ def main():
     # ── 模型 ────────────────────────────────────────────────────────
     model = build_model(len(adcodes), len(city_list), len(prov_list), cfg).to(device)
     loss_fn = MultiTaskLoss(soft, **cfg.get("loss", {})).to(device)
+    # 收全部参数而非只收 requires_grad 的：冻结参数的 grad 为 None，
+    # 优化器会自动跳过，收进来无害；反之若只收当前的，之后解冻主干的
+    # 那些参数就永远进不了优化器，解冻变成空操作且不报错。
     opt = torch.optim.AdamW(
-        [p for p in model.parameters() if p.requires_grad],
+        model.parameters(),
         lr=cfg.get("lr", 3e-4), weight_decay=cfg.get("weight_decay", 0.05))
     epochs = cfg.get("epochs", 40)
     steps_per_epoch = max(1, len(train_loader) // cfg.get("accum", 1))
@@ -224,7 +253,9 @@ def main():
         sched.load_state_dict(state["sched"])
         scaler.load_state_dict(state["scaler"])
         start_epoch, best = state["epoch"] + 1, state.get("best", -1.0)
-        print(f"从 epoch {start_epoch} 续跑（当前最好 {best:.4f}）")
+        apply_freeze_policy(model, start_epoch, cfg)
+        print(f"从 epoch {start_epoch} 续跑（当前最好 {best:.4f}，"
+              f"主干{'可训练' if not model.freeze_backbone else '冻结'}）")
 
     # ── 训练 ────────────────────────────────────────────────────────
     log_fh = (args.out / "log.jsonl").open("a", encoding="utf-8")
@@ -234,9 +265,9 @@ def main():
 
     for epoch in range(start_epoch, epochs):
         model.train()
-        if (cfg.get("unfreeze_after", 0) and epoch == cfg["unfreeze_after"]
-                and model.freeze_backbone):
-            model.set_backbone_trainable(True)
+        was_frozen = model.freeze_backbone
+        apply_freeze_policy(model, epoch, cfg)
+        if was_frozen and not model.freeze_backbone:
             print(f"epoch {epoch}：解冻主干")
 
         t0, running, seen = time.time(), 0.0, 0
@@ -247,8 +278,7 @@ def main():
             targets = {k: v.to(device, non_blocking=True)
                        for k, v in batch.items()
                        if k in ("county", "city", "prov", "coord")}
-            with torch.autocast(device_type=device.type, dtype=amp_dtype,
-                                enabled=amp_dtype is not None):
+            with autocast_ctx(device, amp_dtype):
                 out = model(views, vmask)
                 loss, _ = loss_fn(out, targets)
                 loss = loss / accum

@@ -3,8 +3,13 @@
 薄封装——真正的准备工作在 data/prepare.py（纯 numpy，可单独测试）。这里
 只负责按 key 取图、解码、交给 prepare、转成张量。
 
-每个 worker 持有自己的分片句柄，避免多进程共享文件位置。
+分片索引在所有 worker 间共享（它只在父进程建一次，扫 tar 头要几秒）。
+共享是安全的，因为 ShardIndex.read 用 os.pread 在偏移量处读、不移动文件
+位置——若用 seek+read，fork 出的 worker 会共享文件偏移量，互相读出对方的
+字节，数据静默损坏而训练照常跑。
 """
+import zlib
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset, get_worker_info
@@ -49,9 +54,14 @@ class PanoramaDataset(Dataset):
 
     def __getitem__(self, i):
         wid = get_worker_info()
-        # 每个 worker 用不同的随机流，否则同一 epoch 内不同 worker 的增强会同步
+        # 每个 worker 用不同的随机流，否则同一 epoch 内不同 worker 的增强会同步。
+        #
+        # 不用内置 hash()：Python 的字符串哈希每个进程都加盐，同一个 --seed
+        # 两次运行会得到不同的增强，指标之间的差异就分不清是模型还是噪声。
+        # crc32 是确定的。
         rng = np.random.default_rng(
-            (self.seed, i, wid.id if wid else 0, hash(self.split) & 0xFFFF)
+            (self.seed, i, wid.id if wid else 0,
+             zlib.crc32(self.split.encode()) & 0xFFFF)
         )
         key = self.keys[i]
         blob = self._index().read(key)

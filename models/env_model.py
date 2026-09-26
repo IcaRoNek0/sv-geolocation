@@ -63,15 +63,30 @@ class EnvModel(nn.Module):
         self.head_prov = nn.Linear(dim, n_provinces)
         self.head_coord = nn.Linear(dim, 2)
 
+        # 归一化放在模型里而非 Dataset：训练与推理必须用同一套常数，
+        # 放在模型内部就不存在两边写歪的可能。主干是 ImageNet 预训练的，
+        # 不归一化等于把预训练权重用在分布完全不同的输入上。
+        self.register_buffer("pixel_mean",
+                             torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
+        self.register_buffer("pixel_std",
+                             torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
+
     def set_backbone_trainable(self, trainable):
         self.freeze_backbone = not trainable
         for p in self.backbone.parameters():
             p.requires_grad = trainable
 
     def forward(self, views, vmask):
-        """views (B, V, 3, H, W)，vmask (B, V) bool。"""
+        """views (B, V, 3, H, W) uint8 或 float，vmask (B, V) bool。
+
+        输入是 uint8（0–255）。必须先转 float 再归一化：autocast 只把权重
+        转成 fp16，**不会转整数张量**，直接把 uint8 喂进卷积会报
+        "Input type (unsigned char) and bias type (c10::Half) should be the same"。
+        """
         b, v = views.shape[0], views.shape[1]
         flat = views.reshape(b * v, *views.shape[2:])
+        flat = flat.float().div_(255.0)
+        flat = (flat - self.pixel_mean) / self.pixel_std
         feats = self.backbone(flat)
         feats = feats.reshape(b, v, -1)
         feats = self.view_proj(feats)

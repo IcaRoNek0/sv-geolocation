@@ -11,6 +11,7 @@
 """
 import io
 import json
+import os
 import tarfile
 from pathlib import Path
 
@@ -25,7 +26,7 @@ class ShardIndex:
         self.keys = []
         self._index = {}
         self._meta = {}
-        self._handles = {}
+        self._fds = {}
         self._scan(want_json)
 
     def _scan(self, want_json):
@@ -58,31 +59,34 @@ class ShardIndex:
     def meta(self, key):
         return self._meta.get(key, {})
 
-    def _handle(self, si):
-        fh = self._handles.get(si)
-        if fh is None:
-            fh = self._handles[si] = open(self.shards[si], "rb")
-        return fh
+    def _fd(self, si):
+        fd = self._fds.get(si)
+        if fd is None:
+            fd = self._fds[si] = os.open(self.shards[si], os.O_RDONLY)
+        return fd
 
     def read(self, key):
         """读出该样本的 JPEG 字节。
 
-        长度校验是承重的：tarfile 对**截断的归档不报错**（实测截到 40%
-        仍照常列出全部成员名），索引会因此指向文件末尾之外。去掉这个
-        校验，坏分片会静默产出半张图，而训练不会察觉。
+        用 os.pread 而非 seek+read：DataLoader 的 worker 是 fork 出来的，
+        **文件偏移量属于 open file description，是跨进程共享的**。用
+        seek+read 时两个 worker 会互相把对方的文件位置挪走，读出的字节
+        是别人的——数据静默损坏，训练照常跑，指标却毫无意义。
+        pread 带偏移量读取、不动文件位置，从根上避开这个问题。
+
+        长度校验同样是承重的：tarfile 对**截断的归档不报错**（实测截到
+        40% 仍照常列出全部成员名），索引会因此指向文件末尾之外。
         """
         si, offset, size = self._index[key]
-        fh = self._handle(si)
-        fh.seek(offset)
-        blob = fh.read(size)
+        blob = os.pread(self._fd(si), size, offset)
         if len(blob) != size:
             raise IOError(f"{key} 读取不完整：期望 {size} 字节，实得 {len(blob)}")
         return blob
 
     def close(self):
-        for fh in self._handles.values():
-            fh.close()
-        self._handles.clear()
+        for fd in self._fds.values():
+            os.close(fd)
+        self._fds.clear()
 
 
 def load_samples(path):

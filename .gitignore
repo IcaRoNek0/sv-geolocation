@@ -57,3 +57,6 @@ venv/
 .idea/
 .vscode/
 *.swp
+
+# 临时调试输出
+*.txt
