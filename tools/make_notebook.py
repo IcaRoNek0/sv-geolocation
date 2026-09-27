@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 """生成 colab.ipynb（Colab 与 Kaggle 通用）。
 
-用脚本生成而不是手写 notebook JSON：手写容易在转义和结构上出错，
-而格式错了在 Colab 里只会给一句含糊的导入失败。
+用脚本生成而不是手写 notebook JSON：手写容易在转义和结构上出错，而格式
+错了在 Colab 里只会给一句含糊的导入失败。
 
 改完本文件后运行（第二条是门禁，必跑）：
     python tools/make_notebook.py && python tools/check_notebook.py
 
-转义容易差一层：本文件里写 `\\n` 才会在单元格里得到 `\n` 这个两字符序列；
-少一个反斜杠就变成真实换行，把字符串劈成两半，在 notebook 里表现为一句
-与真实原因毫不相干的语法错误。check_notebook.py 就是拦这个的。
+写生成代码时避开两个已踩过多次的坑：
+
+一、不要写反斜杠加 n。转义差一层就变成真实换行，把字符串劈成两半，在
+    notebook 里报的是一句与真实原因毫不相干的语法错误。要换行就多写一条
+    print，不要用转义。
+
+二、单元格里要放 Python 的 docstring 时，不能直接用三引号——外层是
+    code 加三引号的字符串，会被提前截断。用井号注释代替。
 """
 import json
 from pathlib import Path
@@ -82,10 +87,29 @@ import os, subprocess
 ON_KAGGLE = os.path.isdir('/kaggle')
 print('平台:', 'Kaggle' if ON_KAGGLE else ('Colab' if os.path.isdir('/content') else '未知'))
 
+def find_dataset(root, marker='samples.jsonl'):
+    # 在 /kaggle/input 下找出分片数据集的实际挂载点。
+    # Kaggle 的挂载路径不止一种（见过 /kaggle/input/<slug>/，也见过
+    # /kaggle/input/datasets/<owner>/<slug>/），所以按标志文件找，不写死。
+    from pathlib import Path
+    root = Path(root)
+    if not root.is_dir():
+        return None
+    for p in sorted(root.rglob(marker)):
+        return p.parent
+    return None
+
+
 if ON_KAGGLE:
     WORK = '/kaggle/working'
-    DATA = '/kaggle/input/sv-shards'        # 分片数据集，只读本地盘
     RUNS = WORK + '/runs'                   # 需 Save Version 才保留
+    DATA = find_dataset('/kaggle/input')
+    if DATA is None:
+        print('在 /kaggle/input 下没找到 samples.jsonl —— 数据集没挂上。')
+        print('  → 右上 Add Input → Your Datasets → sv-shards')
+        print('  → 挂上后重跑本格')
+        raise SystemExit(1)
+    DATA = str(DATA)
 else:
     WORK = '/content'
     DATA = '/content/data'
@@ -100,7 +124,7 @@ AI_DIR = WORK + '/ai'
 os.environ.update(WORK=WORK, DATA=DATA, RUNS=RUNS, AI_DIR=AI_DIR)
 
 print(f'WORK   = {WORK}')
-print(f'DATA   = {DATA}')
+print(f'DATA   = {DATA}')  # 自动发现，不写死路径
 print(f'RUNS   = {RUNS}')
 print(f'AI_DIR = {AI_DIR}')
 
@@ -283,10 +307,14 @@ python -m kaggle datasets create -p . --dir-mode skip
 `--no-deps` 是必需的：kaggle 的传递依赖里有需要 Rust 编译的包，Termux 下
 maturin 会因为平台判定（android vs linux-gnu）不一致而拒绝构建。
 
-**slug 必须是 `sv-shards`** —— 第 ① 格的 `DATA` 写死了 `/kaggle/input/sv-shards`。
+上传完成后在 notebook 右侧 **Add Input → Your Datasets → sv-shards**。
 
-上传完成后在 notebook 右侧 **Add Input → Your Datasets → sv-shards**，然后
-继续跑 ⑥。
+第 ① 格会**自动发现**挂载点（Kaggle 的路径不止一种，见过
+`/kaggle/input/<slug>/` 也见过 `/kaggle/input/datasets/<owner>/<slug>/`），
+按标志文件 `samples.jsonl` 找，不写死路径。找不到会直接报错并提示去
+Add Input。
+
+挂上之后继续跑 ⑥。
 """)
 
 # ── ⑥
