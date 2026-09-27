@@ -546,6 +546,104 @@ print('已保存', k)
 地方——`test_county` 划分就是干这个的。
 """)
 
+# ── ⑫
+md("""---
+# ⑫ 保存与恢复
+
+## `/kaggle/working` 本身不持久
+
+会话结束或重新打开 notebook，它就没了。要留下必须"存进版本"。
+
+| | Quick Save | Save & Run All (Commit) |
+|---|---|---|
+| 做什么 | 只存 notebook 状态，**不重跑** | **从头重跑所有单元格** |
+| 输出文件 | 默认不存；Advanced Settings 里勾 **"Save output for this version"** 才存 | 存 |
+
+**不要点 Save & Run All** —— 本 notebook 的 ⑧ 格用 nohup 后台训练，
+重跑会从头再练一遍，而后台进程在 notebook 跑完时会被杀掉。
+
+**训练中途保存**：`Save Version → Quick Save`，并在弹窗的 Advanced Settings
+里勾上 **"Save output for this version"**。这是唯一能在不重跑的前提下把
+checkpoint 存进版本的办法。之后去 notebook 页面的 **Output** 标签下载。
+
+**要跨会话续跑**，Quick Save 不够——有报告说保存的输出只留几小时。稳妥
+做法是把它传成 Dataset 版本（下面两格）。
+
+## 体积
+
+`best.pt` 只存权重（约 112 MB），`last.pt` 含优化器状态（约 340 MB，
+续跑必需）。同步默认只传前者加日志，够用；要跨会话续跑再带上 last.pt。
+""")
+
+code("""
+import json, shutil, subprocess
+from pathlib import Path
+
+run_dir = Path(RUNS) / 'base'
+if not (run_dir / 'best.pt').exists():
+    raise SystemExit(f'{run_dir} 下还没有 best.pt —— 训练跑过了吗？')
+
+out = subprocess.run(['python', '-m', 'kaggle', 'config', 'view'],
+                     capture_output=True, text=True).stdout
+user = next((l.split(':', 1)[1].strip() for l in out.splitlines()
+             if 'username' in l), '')
+if not user:
+    raise SystemExit('拿不到 Kaggle 用户名，检查 ~/.kaggle/access_token')
+SLUG = f'{user}/sv-runs'
+
+stage = Path('/kaggle/working/_sync')
+shutil.rmtree(stage, ignore_errors=True)
+stage.mkdir(parents=True)
+for f in ('best.pt', 'log.jsonl', 'classes.json'):
+    src = run_dir / f
+    if src.exists():
+        shutil.copy(src, stage / f)
+# 要跨会话续跑就取消下面这行的注释（多传 340 MB）
+# shutil.copy(run_dir / 'last.pt', stage / 'last.pt')
+
+(stage / 'dataset-metadata.json').write_text(json.dumps(
+    {'title': 'sv-runs', 'id': SLUG, 'licenses': [{'name': 'other'}]}),
+    encoding='utf-8')
+print('待同步:', sorted(x.name for x in stage.iterdir()))
+
+listing = subprocess.run(['python', '-m', 'kaggle', 'datasets', 'list', '--mine'],
+                         capture_output=True, text=True).stdout
+existing = SLUG in listing
+cmd = ['version', '-m', 'sync'] if existing else ['create']
+print(f'{"更新" if existing else "首次创建"} {SLUG}')
+subprocess.run(['python', '-m', 'kaggle', 'datasets'] + cmd
+               + ['-p', str(stage), '--dir-mode', 'skip'])
+""", title="⑫a 把训练结果同步成 Dataset（可反复跑）")
+
+md("""同步完成后，去 https://www.kaggle.com/datasets/`<用户名>`/sv-runs 把可见性
+设为 **Private**（默认就是），下个会话 Add Input 挂上即可。
+
+## 恢复并续跑
+
+挂上 sv-runs 之后跑下一格：把 checkpoint 从只读的 `/kaggle/input` 拷回
+可写的 `$RUNS`，再跑 ⑩ 格续训。
+""")
+
+code("""
+import shutil
+from pathlib import Path
+
+src = find_dataset('/kaggle/input', marker='best.pt')
+if src is None:
+    print('没找到 sv-runs 数据集 —— 先 Add Input 挂上，或本会话不需要恢复')
+else:
+    run_dir = Path(RUNS) / 'base'
+    run_dir.mkdir(parents=True, exist_ok=True)
+    for f in ('best.pt', 'last.pt', 'log.jsonl', 'classes.json'):
+        p = Path(src) / f
+        if p.exists():
+            shutil.copy(p, run_dir / f)
+            print(f'  恢复 {f}  {p.stat().st_size/1e6:.0f} MB')
+    print()
+    print(f'已恢复到 {run_dir}')
+    print('跑 ⑩ 格继续训练（--resume 会从 last.pt 接上）')
+""", title="⑫b 从 Dataset 恢复并续跑")
+
 # ── 排错
 md("""---
 # 排错

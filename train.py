@@ -483,7 +483,8 @@ def main():
                 score = m.get("top5", 0.0)
                 if score > best:
                     best = score
-                    save(args.out / "best.pt", model, opt, sched, scaler, epoch, best)
+                    save(args.out / "best.pt", model, opt, sched, scaler, epoch, best,
+                         model_only=True)
                     print(f"        新最好，已存 best.pt")
 
         log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
@@ -495,15 +496,18 @@ def main():
     print(f"完成。最好 top5 {best:.4f}  产物 {args.out}")
 
 
-def save(path, model, opt, sched, scaler, epoch, best):
-    torch.save({
-        "model": model.state_dict(),
-        "opt": opt.state_dict(),
-        "sched": sched.state_dict(),
-        "scaler": scaler.state_dict(),
-        "epoch": epoch,
-        "best": best,
-    }, path)
+def save(path, model, opt, sched, scaler, epoch, best, model_only=False):
+    """存 checkpoint。
+
+    model_only=True 只存权重（约 112 MB），用于 best.pt——它是要长期保留、
+    可能被导出或上传的产物，不需要优化器状态。last.pt 则必须完整
+    （约 340 MB），否则无法续跑。
+    """
+    payload = {"model": model.state_dict(), "epoch": epoch, "best": best}
+    if not model_only:
+        payload.update(opt=opt.state_dict(), sched=sched.state_dict(),
+                       scaler=scaler.state_dict())
+    torch.save(payload, path)
 
 
 if __name__ == "__main__":
