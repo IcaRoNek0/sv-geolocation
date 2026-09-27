@@ -4,8 +4,12 @@
 用脚本生成而不是手写 notebook JSON：手写容易在转义和结构上出错，
 而格式错了在 Colab 里只会给一句含糊的导入失败。
 
-改完本文件后运行：
-    python tools/make_notebook.py
+改完本文件后运行（第二条是门禁，必跑）：
+    python tools/make_notebook.py && python tools/check_notebook.py
+
+转义容易差一层：本文件里写 `\\n` 才会在单元格里得到 `\n` 这个两字符序列；
+少一个反斜杠就变成真实换行，把字符串劈成两半，在 notebook 里表现为一句
+与真实原因毫不相干的语法错误。check_notebook.py 就是拦这个的。
 """
 import json
 from pathlib import Path
@@ -341,7 +345,8 @@ for f in ('samples.jsonl', 'split.json'):
 idx = open_index(DATA)
 n = len(idx)
 idx.close()
-print(f'\n索引到 {n:,} 条样本（期望 {EXPECTED:,}）')
+print()
+print(f'索引到 {n:,} 条样本（期望 {EXPECTED:,}）')
 if n != EXPECTED:
     # 宁可在这里停下，也不要训练到一半才发现数据不全
     raise SystemExit(f'✗ 差 {EXPECTED - n:,} 条 —— 上传没完成，或 Dataset 未处理完'
