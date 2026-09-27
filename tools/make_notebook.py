@@ -659,6 +659,37 @@ if gt and gt.get('lng') is not None:
     print(f'误差   {d:.1f} km    top5 {hit}')
 """, title="⑪c 取图并推理")
 
+md("""---
+# ⑪d 导出 ONNX（给本地推理）
+
+如果本地机器装不上 torch（实测 Termux/ARM 上 apt 的 python3-torch 一 import
+就 SIGSEGV），可以把模型导成 ONNX，本地只用 onnxruntime——它在这类环境里
+正常。
+
+导出后本地要下载的文件：**`model.onnx`（约 110 MB）+ `classes.json`（几 KB）**。
+`classes.json` 不能漏：没有它，1337 个 logit 无法映回 adcode，预测会被
+静默解释成别的县。选点用的 `county_points.npz` 已在代码仓库里，不用下。
+""")
+
+code("""
+%%bash
+cd $AI_DIR
+python tools/export_onnx.py --run $RUNS/base
+ls -la $RUNS/base/model.onnx
+""", title="⑪d 导出 ONNX")
+
+md("""导出后从 notebook 的 **Output** 标签下载 `runs/base/model.onnx` 和
+`runs/base/classes.json`，放到本地同一个目录，然后：
+
+```sh
+python inference_onnx.py --run <那个目录> --image pano.jpg --topk 5
+python inference_onnx.py --run <目录> --image pano.jpg \
+    --truth 511424,103.510898,30.023553     # 传真值就直接算误差
+```
+
+本地需要：`onnxruntime`、`numpy`、`PIL`。不需要 torch。
+""")
+
 # ── ⑫
 md("""---
 # ⑫ 保存与恢复
