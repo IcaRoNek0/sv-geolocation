@@ -326,16 +326,28 @@ ls -la $DATA | head
 """, title="⑥a 分片就位")
 
 code("""
+import sys
 from pathlib import Path
 
-tars = sorted(Path(DATA).glob('*.tar'))
-if not tars:
-    raise SystemExit(f'{DATA} 下没有分片——路径 B 的上传还没完成？')
-print(f'{len(tars)} 个分片, {sum(t.stat().st_size for t in tars)/1e9:.2f} GB')
+sys.path.insert(0, AI_DIR)
+from data.shards import open_index
+
+EXPECTED = 21746          # 采集阶段的样本总数
+
 for f in ('samples.jsonl', 'split.json'):
     p = Path(DATA) / f
-    print(f'  {f}: {"✓" if p.exists() else "✗ 缺失"}')
-""", title="⑥b 核对")
+    print(f'{f}: {"✓" if p.exists() else "✗ 缺失"}')
+
+idx = open_index(DATA)
+n = len(idx)
+idx.close()
+print(f'\n索引到 {n:,} 条样本（期望 {EXPECTED:,}）')
+if n != EXPECTED:
+    # 宁可在这里停下，也不要训练到一半才发现数据不全
+    raise SystemExit(f'✗ 差 {EXPECTED - n:,} 条 —— 上传没完成，或 Dataset 未处理完'
+                     f'（Kaggle 建数据集是异步的，稍等几分钟再跑本格）')
+print('✓ 数据完整')
+""", title="⑥b 完整性核对")
 
 # ── ⑦
 md("""---
