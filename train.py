@@ -198,6 +198,11 @@ def main():
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--overfit", type=int, default=0,
                     help="只用 N 条样本训练，验证能否过拟合（M0 冒烟）")
+    ap.add_argument("--workers", type=int, default=None,
+                    help="覆盖配置里的 DataLoader worker 数。核数少的机器上"
+                         "开太多会与主进程抢 CPU，值得实测")
+    ap.add_argument("--batch-size", type=int, default=None,
+                    help="覆盖配置里的 batch_size（不动 accum）")
     ap.add_argument("--eval-every", type=int, default=None,
                     help="每 N 轮验证一次。冒烟测试不需要每轮都验，"
                          "验证集上的前向和训练一样贵")
@@ -305,6 +310,10 @@ def main():
             print(f"划分 {name} 为空，跳过")
     batch_size = cfg.get("batch_size", 8)
     import os as _os
+    if args.workers is not None:
+        cfg["workers"] = args.workers
+    if args.batch_size is not None:
+        cfg["batch_size"] = args.batch_size
     n_cpu = _os.cpu_count() or 1
     workers = cfg.get("workers", 2)
     stage(f"CPU {n_cpu} 核，DataLoader {workers} 个 worker"
