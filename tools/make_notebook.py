@@ -546,6 +546,119 @@ print('已保存', k)
 地方——`test_county` 划分就是干这个的。
 """)
 
+md("""---
+# ⑪c 用指定 panoID 做测试
+
+从分片里取出指定的全景跑推理，并把**真值和所属划分一起打出来**。
+
+注意：如果这条落在 `train` 划分里，模型训练时见过它，预测对了只说明推理
+链路是通的，不说明泛化能力。格子会自己判断并提示——要测真实水平请把 PID
+换成 `val_same` 或 `test_county` 里的样本。
+
+（若训练正在跑，checkpoint 每 25 分钟被重写一次，极小概率读到写了一半的
+文件。真遇到就重跑本格。）
+""")
+
+code("""
+PID = '09019300011610251337528397P'   #@param {type:"string"}
+""", title="⑪c 指定 panoID")
+
+code("""
+import contextlib, io, json, os, sys
+from pathlib import Path
+
+import numpy as np
+import torch
+from PIL import Image
+
+# 没跑过 ① 格（或 kernel 重启过）就按平台推默认值，免得为一个变量卡住
+if 'AI_DIR' not in globals():
+    print('没找到 ① 格设的变量，按平台推默认值')
+    _work = '/kaggle/working' if os.path.isdir('/kaggle') else '/content'
+    AI_DIR, RUNS = _work + '/ai', _work + '/runs'
+    DATA = None
+    for _p in Path('/kaggle/input').rglob('samples.jsonl'):
+        DATA = str(_p.parent)
+        break
+    if DATA is None:
+        DATA = '/content/data'
+    print(f'AI_DIR={AI_DIR}')
+    print(f'DATA={DATA}')
+    print(f'RUNS={RUNS}')
+
+sys.path.insert(0, AI_DIR)
+from data.prepare import ViewConfig
+from data.shards import open_index
+from inference import load_run, pick_amp_dtype, to_views
+from models.env_model import EnvModel
+from models.fusion import fuse, predict_location, top_counties
+from utils.geo_utils import CountyPoints, haversine
+
+# 真值与所属划分
+samples = {json.loads(l)['panoid']: json.loads(l) for l in
+           open(Path(AI_DIR) / 'data/shards/samples.jsonl', encoding='utf-8')}
+split = json.load(open(Path(AI_DIR) / 'data/shards/split.json',
+                       encoding='utf-8'))['assignments']
+gt = samples.get(PID)
+which = split.get(PID, '(不在数据集中)')
+print('panoID:', PID)
+print('真值  :', gt)
+print('划分  :', which)
+if which == 'train':
+    print()
+    print('注意：这条在训练集里，模型见过它。预测对了只说明推理链路是通的，')
+    print('      不说明泛化能力。测真实水平请换 val_same / test_county 的样本。')
+
+# 取图
+idx = open_index(DATA)
+pano = idx.read(PID)
+idx.close()
+img = np.asarray(Image.open(io.BytesIO(pano)).convert('RGB'))
+is_pano = img.shape[1] / img.shape[0] >= 1.6
+print()
+print(f'已取出 {img.shape[1]}x{img.shape[0]} '
+      f'{"全景" if is_pano else "截图"}  {len(pano)/1024:.0f} KB')
+
+# 推理
+meta, ckpt = load_run(Path(RUNS) / 'base')
+vcfg = ViewConfig(**meta.get('views', {}))
+views, vmask, n = to_views(img, is_pano, 8, vcfg.fov, vcfg.size, vcfg.n_max)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = EnvModel(len(meta['adcodes']), len(meta['cities']),
+                 len(meta['provinces']), backbone=meta['backbone'],
+                 pretrained=False).to(device)
+state = torch.load(ckpt, map_location=device, weights_only=False)
+model.load_state_dict(state['model'])
+model.eval()
+print(f'checkpoint {ckpt.name}  epoch {state.get("epoch")}')
+
+amp = pick_amp_dtype(device)
+ctx = (torch.autocast(device_type='cuda', dtype=amp) if amp is not None
+       else contextlib.nullcontext())
+with torch.no_grad(), ctx:
+    out = model(torch.from_numpy(views).permute(0, 3, 1, 2)[None].to(device),
+                torch.from_numpy(vmask)[None].to(device))
+
+probs = fuse(out['county'][0].float().cpu().numpy(), adcodes=meta['adcodes'])
+cp = CountyPoints(Path(AI_DIR) / 'data/pool/county_points.npz')
+top = top_counties(probs, k=5)
+lon, lat, used = predict_location(probs, cp, top_k=20)
+
+print()
+print(f'{n} 个视图，县级候选：')
+for a, prob in top:
+    tag = '   <- 真值' if gt and a == gt['adcode'] else ''
+    print(f'  {a}  {prob*100:5.1f}%{tag}')
+print()
+print(f'选点   经度 {lon:.5f}  纬度 {lat:.5f}')
+if gt and gt.get('lng') is not None:
+    d = haversine(lon, lat, gt['lng'], gt['lat']) / 1000
+    hit = '命中' if gt['adcode'] in [a for a, _ in top] else '未命中'
+    print(f'真值   经度 {gt["lng"]:.5f}  纬度 {gt["lat"]:.5f}')
+    print(f'误差   {d:.1f} km    top5 {hit}')
+""", title="⑪c 取图并推理")
+
 # ── ⑫
 md("""---
 # ⑫ 保存与恢复
