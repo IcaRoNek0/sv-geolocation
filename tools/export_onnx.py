@@ -14,6 +14,10 @@ from pathlib import Path
 
 import torch
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from models.env_model import EnvModel
 
 

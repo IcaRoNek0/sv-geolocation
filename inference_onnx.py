@@ -22,6 +22,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from models.fusion import fuse, predict_location, top_counties
 from utils.geo_utils import CountyPoints, haversine
 from utils.views import extract_views, surround_headings
