@@ -14,6 +14,12 @@ from pathlib import Path
 
 import torch
 
+# torch.onnx.export 内部要 import onnx 来序列化，而 onnx 不在 torch 的依赖里
+try:
+    import onnx  # noqa: F401
+except ImportError:
+    raise SystemExit('需要 onnx 包：pip install -q onnx onnxscript')
+
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -58,6 +64,9 @@ def main():
         output_names=["county", "city", "prov", "coord", "attn"],
         dynamic_axes={"views": {0: "batch"}, "vmask": {0: "batch"}},
         opset_version=17,
+        # 显式关掉 dynamo 导出器。torch 2.6+ 的默认值在版本间变过，而两者
+        # 依赖不同（dynamo 要 onnxscript）；固定走稳定路径，可预测。
+        dynamo=False,
     )
     print(f"已导出 {out}  {out.stat().st_size/1e6:.0f} MB")
     print(f"类别 {len(meta['adcodes'])} 县  视图 {n_max}×{size}²")
