@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""生成 colab.ipynb。
+"""生成 colab.ipynb（Colab 与 Kaggle 通用）。
 
 用脚本生成而不是手写 notebook JSON：手写容易在转义和结构上出错，
-而 notebook 格式错了在 Colab 里只会给一句含糊的导入失败。
+而格式错了在 Colab 里只会给一句含糊的导入失败。
 
 改完本文件后运行：
     python tools/make_notebook.py
@@ -23,10 +23,9 @@ def md(text):
 def code(text, title=None):
     """加一个代码单元格。
 
-    单元格魔法（%%bash 等）必须是**第一行**，而 Colab 的 #@title 也要抢首行。
-    两者不能共存：%%bash 前面插了 #@title 就不再被识别为魔法，整格会按
-    Python 解析并报语法错误。因此带 %% 的格子不加 title——每个 bash 格上方
-    本来就有 markdown 小标题。
+    单元格魔法（%%bash 等）必须是第一行，而 #@title 也要抢首行，两者不能
+    共存：%%bash 前面插了 #@title 就不再被识别为魔法，整格按 Python 解析
+    并报语法错误。因此带 %% 的格子不加 title。
     """
     src = text.strip("\n")
     if title and not src.startswith("%%"):
@@ -41,49 +40,96 @@ md("""
 
 输入一张无元数据的街景图，输出中国县级概率分布与期望得分最高的坐标。
 
-**这个 notebook 是启动器，训练逻辑全在仓库里的 `train.py`。** 改超参请改
-`configs/default.yaml` 而不是在这里改——notebook 里改的东西没法版本管理，
-下次从 GitHub 打开就没了。
+**Colab 与 Kaggle 都能跑**，第 ① 格自动判别平台并设好路径变量，后面各格
+都用它们。
+
+**这个 notebook 是启动器，训练逻辑全在仓库的 `train.py` 里。** 改超参请改
+`configs/default.yaml`——notebook 里改的东西没法版本管理。
 
 ---
 
 ## 怎么用
 
-1. 菜单「代码执行程序 → 更改运行时类型 → 硬件加速器选 **T4 GPU**」
-2. 从上往下依次跑 ①②③
-3. 第 ③ 格会告诉你走**路径 A**（Colab 直接采集，省 4 GB 上传）还是**路径 B**（本地上传）
+1. 打开 GPU：Colab「代码执行程序 → 更改运行时类型 → T4 GPU」；
+   Kaggle 右侧 Settings → Accelerator → GPU
+2. **Kaggle 还要打开网络**：Settings → Internet → On（默认关闭）
+3. 从上往下跑 ①②③。第 ③ 格会告诉你是自己采集还是用已上传的分片
 4. 之后按提示继续
 
-**断线是常态不是故障**：Colab 会话 4–6 小时会被回收。重开之后跑
-**① → ② → ⑥ → ⑩**，训练会自动从断点续上。
+**断线是常态**：Colab 4–6 小时被回收，Kaggle 9–12 小时。重开之后跑
+**① → ② → ⑥ → ⑩**，训练自动从断点续上。
+
+## 平台差异
+
+| | Colab | Kaggle |
+|---|---|---|
+| 数据 | Drive（FUSE，慢 3–5×），要拷到本地磁盘 | `/kaggle/input`，**本地盘只读，快**，不用拷 |
+| 网络 | 默认开 | **默认关** |
+| 会话 | 4–6 小时 | 9–12 小时，适合正式训练 |
+| 输出 | `/content` 随会话清空；checkpoint 要写 Drive | `/kaggle/working`，**需 Save Version 才保留** |
+| GPU | T4 ×1 | T4 ×2 或 P100（本训练只用单卡） |
 """)
 
 # ── ①
-md("## ① 挂载 Drive 并确认 GPU")
+md("## ① 环境检测")
 code("""
-from google.colab import drive
-drive.mount('/content/drive')
+import os, subprocess
 
-import subprocess, torch
-out = subprocess.run(
-    ['nvidia-smi', '--query-gpu=name,memory.total', '--format=csv,noheader'],
-    capture_output=True, text=True).stdout.strip()
-print('GPU:', out or '(没拿到，检查运行时是否选了 T4)')
-print('torch', torch.__version__, '| CUDA 可用:', torch.cuda.is_available())
+ON_KAGGLE = os.path.isdir('/kaggle')
+print('平台:', 'Kaggle' if ON_KAGGLE else ('Colab' if os.path.isdir('/content') else '未知'))
 
-if torch.cuda.is_available():
-    cc = torch.cuda.get_device_capability(0)
-    print(f'compute capability {cc[0]}.{cc[1]} →',
-          'bf16 可用' if cc[0] >= 8 else 'Turing 及更早，只能 fp16（正常，训练脚本会自动选）')
-""", title="① 挂载 Drive + 确认 GPU")
+if ON_KAGGLE:
+    WORK = '/kaggle/working'
+    DATA = '/kaggle/input/sv-shards'        # 分片数据集，只读本地盘
+    RUNS = WORK + '/runs'                   # 需 Save Version 才保留
+else:
+    WORK = '/content'
+    DATA = '/content/data'
+    RUNS = '/content/drive/MyDrive/sv/runs'
+    from google.colab import drive
+    drive.mount('/content/drive')
+
+AI_DIR = WORK + '/ai'
+
+# 导出到环境变量：bash 格用 $VAR 引用。这样不依赖 IPython 的 {var} 展开
+# 语义（本机无 IPython 无法验证），$VAR 走 shell 自己的展开，一定生效。
+os.environ.update(WORK=WORK, DATA=DATA, RUNS=RUNS, AI_DIR=AI_DIR)
+
+print(f'WORK   = {WORK}')
+print(f'DATA   = {DATA}')
+print(f'RUNS   = {RUNS}')
+print(f'AI_DIR = {AI_DIR}')
+
+out = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total',
+                      '--format=csv,noheader'],
+                     capture_output=True, text=True).stdout.strip()
+print('\\nGPU:', out or '(没拿到，检查运行时是否选了 GPU)')
+try:
+    import torch
+    print(f'torch {torch.__version__} | CUDA {torch.cuda.is_available()}')
+    for i in range(torch.cuda.device_count()):
+        cc = torch.cuda.get_device_capability(i)
+        print(f'  GPU{i} {torch.cuda.get_device_name(i)} '
+              f'cc{cc[0]}.{cc[1]} → {"bf16" if cc[0] >= 8 else "fp16"}')
+except ImportError:
+    print('未装 torch，由 ②b 安装')
+
+# 网络：Kaggle 默认关闭；路径 A 的采集与 git clone 都需要它
+try:
+    import urllib.request
+    urllib.request.urlopen('https://github.com', timeout=8)
+    print('\\n网络：可用')
+except Exception as e:
+    print(f'\\n网络：不可用（{type(e).__name__}）')
+    if ON_KAGGLE:
+        print('  → Settings → Internet → On，然后重跑本格')
+""", title="① 环境检测")
 
 # ── ②
 md("""## ② 取代码
 
-仓库是私有的，需要 GitHub token（只读权限即可）。token 用 `getpass` 读入、
-经 `subprocess` 传给 git，**不会出现在 notebook 输出里**。
-
-把仓库改成公开的话，token 那步直接回车跳过即可。
+仓库是私有的，需要 GitHub token（只读权限即可）。token 经 `getpass` 读入、
+由 `subprocess` 传给 git，不会出现在输出里。仓库若已公开，直接回车跳过。
 """)
 code("""
 import os, subprocess
@@ -92,164 +138,169 @@ from getpass import getpass
 REPO = 'IcaRoNek0/sv-geolocation'
 BRANCH = 'main'
 
-if os.path.isdir('/content/ai/.git'):
+if os.path.isdir(AI_DIR + '/.git'):
     print('代码已存在，拉取最新')
-    r = subprocess.run(['git', '-C', '/content/ai', 'pull'],
-                       capture_output=True, text=True)
+    r = subprocess.run(['git', '-C', AI_DIR, 'pull'], capture_output=True, text=True)
     print((r.stdout + r.stderr).strip() or '(无输出)')
     if r.returncode != 0:
         # 拉取失败必须报错：静默失败会让你拿旧代码跑，还以为是新代码
-        raise SystemExit('拉取失败。常见原因：/content/ai 里有本地改动。\\n'
-                         '删掉 /content/ai 重跑本格即可（分片在 /content/data，不受影响）。')
+        raise SystemExit('拉取失败（代码目录里有本地改动？）。'
+                         '删掉 ' + AI_DIR + ' 重跑本格即可，分片数据不受影响。')
 else:
     tok = getpass('GitHub token（仓库已公开则直接回车）: ').strip()
     url = (f'https://{tok}@github.com/{REPO}.git' if tok
            else f'https://github.com/{REPO}.git')
     # 用 subprocess 而非 ! 前缀：! 会把带 token 的完整命令打进输出
-    r = subprocess.run(['git', 'clone', '-q', '-b', BRANCH, url, '/content/ai'],
+    r = subprocess.run(['git', 'clone', '-q', '-b', BRANCH, url, AI_DIR],
                        capture_output=True, text=True)
     if r.returncode != 0:
-        raise SystemExit('克隆失败（token 无效？仓库名不对？）\\n' + r.stderr[-500:])
+        raise SystemExit('克隆失败（token 无效？仓库名不对？网络没开？）\\n'
+                         + r.stderr[-500:])
 
-os.chdir('/content/ai')
+os.chdir(AI_DIR)
+
+
 def _rev(ref):
     return subprocess.run(['git', 'rev-parse', '--short', ref],
                           capture_output=True, text=True).stdout.strip()
 
+
 head, remote = _rev('HEAD'), _rev('origin/main')
 print(f'当前代码 {head}   远程 {remote}')
 if head != remote:
-    # 不硬编码版本号：那种写法每提交一次就过期，反而会误报。
-    # 与远程比对是自维护的。
     print('⚠ 本地与远程不一致——拉取没成功，你跑的可能是旧代码')
 """, title="② 取代码")
 
 code("""
-!pip install -q aiohttp tqdm timm pyyaml
+!pip install -q aiohttp timm pyyaml
 """, title="②b 依赖")
 
 # ── ③
 md("""## ③ 连通性测试：决定走 A 还是 B
 
-百度对境外/数据中心 IP 的行为未验证。这一格花两分钟测一次，通过就走路径 A
-（Colab 自己抓图，省掉 4.25 GB 上传），不通过就走路径 B。
-
-先跑下面那一格。
+百度对境外/数据中心 IP 的行为未验证。花两分钟测一次：通过就走路径 A
+（在云端自己采集，省掉 4.25 GB 上传），不通过就用已上传的分片走路径 B。
 """)
 code("""
 import time, urllib.request
 
 H = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.baidu.com/'}
-PID = '09006900001410191436379165M'          # 已知有效的样例点位
+PID = '09006900001410191436379165M'
 URL = f'https://mapsv0.bdimg.com/?qt=pdata&sid={PID}&pos=0_0&z=3'
-
-REQUESTS = 116272          # 全量采集的总瓦片请求数
+REQUESTS = 116272          # 全量采集的瓦片请求总数
 
 try:
     t = time.time()
     body = urllib.request.urlopen(
         urllib.request.Request(URL, headers=H), timeout=20).read()
     dt = time.time() - t
-
     if len(body) > 5000:
-        est = REQUESTS / 160 * dt / 60
         print(f'✓ 通  {len(body)} 字节 / {dt:.2f} 秒')
-        print(f'  单请求 {dt:.2f}s，并发 160 下粗估采集 {est:.0f} 分钟')
-        print()
+        print(f'  单请求 {dt:.2f}s，并发 160 下粗估采集 {REQUESTS/160*dt/60:.0f} 分钟\\n')
         print('→ 走【路径 A】：继续跑 ④ ⑤')
     else:
         print(f'✗ 返回内容异常（{len(body)} 字节）')
-        print('→ 走【路径 B】：跳到下面的 B 段说明')
+        print('→ 走【路径 B】：见下面的 B 段')
 except Exception as e:
     print(f'✗ 不通：{type(e).__name__}: {e}')
-    print('→ 走【路径 B】：跳到下面的 B 段说明')
+    print('→ 走【路径 B】：见下面的 B 段')
 """, title="③ 测试能否直连百度")
 
-# ── ④
+# ── ④⑤
 md("""---
-# 路径 A：Colab 直接采集
+# 路径 A：云端直接采集
 
-`sample_pool.jsonl`（含全部 21,746 个 panoID 与坐标）已在仓库里，所以 Colab
+`sample_pool.jsonl`（含全部 21,746 个 panoID 与坐标）已在仓库里，所以云端
 能自己去百度抓。
 
-**采集、打包、备份必须在同一个会话里做完。** `/content` 随会话清空，
-中途断线则全部重来（约 40 分钟）。这是省掉 4 GB 上传的代价。
+**采集、打包、备份必须在同一个会话里做完**：工作目录随会话清空，中途断线
+则全部重来（约 40 分钟）。这是省掉 4 GB 上传的代价。
 """)
 code("""
 %%bash
 set -e
-cd /content/ai
+cd $AI_DIR
 python collect/fetch_pano.py meta --concurrency 32
 python collect/fetch_pano.py images --concurrency 160
 python collect/fetch_pano.py report
 """, title="④【路径 A】采集（约 25–40 分钟）")
 
-md("""期望看到 `done 21,746 / fail 0`。
-
-若是首次运行且中断过，重跑本格会从断点续上（状态存在 sqlite 里）；
-但**会话被回收后 `/content` 清空**，那种情况下只能从头再来。
+md("""期望看到 `done 21,746 / fail 0`。会话内中断可重跑本格续上（状态存 sqlite），
+但**会话被回收后工作目录清空**，只能从头再来。
 """)
 
 code("""
 %%bash
 set -e
-cd /content/ai
+cd $AI_DIR
 python collect/pack_shards.py
-mkdir -p /content/drive/MyDrive/sv/shards
-cp data/shards/*.tar /content/drive/MyDrive/sv/shards/
-cp data/shards/samples.jsonl /content/drive/MyDrive/sv/shards/
-du -sh /content/drive/MyDrive/sv/shards
-""", title="⑤【路径 A】打包并备份到 Drive")
+mkdir -p $WORK/shards
+cp data/shards/*.tar data/shards/samples.jsonl $WORK/shards/
+du -sh $WORK/shards
+echo
+echo "分片已在 $WORK/shards —— Kaggle 上把它 Save Version 后可作为 Dataset 复用"
+""", title="⑤【路径 A】打包并留在工作目录")
 
 # ── B
 md("""---
-# 路径 B：本地上传
+# 路径 B：用已上传的分片
 
-如果第 ③ 格不通，**在手机/本机的 Termux 里**执行：
+第 ③ 格不通时走这条路。分片已经在本机 `ai/data/shards/`（9 个 tar +
+`samples.jsonl`，共 4.25 GB），需要让它出现在云端。
 
-```sh
-apt-get install -y rclone
-rclone config
-```
-
-配置向导：`n` 新建 → 名字填 `gdrive` → 类型选 `drive` → 后面一路回车 →
-最后在浏览器里打开它给的链接授权。
+**Colab**：装 rclone 传到 Drive（Termux 里执行）
 
 ```sh
+apt-get install -y rclone && rclone config     # n → gdrive → drive → 一路回车 → 浏览器授权
 cd /data/data/com.termux/files/home/sv/ai
-rclone copy data/shards gdrive:sv/shards --progress
+rclone copy data/shards gdrive:sv/shards --progress     # 约 30 分钟
 ```
 
-4.25 GB，按 20 Mbps 上行约 30 分钟。
+**Kaggle**：做成 Dataset（更适合，一次上传长期复用）
 
-传完之后**回到本 notebook 继续跑 ⑥**，两条路径从这里汇合。
+1. kaggle.com → Datasets → New Dataset
+2. 上传 `ai/data/shards/` 里的 9 个 `.tar` 和 `samples.jsonl`
+3. 标题随意，slug 设为 **`sv-shards`**（要与第 ① 格的 `DATA` 一致）
+4. 在本 notebook 右侧 Add Input → 选这个 Dataset
+
+传完之后继续跑 ⑥。
 """)
 
 # ── ⑥
 md("""---
-# ⑥ shards 从 Drive 拷到本地磁盘
+# ⑥ 让分片就位
 
-**两条路径都要跑这一格。** Drive 是 FUSE 挂载，直读比本地磁盘慢 3–5 倍，
-训练时逐 batch 从 Drive 读会拖垮吞吐。
+**两条路径都要跑这一格。**
+
+Colab 的 Drive 是 FUSE 挂载，直读比本地磁盘慢 3–5 倍，必须拷到本地。
+Kaggle 的 `/kaggle/input` 本来就是本地盘，直接用，**不拷**。
 """)
 code("""
 %%bash
-mkdir -p /content/data
-cp /content/drive/MyDrive/sv/shards/*.tar /content/data/ 2>/dev/null || true
-cp /content/drive/MyDrive/sv/shards/samples.jsonl /content/data/ 2>/dev/null || true
-cp /content/ai/data/shards/split.json /content/data/
-""", title="⑥a 拷分片")
+set -e
+if [ -d /kaggle/input ]; then
+  echo "Kaggle：/kaggle/input 是本地盘，直接用，不拷贝"
+  ls -la $DATA | head
+else
+  echo "Colab：从 Drive 拷到本地磁盘（Drive 直读慢 3-5 倍）"
+  mkdir -p /content/data
+  cp /content/drive/MyDrive/sv/shards/*.tar /content/data/ 2>/dev/null || true
+  cp /content/drive/MyDrive/sv/shards/samples.jsonl /content/data/ 2>/dev/null || true
+fi
+cp $AI_DIR/data/shards/split.json $DATA/
+""", title="⑥a 分片就位")
 
 code("""
 from pathlib import Path
-tars = sorted(Path('/content/data').glob('*.tar'))
+
+tars = sorted(Path(DATA).glob('*.tar'))
 if not tars:
-    raise SystemExit('没有分片——路径 B 的上传还没完成？')
+    raise SystemExit(f'{DATA} 下没有分片——路径 B 的上传还没完成？')
 print(f'{len(tars)} 个分片, {sum(t.stat().st_size for t in tars)/1e9:.2f} GB')
 for f in ('samples.jsonl', 'split.json'):
-    p = Path('/content/data') / f
+    p = Path(DATA) / f
     print(f'  {f}: {"✓" if p.exists() else "✗ 缺失"}')
-""", title="⑥ 分片拷到本地磁盘")
+""", title="⑥b 核对")
 
 # ── ⑦
 md("""---
@@ -258,177 +309,152 @@ md("""---
 看日志里的 **训练top1**。它应该在几百步内冲到接近 1.0——64 条样本背不下来
 就说明管线坏了，不是模型不行。
 
-**不要看损失降没降到 0，它降不到。** 县级用的是地理软标签，目标是分布在
-若干相邻县上的概率，其熵就是损失的下限。实测这批样本的目标熵是 **4.34**
-（均匀分布是 7.20），所以损失能降到 4.3 就已经到底了。判断学没学会要看
-top1，不是看损失。
+**不要看损失降没降到 0，它降不到。** 县级用地理软标签，目标是分布在若干
+相邻县上的概率，其熵就是损失下限。实测这批样本的目标熵是 **4.34**（均匀
+分布是 7.20）。判断学没学会看 top1，不是看损失。
 
-**验证集这一格全 0 是正常的，不是 bug。** 验证集里的县和训练集完全不同，
-而冒烟模式下模型只背下了训练的那 64 个县——它不可能预测出没见过的县。
-按构造，冒烟模式的验证指标就没有意义，只看训练top1。
+**验证集那一格全 0 也是正常的**：验证集里的县和训练集完全不同，而冒烟
+模式下模型只背下了训练的那 64 个县，按构造就预测不出来。
 
-这一步存在的意义是把"管线坏了"和"模型学不会"这两件完全不同的事分开。
-跳过它，你会在几小时后面对一个指标很差的模型，无从判断该查数据还是调参。
-
-`--eval-every 5` 是因为验证集上的前向和训练一样贵，而冒烟阶段不需要
-每轮都验——训练准确率已经回答了"能不能过拟合"。
-
-**启动会先静默十几秒，这是正常的**（import torch/timm、扫描 9 个分片的
-索引、fork worker）。现在每个阶段都会打点：
-
-```
-[   3.1s] 设备 cuda  精度 torch.float16
-[   3.4s] 元数据 21,746 条，分片 9 个
-[   3.6s] 类别空间 1337 县，质心已算
-[   5.9s] 扫描分片 1/9 sv-0000.tar
-...
-[  12.4s] 构建 DataLoader（2 个 worker，首次启动要 fork）…
-[  19.8s] 就绪：训练 15,758 条，验证 {...}
-[  22.1s] 开始训练
-```
-
-看不到这些行就是出问题了——尤其是长时间停在某一行，那一行就是卡住的地方。
+这一步把"管线坏了"和"模型学不会"这两件完全不同的事分开。跳过它，你会在
+几小时后面对一个指标很差的模型，无从判断该查数据还是调参。
 """)
 code("""
 %%bash
-cd /content/ai
+cd $AI_DIR
 python train.py --config configs/default.yaml \\
-    --data /content/data --points data/pool/county_points.npz \\
-    --out /content/drive/MyDrive/sv/runs/smoke --overfit 64 --eval-every 5 \\
-    > /content/smoke.log 2>&1
-tail -40 /content/smoke.log
+    --data $DATA --points data/pool/county_points.npz \\
+    --out $RUNS/smoke --overfit 64 --eval-every 5 \\
+    > $WORK/smoke.log 2>&1
+tail -40 $WORK/smoke.log
 """, title="⑦ 冒烟：64 条样本能否过拟合")
 
 # ── ⑧
 md("""---
 # ⑧ 正式训练
 
-`nohup ... &` 放后台，页面断开也不影响。每 25 分钟自动存 checkpoint 到 Drive。
+`nohup ... &` 放后台，页面断开不影响。每 25 分钟自动存 checkpoint。
+
+时间账（据冒烟实测外推）：约 **18 分钟/轮**，40 轮约 12 小时。但正式训练每轮
+1970 步，**跑 2 轮就等于冒烟的全部步数**，预计 10–15 轮收敛。
+
+跑起来后盯 `val_same` 那一行，连续几轮不涨就可以停，`best.pt` 会自动保留
+最好的一版。想少等就改 `configs/default.yaml` 的 `epochs`。
 """)
 code("""
 %%bash
-cd /content/ai
+cd $AI_DIR
 nohup python train.py --config configs/default.yaml \\
-    --data /content/data --points data/pool/county_points.npz \\
-    --out /content/drive/MyDrive/sv/runs/base --resume > /content/train.log 2>&1 &
+    --data $DATA --points data/pool/county_points.npz \\
+    --out $RUNS/base --resume > $WORK/train.log 2>&1 &
 sleep 90
-tail -25 /content/train.log
+tail -25 $WORK/train.log
 """, title="⑧ 正式训练（后台）")
 
 # ── ⑨
 md("""---
 # ⑨ 看进度
 
-输出是纯文本日志而非进度条。**tqdm 在 Colab 里不能用**：它靠 `\r` 原地
-刷新，而 `%%bash` 会把子进程输出缓冲到单元格结束——表现为"跑了几分钟
-一个字都没有"。所以训练与采集现在都按时间打点，每 15 秒一行：
+纯文本日志，每 15 秒一行：
 
 ```
-[   22.1s] 开始训练
-[   37.4s] e00 20/1970 损失 6.8421 训练top1 0.000 lr 3.0e-04 0.76s/batch
-[   52.8s] e00 40/1970 损失 6.1203 训练top1 0.025 lr 3.0e-04 0.77s/batch
+[   37.4s] e00 20/1970 步 20/39400 损失 6.8421 训练top1 0.000 lr 3.0e-04 0.76s/batch
 ...
-e00 损失 5.8812 训练top1 0.041  152s (18s 等数据 / 134s 计算)  104 样本/s  剩余约 100 分钟
-e00 同县留出 top1 0.021 top5 0.083 宏平均 0.015 多数类基线 0.012 中位误差 412.3 km
+e07 损失 2.1341 训练top1 0.093  112s (14s 等数据 / 98s 计算)  140 样本/s  剩余约 62 分钟
+e07 同县留出 top1 0.021 top5 0.083 宏平均 0.015 多数类基线 0.012 中位误差 412.3 km
       候选邻近率(top5 落在真值 150km 内) 0.271
 ```
 
-**先看"等数据 / 计算"那个比值。** 等数据占大头说明数据管线是瓶颈，
-加 GPU 或调模型都没用；计算占大头才是正常的。这是判断该优化哪一端的
-唯一证据。
+**先看"等数据 / 计算"的比值**——它决定该优化哪一端。等数据占大头说明瓶颈
+在数据管线，加 GPU 或调模型都没用。
 
-然后看指标：
+再看指标：
 
-```
-
-- **top-1 高于多数类基线 ≠ 模型在学地理**，它可能只是背下了样本最多的那个县。
+- **top-1 高于多数类基线 ≠ 模型在学地理**，可能只是背下了样本最多的县。
   两个数必须并列看。
 - **候选邻近率比 top-1 更早给出信号**：模型可能还点不中正确的县，但只要
-  top-5 候选连成一片且围绕真值，就说明它在学地理。这个数长期贴着基线，
-  说明模型没学到东西——此时加数据量没有用，该查标签与划分。
-
-正式训练想让日志安静一点可以加 `--eval-every 2`。
+  top-5 候选连成一片且围绕真值，就说明在学地理。长期贴着基线说明没学到
+  东西——此时加数据量没用，该查标签与划分。
 """)
 code("""
-# 随时可以重跑本格看最新进度
-!tail -12 /content/train.log
-""", title="⑨ 看训练进度（可反复重跑）")
+# 可反复重跑
+!tail -12 $WORK/train.log
+""", title="⑨ 看训练进度")
 
 code("""
 import json
 from pathlib import Path
-p = Path('/content/drive/MyDrive/sv/runs/base/log.jsonl')
-if p.exists():
+
+p = Path(RUNS) / 'base' / 'log.jsonl'
+if not p.exists():
+    print('还没有日志')
+else:
     rows = [json.loads(l) for l in p.read_text().splitlines()]
     print(f'已完成 {len(rows)} 个 epoch')
-    print(f'{"ep":>3} {"loss":>8} {"top1":>7} {"top5":>7} {"宏平均":>8} {"基线":>7} {"邻近率":>7} {"中位km":>8}')
-    for r in rows[-12:]:
+    hdr = f'{"ep":>3} {"损失":>8} {"训练top1":>8} {"top1":>7} {"top5":>7} {"宏平均":>8} {"基线":>7} {"邻近率":>7} {"中位km":>8}'
+    print(hdr)
+    for r in rows[::max(1, len(rows)//25)] + rows[-1:]:
         v = r.get('val_same', {})
-        print(f'{r["epoch"]:>3} {r.get("train_loss", 0):>8.4f} '
-              f'{v.get("top1", 0):>7.3f} {v.get("top5", 0):>7.3f} '
-              f'{v.get("macro_recall", 0):>8.3f} {v.get("majority_baseline", 0):>7.3f} '
-              f'{v.get("top5_nearby_150km", 0):>7.3f} '
-              f'{v.get("top1_median_km", float("nan")):>8.1f}')
-else:
-    print('还没有日志')
-""", title="⑨b 指标曲线（读 Drive 上的日志）")
+        print(f'{r["epoch"]:>3} {r.get("train_loss",0):>8.3f} '
+              f'{r.get("train_acc",0):>8.3f} {v.get("top1",0):>7.3f} '
+              f'{v.get("top5",0):>7.3f} {v.get("macro_recall",0):>8.3f} '
+              f'{v.get("majority_baseline",0):>7.3f} '
+              f'{v.get("top5_nearby_150km",0):>7.3f} '
+              f'{v.get("top1_median_km",float("nan")):>8.1f}')
+""", title="⑨b 指标表（读日志）")
 
 # ── ⑩
 md("""---
-# ⑩ 断线后重开：从这里继续
+# ⑩ 断线后重开
 
-Colab 会话被回收是常态。重开 notebook 后依次跑 **① ② ⑥**，然后跑下面这格。
-`--resume` 会从 Drive 上的 `last.pt` 接着跑，最多丢 25 分钟进度。
+会话被回收是常态。重开 notebook 后依次跑 **① ② ⑥**，然后跑本格。
+`--resume` 从上次的 `last.pt` 接着跑，最多丢 25 分钟进度。
+
+**Kaggle 注意**：`/kaggle/working` 只有 Save Version 才保留。长时间训练
+请中途 Save Version 一次，否则会话结束后 checkpoint 会丢。
 """)
 code("""
 %%bash
-cd /content/ai
+cd $AI_DIR
 nohup python train.py --config configs/default.yaml \\
-    --data /content/data --points data/pool/county_points.npz \\
-    --out /content/drive/MyDrive/sv/runs/base --resume > /content/train.log 2>&1 &
+    --data $DATA --points data/pool/county_points.npz \\
+    --out $RUNS/base --resume > $WORK/train.log 2>&1 &
 sleep 60
-tail -12 /content/train.log
+tail -12 $WORK/train.log
 """, title="⑩ 续跑")
 
 # ── ⑪
 md("""---
 # ⑪ 推理
 
-给一张街景图，输出县级分布与坐标。全景和截图都能吃，自动判别：
-
-- 宽高比 ≥ 1.6 视为全景 → 切 8 个视图
-- 否则视为截图 → 缩放为单视图
-
-单视图能工作是**被训练过的能力**（训练时以 15% 概率只给单视图），
-不是推理时才遇到的情形。
+自动判别输入形态：宽高比 ≥1.6 视为全景（切多视图），否则当作单视图截图。
+单视图能工作是**被训练过的能力**（训练时以 15% 概率只给单视图）。
 """)
 code("""
-IMAGE = '/content/drive/MyDrive/sv/test.jpg'   #@param {type:"string"}
+IMAGE = '/content/test.jpg'   #@param {type:"string"}
 """, title="⑪a 指定测试图")
 
 code("""
 %%bash
-cd /content/ai
-python inference.py --run /content/drive/MyDrive/sv/runs/base \\
-    --image "{IMAGE}" --topk 5
+cd $AI_DIR
+python inference.py --run $RUNS/base --image "{IMAGE}" --topk 5
 """, title="⑪b 单图推理")
 
-md("""没有测试图的话，随便抓一张出来：
+md("""没有测试图的话从分片里取一张：
 
 ```python
-!python -c "
+import glob, sys
+sys.path.insert(0, AI_DIR)
 from data.shards import ShardIndex, decode_jpeg
 from PIL import Image
-import glob
-idx = ShardIndex(sorted(glob.glob('/content/data/*.tar')))
+idx = ShardIndex(sorted(glob.glob(DATA + '/*.tar')))
 k = idx.keys[1234]
-Image.fromarray(decode_jpeg(idx.read(k))).save('/content/test.jpg')
-print('已保存 /content/test.jpg，来自', k)
-"
+Image.fromarray(decode_jpeg(idx.read(k))).save(WORK + '/test.jpg')
+print('已保存', k)
 ```
 
-不过要注意：这张图是训练集里的，模型多半见过。**要测真实能力，
-得用推理时没见过的地方**——`split.json` 里 `test_county` 的样本就是干这个的。
+但注意这是**训练集里的图，模型多半见过**。要测真实能力得用没见过的
+地方——`test_county` 划分就是干这个的。
 """)
 
 # ── 排错
@@ -437,15 +463,17 @@ md("""---
 
 | 现象 | 原因 / 处理 |
 |---|---|
-| `nvidia-smi` 没输出 | 运行时没选 T4。菜单「代码执行程序 → 更改运行时类型」 |
-| 克隆失败 | token 无效或过期；或仓库名写错。token 需要 `repo` 权限 |
-| 第 ③ 格不通 | 走路径 B。百度对数据中心 IP 的行为不稳定 |
-| 训练出现 NaN | 多半是 fp16 下的 softmax/log_softmax；本仓库的损失已强制 float32，若仍出现请连同日志反馈 |
-| `CUDA out of memory` | 调小 `configs/default.yaml` 里的 `batch_size` 或 `views.size`。**别调 `accum`**——梯度累积不省显存 |
-| 续跑后指标跳变 | 分片顺序漂移了；确认 `--seed` 没变、`split.json` 是仓库里那份 |
-| Drive 写满 | 免费档 15 GB；删掉旧的 `best.pt` / `last.pt` |
-| 分配不到 GPU | 免费档每周 15–40 GPU 小时且动态调整，高峰期只能等 |
-| 训练比预计慢很多 | T4 是 2018 年的卡，瓶颈是算力不是显存 |
+| 第 ① 格报"网络不可用" | Kaggle 默认关网。Settings → Internet → On，重跑 ① |
+| `nvidia-smi` 没输出 | 运行时没选 GPU。Colab：代码执行程序 → 更改运行时类型；Kaggle：Settings → Accelerator |
+| 克隆失败 | token 无效或过期（需要 `repo` 权限）；或网络没开 |
+| 第 ③ 格不通 | 走路径 B |
+| **启动先静默十几秒** | 正常（import torch/timm、扫 9 个分片索引、fork worker）。每个阶段都有打点，长时间停在某一行就是卡在那里 |
+| 训练出现 NaN | 多半是 fp16 下的 softmax；本仓库的损失已强制 float32 |
+| `CUDA out of memory` | 调小 `batch_size` 或 `views.size`。**别调 `accum`**——梯度累积不省显存 |
+| 续跑后指标跳变 | 分片顺序漂移了；确认 `--seed` 与 `split.json` 没变 |
+| Kaggle 找不到分片 | Dataset 的 slug 要叫 `sv-shards`，且要 Add Input 到本 notebook |
+| Kaggle 训练完 checkpoint 没了 | `/kaggle/working` 需 Save Version 才保留 |
+| 分配不到 GPU | Colab 免费档每周 15–40 GPU 小时且动态调整；Kaggle 每周 30 小时 |
 """)
 
 

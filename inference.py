@@ -7,6 +7,7 @@
     python inference.py --run <checkpoint 目录> --image shot.jpg [--topk 5] [--json out.json]
 """
 import argparse
+import contextlib
 import json
 from pathlib import Path
 
@@ -21,6 +22,14 @@ from utils.geo_utils import CountyPoints
 from utils.views import extract_views, surround_headings
 
 PANORAMA_ASPECT = 1.6      # 宽高比超过此值视为全景（2:1 是标准，留些余量）
+
+
+def pick_amp_dtype(device):
+    """Match training precision: Turing uses fp16, newer GPUs use bf16."""
+    if device.type != "cuda":
+        return None
+    cc = torch.cuda.get_device_capability(device)
+    return torch.bfloat16 if cc[0] >= 8 else torch.float16
 
 
 def load_run(run_dir):
@@ -40,18 +49,18 @@ def load_image(path, size):
     return img, is_pano
 
 
-def to_views(img, is_pano, n_views, fov, size):
+def to_views(img, is_pano, n_views, fov, size, n_max):
     """图 → (views, vmask, 实际视图数)。"""
     if is_pano:
-        n = max(1, min(n_views, 8))
+        n = max(1, min(n_views, n_max))
         used = extract_views(img, surround_headings(n), fov_y=fov, size=size)
     else:
         used = np.asarray(
             Image.fromarray(img).resize((size, size), Image.BILINEAR))[None]
         n = 1
-    views = np.zeros((8, size, size, 3), dtype=np.uint8)
+    views = np.zeros((n_max, size, size, 3), dtype=np.uint8)
     views[:n] = used
-    vmask = np.zeros(8, dtype=bool)
+    vmask = np.zeros(n_max, dtype=bool)
     vmask[:n] = True
     return views, vmask, n
 
@@ -72,6 +81,7 @@ def main():
     adcodes = meta["adcodes"]
     vcfg = ViewConfig(**meta.get("views", {}))
     size, fov = vcfg.size, vcfg.fov
+    n_max = vcfg.n_max
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = EnvModel(len(adcodes), len(meta["cities"]), len(meta["provinces"]),
@@ -81,12 +91,14 @@ def main():
     model.to(device).eval()
 
     img, is_pano = load_image(args.image, size)
-    views, vmask, n_used = to_views(img, is_pano, args.views, fov, size)
+    views, vmask, n_used = to_views(img, is_pano, args.views, fov, size, n_max)
     print(f"输入 {args.image.name}  {img.shape[1]}×{img.shape[0]}  "
           f"{'全景' if is_pano else '截图'} → {n_used} 个视图")
 
-    with torch.no_grad(), torch.autocast(device_type=device.type,
-                                         enabled=device.type == "cuda"):
+    amp_dtype = pick_amp_dtype(device)
+    amp_ctx = (torch.autocast(device_type=device.type, dtype=amp_dtype)
+               if amp_dtype is not None else contextlib.nullcontext())
+    with torch.no_grad(), amp_ctx:
         out = model(
             torch.from_numpy(views).permute(0, 3, 1, 2)[None].to(device),
             torch.from_numpy(vmask)[None].to(device),

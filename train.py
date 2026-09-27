@@ -259,6 +259,12 @@ def main():
         vcfg.brightness = vcfg.contrast = vcfg.saturation = 0.1
         vcfg.channel_gain = 0.0
     idx_cache = {}          # 各划分共用一份索引，避免重复扫 tar
+    # Command-line loader overrides must apply to validation and training alike.
+    import os as _os
+    if args.workers is not None:
+        cfg["workers"] = args.workers
+    if args.batch_size is not None:
+        cfg["batch_size"] = args.batch_size
 
     def dataset(split_name, augment):
         ds = PanoramaDataset(
@@ -294,11 +300,6 @@ def main():
         except ValueError:
             print(f"划分 {name} 为空，跳过")
     batch_size = cfg.get("batch_size", 8)
-    import os as _os
-    if args.workers is not None:
-        cfg["workers"] = args.workers
-    if args.batch_size is not None:
-        cfg["batch_size"] = args.batch_size
     n_cpu = _os.cpu_count() or 1
     workers = cfg.get("workers", 2)
     stage(f"CPU {n_cpu} 核，DataLoader {workers} 个 worker"
