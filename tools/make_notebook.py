@@ -298,15 +298,26 @@ code("""
 %%bash
 set -e
 if [ -d /kaggle/input ]; then
-  echo "Kaggle：/kaggle/input 是本地盘，直接用，不拷贝"
-  ls -la $DATA | head
+  echo "Kaggle：/kaggle/input 是本地盘（只读），直接用，不拷贝"
 else
   echo "Colab：从 Drive 拷到本地磁盘（Drive 直读慢 3-5 倍）"
   mkdir -p /content/data
   cp /content/drive/MyDrive/sv/shards/*.tar /content/data/ 2>/dev/null || true
   cp /content/drive/MyDrive/sv/shards/samples.jsonl /content/data/ 2>/dev/null || true
 fi
-cp $AI_DIR/data/shards/split.json $DATA/
+
+# split.json 定义评估口径，必须与分片同目录。注意 /kaggle/input 是**只读**的，
+# 所以 Kaggle 上它必须已经在 Dataset 里，不能像 Colab 那样临时拷进去。
+if [ -f "$DATA/split.json" ]; then
+  echo "split.json 已就位"
+elif [ -w "$DATA" ]; then
+  cp "$AI_DIR/data/shards/split.json" "$DATA/"
+  echo "split.json 已从仓库拷入"
+else
+  echo "✗ $DATA 只读且缺 split.json —— Dataset 里必须包含它" >&2
+  exit 1
+fi
+ls -la $DATA | head
 """, title="⑥a 分片就位")
 
 code("""
