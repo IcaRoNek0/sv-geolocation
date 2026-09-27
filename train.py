@@ -42,6 +42,18 @@ def stage(msg):
     print(f"[{time.time() - _T0:6.1f}s] {msg}", flush=True)
 
 
+def _fmt_lr(opt):
+    """把各参数组的学习率都列出来。
+
+    只打 param_groups[0] 会误导：主干用的是 lr×backbone_lr_scale，正好是
+    第 0 组，于是日志里显示 3.0e-05 而配置写的是 3.0e-04，看起来像配置没生效。
+    """
+    vals = [g["lr"] for g in opt.param_groups]
+    if len(set(f"{v:.1e}" for v in vals)) == 1:
+        return f"{vals[0]:.1e}"
+    return "/".join(f"{v:.1e}" for v in vals)
+
+
 def autocast_ctx(device, amp_dtype):
     """autocast 上下文。dtype=None 在 CPU 上会报错，所以显式走空上下文。"""
     if amp_dtype is None:
@@ -412,11 +424,16 @@ def main():
                 scaler.unscale_(opt)
                 torch.nn.utils.clip_grad_norm_(model.parameters(),
                                                cfg.get("clip", 5.0))
+                # 跳过时不要推进学习率调度：fp16 初始 scale 偏大，头几步
+                # 可能因 inf/nan 被 GradScaler 跳过，此时若仍 sched.step()
+                # 会白白消耗调度进度，并触发 "step() before optimizer.step()"
+                # 警告。scale 只在跳过时下降，据此判断。
+                before = scaler.get_scale()
                 scaler.step(opt)
                 scaler.update()
-                opt.zero_grad(set_to_none=True)
-                if sched.last_epoch < sched.total_steps - 1:
+                if scaler.get_scale() >= before and sched.last_epoch < sched.total_steps - 1:
                     sched.step()
+                opt.zero_grad(set_to_none=True)
 
             # 训练集上的即时准确率：冒烟测试里"能否过拟合"靠它看，
             # 不必等验证集跑完
@@ -439,7 +456,7 @@ def main():
                       f"步 {min(sched.last_epoch, total_steps)}/{total_steps} "
                       f"损失 {running/seen:.4f} 训练top1 "
                       f"{hit_num/max(1,hit_den):.3f} "
-                      f"lr {opt.param_groups[0]['lr']:.1e} "
+                      f"lr {_fmt_lr(opt)} "
                       f"{(now-t0)/max(1,seen):.2f}s/batch", flush=True)
                 last_log = now
 
