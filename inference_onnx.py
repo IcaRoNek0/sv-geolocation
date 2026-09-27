@@ -15,8 +15,10 @@ numpy + PIL 做前处理（视图切分），差别仅在推理后端。
 两边就不会出现静默的不一致。
 """
 import argparse
+import contextlib
 import io
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +31,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from models.fusion import fuse, predict_location, top_counties
 from utils.geo_utils import CountyPoints, haversine
 from utils.views import extract_views, surround_headings
+
+@contextlib.contextmanager
+def quiet_stderr():
+    """临时把文件描述符 2 指向 /dev/null。
+
+    onnxruntime 建 session 时会重复注册 onnx schema，往 stderr 打几百条
+    "Schema error: ... already registered"（实测 629 条 / 129 KB）。结果完全
+    正确，但会淹没输出，而且极易被当成真错误——用户就把它写进过 err.txt。
+
+    这些消息出自 C++ 层，Python 的 contextlib.redirect_stderr 拦不住，
+    只能换文件描述符。仅包住建 session 那一步，之后的报错照常可见。
+    """
+    try:
+        saved = os.dup(2)
+    except OSError:            # fd 2 不可用（比如已关闭）
+        yield
+        return
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    try:
+        os.dup2(devnull, 2)
+        yield
+    finally:
+        os.dup2(saved, 2)
+        os.close(devnull)
+        os.close(saved)
+
 
 PANORAMA_ASPECT = 1.6      # 与 inference.py 保持一致；宽高比 ≥ 此值视为全景
 
@@ -83,7 +111,9 @@ def main():
     n_max = vcfg.get("n_max", 4)
 
     onnx_path = args.model or (args.run / "model.onnx")
-    sess = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
+    with quiet_stderr():
+        sess = ort.InferenceSession(str(onnx_path),
+                                    providers=["CPUExecutionProvider"])
     print(f"模型 {onnx_path.name}  {onnx_path.stat().st_size/1e6:.0f} MB")
 
     img, is_pano = load_image(args.image)
