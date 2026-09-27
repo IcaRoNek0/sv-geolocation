@@ -1,18 +1,10 @@
 #!/usr/bin/env python
-"""单图推理：街景图 → 县级概率分布 + 期望得分最高的坐标。
+"""单图推理：街景图 → 县级概率分布 + 坐标。
 
-输入可以是两种形态，自动判别：
+自动判别输入形态：宽高比 ≥1.6 视为全景（切多视图），否则当作单视图截图。
+两种情况走同一条路径，因为模型训练时视图数就是可变的。
 
-    全景      宽高比约 2:1，按多个朝向切视图（默认 8 个）
-    截图      其它情况，缩放到模型输入尺寸当作单视图
-
-两种都走同一条路径，因为模型训练时视图数就是可变的（1–8），单视图是被
-训练过的能力而非推理时才遇到的情形。
-
-用法：
-    python inference.py --run runs/base --image shot.jpg
-    python inference.py --run runs/base --image pano.jpg --views 8 --topk 5
-    python inference.py --run runs/base --image shot.jpg --json out.json
+    python inference.py --run <checkpoint 目录> --image shot.jpg [--topk 5] [--json out.json]
 """
 import argparse
 import json
@@ -49,7 +41,7 @@ def load_image(path, size):
 
 
 def to_views(img, is_pano, n_views, fov, size):
-    """图 → (views, vmask)。全景切多视图，截图缩放为单视图。"""
+    """图 → (views, vmask, 实际视图数)。"""
     if is_pano:
         n = max(1, min(n_views, 8))
         used = extract_views(img, surround_headings(n), fov_y=fov, size=size)
@@ -101,7 +93,7 @@ def main():
         )
     logits = out["county"][0].float().cpu().numpy()
 
-    # 单线索（本期无文字线索）；融合框架在 M2 接入
+    # 单线索（文字线索 M2 接入）
     probs = fuse(logits, adcodes=adcodes, temperature=1.0)
 
     cp = CountyPoints(args.points)
@@ -116,7 +108,6 @@ def main():
     print(f"\n选点（{len(used)} 个候选县的真实点位加权中位数）：")
     print(f"  经度 {lon:.5f}   纬度 {lat:.5f}")
 
-    # 注意力分布能看出模型更信哪个朝向的视图
     attn = out["attn"][0].float().cpu().numpy()[:n_used]
     if n_used > 1:
         print(f"\n视图注意力：{np.round(attn, 3).tolist()}")

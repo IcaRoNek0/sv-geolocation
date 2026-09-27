@@ -1,15 +1,8 @@
 """类别空间与地理软标签。
 
-不把标签当成互斥的 one-hot：相邻县的地貌与建筑高度相似，one-hot 会把
-"隔壁县"和"隔着半个中国的县"同等惩罚。改用地理软标签
-
-    w_j ∝ exp(-d(质心_j, 质心_i) / τ)
-
-让邻近的县分享一部分概率质量。在本方案"无文字线索 + 每县约 70 个点位"的
-条件下，这是把"隔壁县"从完全错误变成部分正确的唯一低成本手段。
-
-τ 的取法：τ = D_half / ln 2，即相距 D_half 的县拿到约一半权重。
-默认 D_half = 50 公里（同省相邻县的距离量级）。
+标签不用互斥的 one-hot：相邻县地貌与建筑高度相似，one-hot 会把"隔壁县"
+与"隔着半个中国的县"同等惩罚。软标签 w_j ∝ exp(-d(质心_i, 质心_j)/τ)，
+τ = D_half/ln2，默认 D_half = 50 km。
 """
 from pathlib import Path
 
@@ -21,13 +14,10 @@ DEFAULT_HALF_KM = 50.0
 
 
 def build_classes(samples, county_points, min_samples=1):
-    """确定类别空间。
+    """确定类别空间，返回 (adcodes, index)。
 
-    含**全部**有点位的县，而不是只含有训练样本的县：整县留出的测试县必须
-    留在类别空间里，否则"预测没见过的县"无从评估。训练样本为 0 的县其
-    logit 天然接近零，不需要特殊处理。
-
-    返回 (adcodes, index) —— adcodes 为排序后的县码列表。
+    含全部有点位的县而非只含有训练样本的县：整县留出的测试县必须留在
+    类别空间里，否则"预测没见过的县"无从评估。
     """
     train_counts = {}
     for s in samples:
@@ -46,11 +36,7 @@ def centroids(adcodes, county_points):
 
 
 def soft_targets(cent, half_km=DEFAULT_HALF_KM, blob=None):
-    """预先算好 (C, C) 的软标签矩阵：第 i 行是类别 i 的软目标分布。
-
-    类别数约 2600，矩阵约 2600² × 4 字节 = 27 MB，一次算好随取随用，
-    比每个 batch 现算省得多。
-    """
+    """(C, C) 软标签矩阵，第 i 行是类别 i 的软目标分布。一次算好随取随用。"""
     tau = (half_km * 1000.0) / np.log(2.0)
     d = haversine(cent[:, None, 0], cent[:, None, 1],
                   cent[None, :, 0], cent[None, :, 1])
@@ -72,10 +58,9 @@ def hierarchical_labels(adcodes, city_of, province_of):
 
 
 def city_of_adcode(adcode):
-    """6 位县级 adcode -> 6 位地级市 adcode。
+    """县级 adcode → 地级市 adcode（前 4 位 + '00'）。
 
-    市级码 = 前 4 位 + '00'。省直辖县级单位（如 419001 济源）没有地级市，
-    这时地级标签取省码，让它们各自成组而不是与真正的市混在一起。
+    省直辖县级单位（如 419001 济源）没有地级市，取省码，避免与真正的市混组。
     """
     if not adcode or len(adcode) < 6:
         return adcode

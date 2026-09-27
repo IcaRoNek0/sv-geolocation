@@ -1,20 +1,14 @@
 """环境线索模型：全景视图 → 县级概率分布（附市级/省级/坐标辅助头）。
 
-主干对每条视图独立提特征，再用**掩码注意力**在视图维池化。视图数可变
-（1–8），池化天然支持，因此同一套权重既能吃单张截图也能吃八视图全景。
-
-掩码用有限的负值而不是 -inf：T4 上跑 fp16，-inf 参与 softmax 容易出 NaN。
+主干对每条视图独立提特征，再用掩码注意力在视图维池化，天然支持可变的
+视图数（1–8）。掩码用有限负值而非 -inf：fp16 下 -inf 参与 softmax 易出 NaN。
 """
 import torch
 import torch.nn as nn
 
 
 class MaskedAttentionPool(nn.Module):
-    """视图维的加性注意力池化，忽略无效槽位。
-
-    比平均池化多出的能力是：让模型自己决定哪些朝向更有信息量——正对
-    街景车前进方向的视图和背对的可能差别很大。
-    """
+    """视图维加性注意力池化，忽略无效槽位。让模型自己决定哪些朝向更有信息量。"""
 
     def __init__(self, dim, hidden=None):
         super().__init__()
@@ -35,9 +29,8 @@ class MaskedAttentionPool(nn.Module):
 class EnvModel(nn.Module):
     """多任务环境线索模型。
 
-    主头是县级分类。市级与省级头是层级先验——早期县级信号很弱时，这两个
-    头仍能提供可读的指标，也把"大尺度地理"的知识通过共享主干灌给县级的
-    表示。坐标回归头提供平滑梯度，其输出还能直接参与选点。
+    县级为主头；市级/省级头在县级信号很弱时提供可读指标，并把大尺度地理
+    知识通过共享主干灌给县级表示；坐标头提供平滑梯度。
     """
 
     def __init__(self, n_counties, n_cities, n_provinces,
@@ -63,9 +56,8 @@ class EnvModel(nn.Module):
         self.head_prov = nn.Linear(dim, n_provinces)
         self.head_coord = nn.Linear(dim, 2)
 
-        # 归一化放在模型里而非 Dataset：训练与推理必须用同一套常数，
-        # 放在模型内部就不存在两边写歪的可能。主干是 ImageNet 预训练的，
-        # 不归一化等于把预训练权重用在分布完全不同的输入上。
+        # 归一化放在模型里而非 Dataset：训练与推理必须共用同一套常数。
+        # 主干是 ImageNet 预训练的，不归一化等于把权重用在错分布的输入上。
         self.register_buffer("pixel_mean",
                              torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
         self.register_buffer("pixel_std",
@@ -79,9 +71,8 @@ class EnvModel(nn.Module):
     def forward(self, views, vmask):
         """views (B, V, 3, H, W) uint8 或 float，vmask (B, V) bool。
 
-        输入是 uint8（0–255）。必须先转 float 再归一化：autocast 只把权重
-        转成 fp16，**不会转整数张量**，直接把 uint8 喂进卷积会报
-        "Input type (unsigned char) and bias type (c10::Half) should be the same"。
+        输入 uint8（0–255）。必须先转 float：autocast 只转权重，不转整数
+        张量，直接喂 uint8 会报 Input type (unsigned char)。
         """
         b, v = views.shape[0], views.shape[1]
         flat = views.reshape(b * v, *views.shape[2:])

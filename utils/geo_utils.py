@@ -1,15 +1,12 @@
 """地理计算：距离、真实点位表、加权几何中位数选点。
 
-选点不取县质心，而是用各县的**真实街景点位**：质心可能落在没有街景的山区或
-水域，而真实点位必然落在有路的地方。给定县级概率分布后，选点问题就是
+选点用各县的真实街景点位而非质心：质心可能落在水域或山区，真实点位必然
+落在有路的地方。给定县级概率分布后即求加权几何中位数
 
-    min_c  Σ_i p_i · d(c, c_i)
+    min_c Σ_i p_i · d(c, c_i)
 
-即加权几何中位数（1-median），用 Weiszfeld 迭代求解——它收敛到真实点位附近，
-而不是行政中心。
-
-坐标约定：主库的 lng/lat 是 **GCJ02**（见 docs/ADCODE_ASSIGNMENT.md）。
-下面的球面距离对所有 CRS 都只是近似，但在同一 CRS 内部比较是一致的。
+用 Weiszfeld 迭代。主库 lng/lat 是 GCJ02；球面距离对 CRS 只是近似，但
+同一 CRS 内部比较是一致的。
 """
 import math
 from pathlib import Path
@@ -53,11 +50,7 @@ def haversine(lon1, lat1, lon2, lat2):
 
 
 def local_xy(lon, lat, lon0, lat0):
-    """局部等距投影，用于中位数迭代（比球面迭代简单且在此尺度下足够）。
-
-    在县域尺度（数十公里）上，把经纬度按参考点的米制比例线性化，
-    引入的误差远小于街景定位本身的精度。
-    """
+    """局部等距投影，供中位数迭代用。县域尺度下误差远小于定位精度。"""
     cos0 = math.cos(math.radians(lat0))
     x = (np.asarray(lon) - lon0) * math.radians(1.0) * EARTH_R * cos0
     y = (np.asarray(lat) - lat0) * math.radians(1.0) * EARTH_R
@@ -72,13 +65,10 @@ def xy_to_lonlat(x, y, lon0, lat0):
 
 
 def weighted_geometric_median(points, weights):
-    """加权几何中位数：最小化 Σ w_i·‖c − p_i‖。
+    """加权几何中位数：最小化 Σ w_i·‖c − p_i‖，points 为 (N,2) 的 (lon,lat)。
 
-    points  (N, 2) 的 (lon, lat)，weights (N,)。
-    返回选出的 (lon, lat)。
-
-    在一个局部等距平面上迭代，收敛后映回经纬度。Weiszfeld 的经典退化情形是
-    迭代点恰好落在某个数据点上（该点处梯度不可导），此时直接返回该点即为最优。
+    在局部等距平面上迭代。退化情形是迭代点恰好落在数据点上（该处梯度
+    不可导），此时该点即最优，直接返回。
     """
     pts = np.asarray(points, dtype=np.float64)
     w = np.asarray(weights, dtype=np.float64)
@@ -165,15 +155,9 @@ class CountyPoints:
 def select_point(probs, county_points, top_k=20, spread="uniform"):
     """给定县级概率分布，选出期望距离最小的坐标。
 
-    probs           {adcode: 概率} 或 (adcodes, probs) —— 概率不必归一
-    county_points   CountyPoints
-    top_k           只考虑概率最高的 K 个县；尾部对期望距离的贡献可忽略，
-                    但会把参与迭代的点数放大一个量级
-    spread          uniform  把县概率均摊到该县真实点位（默认）
-                    density  按点位原始密度分摊——会再度强化路网密集区，
-                             通常不优，保留用于对照
-
-    返回 (lon, lat, 用到的县列表)
+    probs 为 {adcode: 概率} 或 (adcodes, probs)，不必归一。
+    top_k 只考虑概率最高的 K 个县：尾部贡献可忽略，却会把参与迭代的点数
+    放大一个量级。返回 (lon, lat, 用到的县列表)。
     """
     items = [(a, float(p)) for a, p in
              (probs.items() if isinstance(probs, dict) else zip(*probs))]

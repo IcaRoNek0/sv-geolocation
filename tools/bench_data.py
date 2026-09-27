@@ -1,13 +1,8 @@
 #!/usr/bin/env python
-"""量数据管线的各段耗时，在目标机器上跑。
+"""量数据管线各段耗时。瓶颈通常在 CPU 而非 GPU，但具体落在解码、视图
+切分还是增强上因机器而异，所以要在将要训练的那台机器上跑。
 
-训练的瓶颈通常在 CPU 而不是 GPU（日志里"等数据 / 计算"的比值就是证据）。
-但瓶颈具体落在解码、视图切分还是增强上，因机器而异——手机和 Colab 的
-比例并不一样。所以不要猜，在**将要训练的那台机器上**跑一遍。
-
-用法：
-    python tools/bench_data.py --data /content/data
-    python tools/bench_data.py --data /content/data --workers 1 2 4
+    python tools/bench_data.py --data /content/data [--workers 1 2 4]
 """
 import argparse
 import sys
@@ -79,7 +74,7 @@ def main():
         print(f"⚠ 没有 pyyaml，退回 ViewConfig 默认值——"
               f"这与训练用的配置可能不同，数字仅供参考")
     cfg = ViewConfig(**views_cfg)
-    # 取一批真实的训练样本，覆盖两种尺寸（四川 2048 宽、全国 1024 宽）
+    # 取真实训练样本，覆盖两种尺寸（四川 2048 宽、全国 1024 宽）
     keys = [k for k, v in split.items() if v == "train"][: args.iterations]
     blobs = {k: idx.read(k) for k in keys}
 
@@ -101,7 +96,7 @@ def main():
     rng = np.random.default_rng(0)
     print(f"{'增强':<24}{bench(lambda: augment(views.copy(), rng, cfg), 40):>9.1f}ms")
 
-    # 完整一条样本：轮换不同的全景，避免缓存带来的乐观偏差
+    # 轮换不同全景，避免缓存带来的乐观偏差
     seq = list(panos.values())
     state = {"i": 0}
 
@@ -138,10 +133,7 @@ def main():
                   f"（{dt/12*1000:.0f} ms/batch，batch=8）")
             del loader
 
-    print("\n怎么看："
-          "若'合计'远大于'视图切分+增强'，瓶颈在解码或进程传输；"
-          "若某一段独占大头，就优化那一段。")
-    print("换更大模型不会更快——GPU 本来就闲着，限制的是这里。")
+    print("\n瓶颈在哪一段就优化那一段；换更大模型不会更快，GPU 本来就闲着。")
 
 
 if __name__ == "__main__":

@@ -1,13 +1,7 @@
-"""WebDataset 分片的随机读取索引。
+"""WebDataset 分片的随机读取索引。纯标准库，可脱离 torch 测试。
 
-只依赖标准库，可以在没有 torch 的环境里单独测试——索引偏移和 tar 头解析
-正是最容易出错、又最需要测试的地方。
-
-不做解包：两万多个小文件解到磁盘上既慢又占空间，而在 Colab 上从 Drive
-拷贝分片本身是顺序读，反而快。所以启动时扫一遍 tar 头建立
-`panoid → (分片, 偏移, 长度)` 索引，之后按偏移 seek 读取。
-
-索引本身很小（每条三个整数），建立耗时在秒级。
+扫一遍 tar 头建立 panoid → (分片, 偏移, 长度)，之后按偏移读取，不解包
+（两万多个小文件解到磁盘既慢又占空间）。
 """
 import io
 import json
@@ -30,13 +24,10 @@ class ShardIndex:
         self._scan(want_json, progress)
 
     def _scan(self, want_json, progress=None):
-        """扫一遍 tar 头建立偏移索引。
+        """扫 tar 头建偏移索引。
 
-        want_json 默认关闭：侧车 JSON 训练用不到（元数据来自
-        samples.jsonl），读了也是白读。实测在 21 746 条 / 9 个分片上
-        只省 0.1 秒（5.2s → 5.1s，约 2%）——侧车文件很小且是顺序读，
-        开销被 tar 头遍历盖过去了。所以这是个**顺手的清理，不是优化**；
-        真需要 meta() 时打开即可。
+        want_json 默认关：训练用不到侧车 JSON（元数据来自 samples.jsonl），
+        实测只省 0.1s，是清理而非优化。
         """
         for si, path in enumerate(self.shards):
             if progress:
@@ -78,14 +69,12 @@ class ShardIndex:
     def read(self, key):
         """读出该样本的 JPEG 字节。
 
-        用 os.pread 而非 seek+read：DataLoader 的 worker 是 fork 出来的，
-        **文件偏移量属于 open file description，是跨进程共享的**。用
-        seek+read 时两个 worker 会互相把对方的文件位置挪走，读出的字节
-        是别人的——数据静默损坏，训练照常跑，指标却毫无意义。
-        pread 带偏移量读取、不动文件位置，从根上避开这个问题。
+        必须用 os.pread 而非 seek+read：worker 是 fork 出来的，文件偏移量
+        跨进程共享，seek+read 会让两个 worker 互相读到对方的字节——数据
+        静默损坏而训练照常跑。
 
-        长度校验同样是承重的：tarfile 对**截断的归档不报错**（实测截到
-        40% 仍照常列出全部成员名），索引会因此指向文件末尾之外。
+        长度校验同样是承重的：tarfile 对截断归档不报错，索引会指向文件
+        末尾之外。
         """
         si, offset, size = self._index[key]
         blob = os.pread(self._fd(si), size, offset)
@@ -118,13 +107,8 @@ def load_split(path):
 def decode_jpeg(blob, min_width=None):
     """JPEG 字节 → (H, W, 3) uint8。
 
-    min_width 给出下游需要的最小宽度时，用 PIL 的 draft 让 libjpeg 在
-    DCT 域按 1/2、1/4… 直接解码，跳过全尺寸解码再缩放。实测手机：
-    2048×1024 全解 13.7ms，半尺寸 6.1ms。
-
-    省的不只是解码时间：采样时要把源逐通道转成 float32 才能插值，
-    2048×1024×3 是 25 MB/样本的分配与拷贝，减半后只剩四分之一。
-    这对数据管线是主要开销的场景影响很大。
+    min_width 给定时用 PIL draft 在 DCT 域按 1/2、1/4 直接解码，既省解码
+    时间，也让后续采样要转 float32 的数据量成倍减少。
     """
     from PIL import Image
     import numpy as np

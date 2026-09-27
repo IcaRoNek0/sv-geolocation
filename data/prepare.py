@@ -1,12 +1,7 @@
-"""样本准备与增强（纯 numpy，无 torch）。
+"""样本准备与增强（纯 numpy，无 torch），可脱离 torch 测试。
 
-单独成模块是为了能在本机测试：视图数量、掩码、增强的取值范围是真正容易
-出错的地方，而 torch 只负责把结果搬成张量。
-
-视图数**可变**（1–8）。这不是可选项：推理时的输入可能只是一张截图，
-模型必须支持单视图；多视图则通过注意力池化提升精度。因此每个样本随机
-取视图数，并且以一定概率取 1——让"单图可用"成为被训练过的能力，而不是
-只在推理时才遇到的情形。
+视图数可变（1–8）并以一定概率取 1：推理输入可能只是一张截图，所以
+"单图可用"必须是被训练过的能力，而不是只在推理时才遇到的情形。
 """
 import numpy as np
 from PIL import Image
@@ -48,11 +43,7 @@ def _resample_uint8(arr, out_hw):
 
 
 def augment(views, rng, cfg):
-    """亮度/对比度/饱和度抖动 + 缩放裁切 + 随机模糊。
-
-    增强要激进：这个规模下算力严重过剩而数据是唯一瓶颈（见 PLAN.md §2.2），
-    所以宁可把增强开大，让每个 epoch 看到的图都不一样。
-    """
+    """亮度/对比度/饱和度抖动 + 缩放裁切 + 随机模糊。"""
     if cfg.brightness:
         b = rng.uniform(-cfg.brightness, cfg.brightness) * 255.0
         views = views.astype(np.float32) + b
@@ -103,16 +94,13 @@ def _blur(arr, rad):
 
 
 def make_sample(pano, rng, cfg, augment_on=True):
-    """由一张等距柱状全景生成一条训练样本。
+    """由全景生成一条样本，返回 (views, vmask)。
 
-    返回 (views, vmask)：
-        views  (n_max, size, size, 3) uint8 —— 未用到的槽位为 0
-        vmask  (n_max,) bool               —— 哪些槽位有效
-
-    固定输出形状是为了让 batch 组装简单；掩码保证池化时忽略空槽。
+    views (n_max, size, size, 3) uint8，未用槽位为 0；vmask (n_max,) bool。
+    固定形状便于组装 batch，掩码保证池化忽略空槽。
     """
     n = choose_view_count(rng, cfg)
-    # 随机起始朝向：模型不该依赖"哪个方向恰好是 0 度"这种与地点无关的巧合
+    # 随机起始朝向，避免模型依赖"哪个方向恰好是 0 度"这种与地点无关的巧合
     offset = float(rng.uniform(0, 360))
     headings = surround_headings(cfg.n_max, offset=offset)[:n]
 

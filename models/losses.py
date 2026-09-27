@@ -1,11 +1,7 @@
-"""多任务损失，县级用地理软标签。
+"""多任务损失，县级用地理软标签（理由见 data/labels.py）。
 
-县级不用 one-hot 交叉熵：相邻县的地貌与建筑高度相似，one-hot 会把"隔壁县"
-和"隔着半个中国的县"同等惩罚。软标签让邻近的县分享一部分目标质量，这是
-本方案"无文字线索 + 每县约 70 个点位"条件下的核心手段。
-
-损失统一在 float32 下计算：T4 只能跑 fp16，而 log_softmax 与软标签相乘在
-fp16 下容易下溢成 0，梯度随之消失。
+损失统一在 float32 下算：fp16 下 log_softmax 与软标签相乘容易下溢成 0，
+梯度随之消失。
 """
 import torch
 import torch.nn as nn
@@ -33,11 +29,11 @@ class MultiTaskLoss(nn.Module):
         county_target = batch["county"]
         valid = county_target != self.ignore_index
 
-        # 县级：软标签交叉熵，目标分布由类别下标查出
+        # 县级：软标签交叉熵
         if valid.any():
             logp = F.log_softmax(out["county"].float(), dim=1)
             target_soft = self.soft[county_target.clamp(min=0)]
-            # 留一点均匀质量，避免对任何单一类别过度自信
+            # 留一点均匀质量，避免过度自信
             if self.ls > 0:
                 c = target_soft.shape[1]
                 target_soft = (1 - self.ls) * target_soft + self.ls / c
@@ -48,7 +44,7 @@ class MultiTaskLoss(nn.Module):
         loss_city = self._ce(out["city"], batch["city"])
         loss_prov = self._ce(out["prov"], batch["prov"])
 
-        # 坐标：在归一化空间上算 SmoothL1，越界不惩罚得比错省更狠
+        # 坐标：归一化空间上的 SmoothL1
         loss_coord = F.smooth_l1_loss(out["coord"].float(), batch["coord"],
                                       reduction="mean")
 

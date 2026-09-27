@@ -1,23 +1,16 @@
 #!/usr/bin/env python
-"""单次全表扫描主库，产出采样池、覆盖直方图与每县真实点位表。
+"""唯一一次全表扫描主库，一次产出三个产物。
 
-这是整个方案中**唯一**全表扫描 qsresult/all_streetviews.sqlite3 的地方。
-三千万行的扫描代价很高，因此三个产物必须一次产出：
+    sample_pool.jsonl   采样池（四川按县配额，其余按省配额）
+    histogram.json      各省/县可用量与选中量
+    county_points.npz   每县真实点位（网格抽稀），选点用
 
-    sample_pool.jsonl   训练用采样池（四川按县配额，其余按省配额）
-    histogram.json      各省/县的可用量与选中量，用于定配额与识别无覆盖县
-    county_points.npz   每县真实点位表（网格抽稀），选点用，覆盖全部候选县
+点位表覆盖全部县而非仅采样县：整县留出的测试县也要有点位，否则无法评估选点。
 
-点位表覆盖全部县而非仅采样县——整县留出的测试县也必须有真实点位，
-否则划分 B 无法评估选点质量。
+采样用蓄水池而非取前 N 个——主库物理顺序高度地理聚集（前 20 万行只覆盖
+6 个省），取前 N 会锁死在某个爬取批次上。之后再按网格抽稀去冗余。
 
-采样用**蓄水池**而非"取前 N 个"：主库的物理顺序高度地理聚集
-（前 20 万行只覆盖 6 个省），直接取前 N 会把采样锁死在某个爬取批次上。
-蓄水池保证每组是均匀随机的结果，之后再做网格抽稀去冗余。
-
-用法：
-    python sample_pool.py --limit 200000     # 小样验证
-    python sample_pool.py                    # 完整扫描（实测约 2 分钟）
+    python sample_pool.py [--limit N]
 """
 import argparse
 import json
@@ -29,7 +22,6 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (  # noqa: E402
@@ -89,13 +81,14 @@ def main():
     conn = open_main_db()
     try:
         cur = conn.execute(QUERY)
-        pbar = tqdm(total=args.limit or None, unit=" 行", desc="扫描主库",
-                    mininterval=5.0)
+        last_log = time.time()
         for panoid, lng, lat, adcode in cur:
             scanned += 1
             if args.limit and scanned > args.limit:
                 break
-            pbar.update(1)
+            if time.time() - last_log >= 15:
+                print(f"[{time.time()-t0:6.1f}s] 已扫 {scanned:,} 行", flush=True)
+                last_log = time.time()
 
             prov = province_of(adcode)
             county_total[adcode] += 1
@@ -135,7 +128,6 @@ def main():
                 if j < cap:
                     res[j] = row
 
-        pbar.close()
     finally:
         conn.close()
 

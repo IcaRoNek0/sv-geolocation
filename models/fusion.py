@@ -1,17 +1,9 @@
-"""两条线索的概率融合与最终选点。
+"""两条线索的概率融合与选点。
 
-融合在对数概率空间做线性加权：
+    log p ∝ w_env·log p_env + w_text·log p_text
 
-    log p ∝ w_env · log p_env + w_text · log p_text
-
-对数空间加权而非直接加权概率，是因为两条线索的可信度差异很大时，直接加权
-会被其中一条的概率峰值主导；对数空间里权重才真正表现为"信谁的证据"。
-
-本期（M1）只有环境线索，融合框架先搭好占位，text_probs 传 None 即退化为
-单线索。文字线索在 M2 接入（见 PLAN.md §5.2）。
-
-选点交给 geo_utils.select_point：在真实点位上求加权几何中位数，
-而不是取 top-1 县的质心。
+在对数空间加权：两条线索可信度差异大时，直接加权概率会被其中一条的峰值
+主导。本期只有环境线索，text_probs 传 None 即退化为单线索。
 """
 import numpy as np
 
@@ -33,9 +25,9 @@ def to_log_probs(probs, adcodes):
 
 def fuse(env_probs, text_probs=None, w_env=1.0, w_text=1.0, adcodes=None,
          temperature=1.0):
-    """融合两条线索，返回归一化后的 {县码: 概率}。
+    """融合两条线索，返回归一化的 {县码: 概率}。
 
-    env_probs / text_probs 可以是 {县码: 概率}，也可以是和 adcodes 对齐的数组。
+    两个输入可以是 {县码: 概率} 或与 adcodes 对齐的数组。
     """
     if adcodes is None:
         adcodes = sorted(env_probs if isinstance(env_probs, dict) else

@@ -1,26 +1,12 @@
 #!/usr/bin/env python
-"""抓取街景图：批量 sdata 定层级 → pdata 拼等距柱状全景 → 存 JPEG。
+"""抓取街景图：sdata 定层级 → pdata 拼全景 → 存 JPEG。
 
-两个阶段，均可断点续传（状态存 sqlite）：
+    fetch_pano.py meta   [--limit N] [--concurrency N]
+    fetch_pano.py images [--limit N] [--concurrency N] [--part sichuan]
+    fetch_pano.py report
 
-    阶段 meta    每 100 个 ID 一次 sdata，读 ImgLayer 决定层级与分块数
-    阶段 images  按 pos={行}_{列} 取瓦片，拼接，存 JPEG q85 + optimize
-
-**不能硬编码分块数**：不同年份的街景层级数不同（2014 年 4 级，后续可能不同）。
-先取元数据再决定抓法，顺便把 Date/Obsolete 等字段留下来。
-
-层级映射（pdata z = ImgLayer.ImgLevel + 1，已实测）：
-
-    四川   目标 2048×1024 → ImgLevel 2 → z=3 → 4×2 块
-    全国   目标 1024×512  → ImgLevel 1 → z=2 → 2×1 块
-
-层级缺失时回退到可用的最高层级，实际尺寸记进状态库。
-
-用法：
-    python fetch_pano.py meta   --limit 300
-    python fetch_pano.py images --limit 300 --concurrency 16
-    python fetch_pano.py images --part sichuan
-    python fetch_pano.py report
+两阶段均按 sqlite 状态断点续传。分块数不能硬编码（各年份层级数不同），
+先读 ImgLayer 再决定；pdata z = ImgLayer.ImgLevel + 1。
 """
 import argparse
 import asyncio
@@ -51,9 +37,7 @@ HEADERS = {
     "Referer": "https://www.baidu.com/",
 }
 SDATA_BATCH = 100        # 项目约定；400 表示批次过大，见 bisect 逻辑
-LOG_SECONDS = 15         # 打点间隔。用纯文本日志而非 tqdm：tqdm 靠 \r 原地
-                         # 刷新，在 Colab 的 %%bash 里会被缓冲到单元格结束才
-                         # 吐出来，表现为"跑了几十分钟一个字都没有"
+LOG_SECONDS = 15         # 纯文本打点间隔；tqdm 在 Colab 的 %%bash 里刷不出来
 JPEG_QUALITY = 85
 
 SCHEMA = """
@@ -137,8 +121,8 @@ async def sdata_batch(session, ids, depth=0):
 
     err = (data.get("result") or {}).get("error")
     content = data.get("content")
-    # 批次过大只表现为 error=400 或空 content——不能拿 len(content) < len(ids)
-    # 当判据：sdata 对已失效的 ID 本就不返回，缺项是正常现象而非批次出错。
+    # 判据是 error 码或空 content。不能用 len(content) < len(ids)：
+    # sdata 对已失效 ID 本就不返回，缺项是正常现象。
     broken = err not in (0, None) or not isinstance(content, list) \
         or (not content and len(ids) > 1)
     if broken:
@@ -268,16 +252,14 @@ def grid_for_z(z):
     return (2 ** (z - 1), 2 ** (z - 2))
 
 
-# 各归属部分的**目标**像素尺寸。层级回退后要缩放到这个尺寸，
-# 否则同一批数据里混着两种分辨率，训练侧得额外处理。
+# 层级回退后要缩放到目标尺寸，否则同一批数据里混着两种分辨率
 TARGET_SIZE = {"sichuan": (2048, 1024), "national": (1024, 512)}
 
 
 async def fetch_grid(session, sem, panoid, z):
-    """取该层级下的完整瓦片阵列。任何一块缺失即视为该层级不可用。
+    """取该层级下的完整瓦片阵列，任何一块缺失即视为该层级不可用。
 
-    不能只信 sdata 的 ImgLayer：实测有点位的元数据列出了 4 个层级，
-    但 pdata 只提供 z=1（预览）与 z=4，z=2/z=3 全返回 404。
+    ImgLayer 列出的层级不保证 pdata 真的提供（实测有只给 z=1 和 z=4 的）。
     """
     bx, by = grid_for_z(z)
     tiles = await asyncio.gather(*(
@@ -315,7 +297,7 @@ async def phase_images(args):
     sem = asyncio.Semaphore(args.concurrency)
     done = fail = 0
     total_bytes = 0
-    # 断点续跑时把之前已完成的部分计入基数，否则进度看起来永远从零开始
+    # 续跑时把已完成部分计入基数，否则进度永远从零开始
     base_bytes, base_n = conn.execute(
         "SELECT COALESCE(SUM(bytes),0), COUNT(*) FROM panos WHERE state='done'"
     ).fetchone()
@@ -327,8 +309,7 @@ async def phase_images(args):
         nonlocal done, fail, total_bytes
         panoid, adcode, part, z, bx, by = rec
         target = TARGET_SIZE.get(part)
-        # 目标层级优先，失败则按尺寸接近程度回退。最多试 3 个层级——
-        # 对真正失效的点位，穷举 5 个层级 × 最多 16 块瓦片纯属浪费。
+        # 最多试 3 个层级；对真正失效的点位穷举所有层级纯属浪费
         fallbacks = sorted((c for c in (2, 3, 4, 5) if c != z),
                            key=lambda c: abs(c - z))[:2]
         canvas = None
@@ -345,7 +326,6 @@ async def phase_images(args):
                 tried.append(f"z{cz}:stitch:{e}")
                 continue
             if cz != z:
-                # 回退层级必须缩放回目标尺寸，否则同一批数据里混着两种分辨率
                 if target and (canvas.width, canvas.height) != target:
                     canvas = canvas.resize(target, Image.LANCZOS)
             break
@@ -372,8 +352,7 @@ async def phase_images(args):
         done += 1
         total_bytes += size
 
-    # aiohttp 默认连接池上限是 100，不显式放开的话并发设再大也无效——
-    # 而且不会报错，只是悄悄卡在 100。
+    # aiohttp 默认连接池上限 100，不放开的话并发设再大也无效且不报错
     connector = aiohttp.TCPConnector(limit=args.concurrency, ttl_dns_cache=300)
     t0 = time.time()
 

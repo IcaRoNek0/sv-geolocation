@@ -1,21 +1,12 @@
 #!/usr/bin/env python
 """训练主程序。
 
-设计约束来自 Colab（见 PLAN.md §2.2）：
+    python train.py --config configs/default.yaml --data <分片目录> --out <checkpoint 目录>
+    python train.py ... --resume          # 断点续跑
+    python train.py ... --overfit 64      # 冒烟：64 条样本能否过拟合
 
-- T4 是 Turing，**不支持 bf16**，只能 fp16 + GradScaler；sm≥8 才用 bf16。
-  这里自动判断，不写死。
-- 会话 4–6 小时就会被回收，所以每 --ckpt-minutes 存一次 checkpoint，
-  --resume 从断点续跑。**分片顺序用固定 seed**，否则续跑后数据顺序漂移，
-  等于偷换了训练集。
-- /content 会随会话清空，所以 checkpoint 与日志必须写到挂载的 Drive 路径。
-
-用法：
-    python train.py --config configs/default.yaml --data data/shards \\
-                    --out /content/drive/MyDrive/sv/runs/base
-    python train.py --config configs/default.yaml --out ... --resume
-    python train.py --config configs/default.yaml --data data/shards \\
-                    --overfit 64          # M0 冒烟：应当迅速过拟合到接近 100%
+Colab 约束：T4 只支持 fp16（自动判断）；会话 4-6 小时被回收，故按时间存
+checkpoint 且必须写 Drive；分片顺序固定 seed，否则续跑等于换训练集。
 """
 import argparse
 import contextlib
@@ -46,9 +37,7 @@ _T0 = time.time()
 def stage(msg):
     """打印启动阶段，带累计耗时。
 
-    必须 flush：Colab 的 stdout 走管道，默认是**块缓冲**而非行缓冲，
-    不刷的话这些行会一直卡在缓冲区里，直到缓冲满或进程结束。表现出来
-    就是"跑了十几秒一个输出都没有"，而实际代码一直在跑。
+    必须 flush：Colab 的 stdout 走管道默认块缓冲，不刷的话会静默十几秒。
     """
     print(f"[{time.time() - _T0:6.1f}s] {msg}", flush=True)
 
@@ -71,8 +60,7 @@ def pick_amp_dtype(device):
 def stratified_subset(keys, samples, n, seed=0):
     """按县级类别轮转抽 N 条。
 
-    不能直接取排序后的前 N 条：panoid 里含城市码，排序后前 N 条会高度
-    聚集在同一片区域，验证集的多类基线能到 0.6，指标失去意义。
+    直接取前 N 条会高度聚集（panoid 含城市码），多类基线能到 0.6。
     """
     by_class = defaultdict(list)
     for k in keys:
@@ -97,11 +85,10 @@ def stratified_subset(keys, samples, n, seed=0):
 
 
 def apply_freeze_policy(model, epoch, cfg):
-    """按当前 epoch 设定主干是否可训练。
+    """按 epoch 幂等地设定主干可训练性。
 
-    做成幂等的、每个 epoch 开头都调一次，而不是"到某个 epoch 就解冻一次"：
-    续跑时 start_epoch 已经越过解冻点，那种写法永远不触发，主干会一直冻着，
-    而优化器状态却是按解冻后存的。
+    不能写成"到某个 epoch 解冻一次"：续跑时 start_epoch 已越过解冻点，
+    条件永不成立，主干会一直冻着。
     """
     if not cfg.get("freeze_backbone", False):
         model.set_backbone_trainable(True)
@@ -265,10 +252,8 @@ def main():
     # ── 数据集 ──────────────────────────────────────────────────────
     vcfg = ViewConfig(**cfg.get("views", {}))
     if args.overfit:
-        # 冒烟测试要验证的是**管线**，不是增强鲁棒性。全开增强时每轮看到
-        # 的都是同一张全景的不同裁切，64 条样本 230 轮才到 top1 0.70
-        # （实测），判断"管线通不通"因此变得含糊。关掉裁切与模糊后，
-        # 过拟合应当既快又干净。
+        # 冒烟要验证管线而非增强鲁棒性；全开增强时 64 条样本 230 轮才到
+        # top1 0.70，判断变得含糊。
         vcfg.crop_scale = None
         vcfg.blur_prob = 0.0
         vcfg.brightness = vcfg.contrast = vcfg.saturation = 0.1
@@ -331,17 +316,9 @@ def main():
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
     stage(f"模型就绪：{n_par:.1f}M 参数，其中可训练 {n_tr:.1f}M")
     loss_fn = MultiTaskLoss(soft, **cfg.get("loss", {})).to(device)
-    # 主干用更低的学习率微调，而不是冻结。
-    #
-    # 冻结的理由是"别把预训练权重带坏"，但代价是只能拿固定的 ImageNet
-    # 特征去分辨 1337 个县级类别——那是细粒度地理判别，ImageNet 特征
-    # 本就不为此而生。实测冻结时 41 轮训练top1 卡在 0.09 不动。
-    # 而这个任务算力并非瓶颈（等数据 : 算梯度 ≈ 3:1），解冻多出的反向
-    # 开销可以承受。低学习率是标准的折中。
-    #
-    # 收全部参数而非只收 requires_grad 的：冻结参数的 grad 为 None，
-    # 优化器会自动跳过；反之若只收当前的，之后解冻的那些参数就永远
-    # 进不了优化器，解冻变成空操作且不报错。
+    # 主干用低学习率微调而非冻结（冻结时 ImageNet 特征不足以分辨县级）。
+    # 收全部参数：冻结参数 grad 为 None 会被自动跳过，但漏收的话之后解冻
+    # 的参数就永远进不了优化器。
     backbone_scale = cfg.get("backbone_lr_scale", 0.1)
     backbone_ids = {id(q) for q in model.backbone.parameters()}
     groups = [
@@ -354,13 +331,10 @@ def main():
                             weight_decay=cfg.get("weight_decay", 0.05))
     epochs = cfg.get("epochs", 40)
     if args.overfit:
-        # 40 轮 × 8 batch ÷ accum 2 只有 160 次优化步，远不足以让 64 条样本
-        # 过拟合——第 7 轮时才走到 28 步，学习率还在预热。冒烟模式必须给够
-        # 步数，否则测的是"步数不够"而不是"管线通不通"。
+        # 原有轮数只有 160 次优化步，测的是"步数不够"而非"管线通不通"。
+        # 预热 10% 在 3200 步下等于前 40 轮全在热身，一并压缩。
         epochs = max(epochs, cfg.get("overfit_epochs", 400))
         cfg["accum"] = 1
-        # 默认预热占总步数的 10%，3200 步就是 320 步——冒烟测试里那等于
-        # 前 40 轮全在热身，学习率还没升到峰值就结束了。
         cfg["pct_start"] = 0.02
     steps_per_epoch = max(1, len(train_loader) // cfg.get("accum", 1))
     total_steps = epochs * steps_per_epoch
@@ -411,12 +385,8 @@ def main():
         hit_num = hit_den = 0
         opt.zero_grad(set_to_none=True)
 
-        # 手动迭代而非直接迭代 loader：这样才能把"等数据"和"算梯度"的时间
-        # 分开计。数据管线是瓶颈时，这个数字是唯一能说明问题的证据。
-        #
-        # 用定时打点的纯文本日志而非 tqdm 进度条：tqdm 靠 \r 原地刷新，
-        # 在 Colab 的 %%bash 里输出会被缓冲到单元格结束才吐出来，表现为
-        # "跑了几分钟一个字都没有"。纯文本 + flush 到哪个环境都能实时看到。
+        # 手动迭代才能把"等数据"与"算梯度"分开计时——数据是瓶颈时，
+        # 这个比值是唯一能说明问题的证据。
         loader_it = iter(train_loader)
         n_batches = len(train_loader)
         last_log = time.time()
@@ -461,8 +431,7 @@ def main():
             seen += 1
             t_compute += time.time() - t_work
 
-            # 按时间而非按步数打点：步速随 batch 大小与硬件变化，
-            # 定步数打点要么刷屏要么半天没动静。
+            # 按时间而非步数打点：步速随硬件变化，定步数要么刷屏要么没动静
             now = time.time()
             if now - last_log >= cfg.get("log_seconds", 15) or step == n_batches - 1:
                 print(f"  [{now - _T0:7.1f}s] e{epoch:02d} {step+1}/{n_batches} "

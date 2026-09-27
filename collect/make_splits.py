@@ -1,27 +1,18 @@
 #!/usr/bin/env python
 """生成训练/验证/测试划分。
 
-这是整个数据管线里最容易做错、错了又不报错的一步。同一辆车同一天拍下的
-相邻帧几乎重复，随机按图划分会让验证集里出现训练集见过的地点，指标虚高而
-不自知。
+划分单位是 (车辆, 日期) 分组而非单张图：同车同日相邻帧几乎重复，随机按图
+划分会让验证集出现训练集见过的地点，指标虚高却不报错。整个分组要么全进
+训练、要么全进评估。
 
-因此划分单位是 **(车辆, 日期) 分组**，整个分组要么全进训练、要么全进验证，
-绝不被切开。
+    test_county  整县留出（测没见过的县，对外敢报的数字）
+    val_same     同县留出，各留 ~15 条（测见过的地方）
+    val_national 全国铺底按分组留出 ~10%，只用于省级指标
+    train        其余
 
-两套划分（对应 PLAN.md §1）：
+split.json 固定下来随分片上传，不在每次训练时重算，否则指标失去可比性。
 
-    test_county  整县留出。若干四川整县完全不进训练，测"没见过的县"。
-                 这是对外敢报的数字。
-    val_same     同县留出。其余四川县各留 ~15 条，测"见过这个地方"。
-    train        其余。
-    val_national 全国铺底部分按分组留出 ~10%，只用于省级指标。
-
-产物 split.json 随分片一起上传 Drive，不在每次训练时重算——重算会让不同
-session 用了不同划分，指标失去可比性。
-
-用法：
-    python make_splits.py
-    python make_splits.py --holdout-counties 12 --per-county 15
+    python make_splits.py [--holdout-counties N --per-county N]
 """
 import argparse
 import json
@@ -40,7 +31,7 @@ SEED = 20260926
 
 
 def group_key(s):
-    """划分单位：(车辆, 日期)。缺字段时退回该样本自身，绝不与别的样本合并。"""
+    """划分单位：(车辆, 日期)。缺字段时退回样本自身，绝不与别的合并。"""
     v, d = s.get("vehicle"), s.get("date")
     if v and d:
         return f"{v}|{d}"
