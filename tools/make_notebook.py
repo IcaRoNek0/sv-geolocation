@@ -323,7 +323,16 @@ elif [ -w "$DATA" ]; then
   cp "$AI_DIR/data/shards/split.json" "$DATA/"
   echo "split.json 已从仓库拷入"
 else
-  echo "✗ $DATA 只读且缺 split.json —— Dataset 里必须包含它" >&2
+  # 报错前先诊断。只说"缺文件"没用，得让人知道该查哪里。
+  echo "✗ $DATA 不可用" >&2
+  echo "  DATA 存在: $([ -e "$DATA" ] && echo 是 || echo 否)" >&2
+  if [ -d /kaggle/input ]; then
+    echo "  /kaggle/input 内容: $(ls /kaggle/input 2>/dev/null | tr '\n' ' ')" >&2
+    echo "  → 若上面没有 sv-shards：右上 Add Input → Your Datasets → sv-shards" >&2
+    echo "  → 若有但名字不同：Dataset 的 slug 必须正好是 sv-shards" >&2
+  else
+    echo "  → 非 Kaggle 环境，检查 Drive 里是否已上传分片" >&2
+  fi
   exit 1
 fi
 ls -la $DATA | head
