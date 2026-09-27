@@ -24,7 +24,7 @@ from data.dataset import PanoramaDataset, make_loader
 from data.labels import (build_classes, centroids, city_of_adcode,
                          province_of_adcode, soft_targets)
 from data.prepare import ViewConfig
-from data.shards import ShardIndex, load_samples, load_split
+from data.shards import load_samples, load_split, open_index
 from models.env_model import build_model
 from models.losses import MultiTaskLoss
 from utils.geo_utils import CountyPoints, denormalize_coords, normalize_coords
@@ -218,11 +218,11 @@ def main():
 
     args.out.mkdir(parents=True, exist_ok=True)
     stage(f"设备 {device}  精度 {amp_dtype}")
-    shard_paths = sorted(args.data.glob("*.tar"))
-    if not shard_paths:
-        raise SystemExit(f"{args.data} 下没有 .tar 分片——第 ⑥ 格拷盘跑了吗？")
+    if not (list(args.data.glob("*.tar"))
+            or [p for p in args.data.iterdir() if p.is_dir()]):
+        raise SystemExit(f"{args.data} 下既没有 .tar 分片也没有解包目录——第 ⑥ 格跑了吗？")
     samples = load_samples(args.data / "samples.jsonl")
-    stage(f"元数据 {len(samples):,} 条，分片 {len(shard_paths)} 个")
+    stage(f"元数据 {len(samples):,} 条，数据目录 {args.data}")
     split, split_payload = load_split(args.data / "split.json")
     cp = CountyPoints(args.points)
     stage(f"划分与点位表就绪（点位表 {len(cp)} 县）")
@@ -268,14 +268,14 @@ def main():
 
     def dataset(split_name, augment):
         ds = PanoramaDataset(
-            shard_paths, split, samples, county_index, coord_index,
+            args.data, split, samples, county_index, coord_index,
             city_index, prov_index, split=split_name, view_cfg=vcfg,
             augment=augment, seed=args.seed)
         # 索引只在父进程建一次（扫 tar 头要几秒）。fd 跨 fork 共享是安全的，
         # 因为 read() 用 os.pread——它在偏移量处读、不移动文件位置。
         if "idx" not in idx_cache:
-            idx_cache["idx"] = ShardIndex(
-                shard_paths,
+            idx_cache["idx"] = open_index(
+                args.data,
                 progress=lambda i, n, name: stage(f"扫描分片 {i+1}/{n} {name}"))
         ds._idx = idx_cache["idx"]
         if args.overfit:

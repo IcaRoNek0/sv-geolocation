@@ -14,7 +14,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from data.prepare import ViewConfig, augment, make_sample  # noqa: E402
-from data.shards import ShardIndex, decode_jpeg  # noqa: E402
+from data.shards import decode_jpeg, open_index  # noqa: E402
 from utils.views import extract_views, surround_headings  # noqa: E402
 
 
@@ -52,10 +52,9 @@ def main():
     except ImportError:
         print("未安装 torch —— 只测各段耗时，跳过 DataLoader 吞吐")
 
-    shards = sorted(args.data.glob("*.tar"))
     t = time.time()
-    idx = ShardIndex(shards)
-    print(f"分片 {len(shards)} 个 / {len(idx):,} 条，索引扫描 {time.time()-t:.1f}s")
+    idx = open_index(args.data)
+    print(f"索引进 {len(idx):,} 条，扫描 {time.time()-t:.1f}s")
 
     samples = load_samples(args.data / "samples.jsonl")
     split, _ = load_split(args.data / "split.json")
@@ -114,7 +113,7 @@ def main():
     if args.workers:
         from data.dataset import PanoramaDataset, make_loader
         print("\nDataLoader 实测吞吐（含进程开销与传输）：")
-        ds = PanoramaDataset(shards, split, samples, ci,
+        ds = PanoramaDataset(args.data, split, samples, ci,
                              {k: (0.0, 0.0) for k in samples},
                              {k: 0 for k in samples}, {k: 0 for k in samples},
                              split="train", view_cfg=cfg, augment=True)

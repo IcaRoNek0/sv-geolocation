@@ -15,16 +15,16 @@ import torch
 from torch.utils.data import Dataset, get_worker_info
 
 from data.prepare import ViewConfig, make_sample
-from data.shards import ShardIndex, decode_jpeg
+from data.shards import decode_jpeg, open_index
 
 
 class PanoramaDataset(Dataset):
     """按划分过滤的分片数据集。"""
 
-    def __init__(self, shard_paths, split_assignments, samples, class_index,
+    def __init__(self, data_dir, split_assignments, samples, class_index,
                  coord_index, city_index, prov_index, split="train",
                  view_cfg=None, augment=True, seed=0):
-        self.shard_paths = [str(p) for p in sorted(shard_paths)]
+        self.data_dir = data_dir
         self.split = split
         self.class_index = class_index
         self.coord_index = coord_index      # panoid -> (x, y) 归一化坐标
@@ -44,9 +44,12 @@ class PanoramaDataset(Dataset):
         self._meta = samples
 
     def _index(self):
-        """延迟构建：DataLoader worker 里各自建各自的句柄。"""
+        """延迟构建：DataLoader worker 里各自建各自的句柄。
+
+        open_index 按布局自动选读取器（tar 分片或解包后的散文件目录）。
+        """
         if self._idx is None:
-            self._idx = ShardIndex(self.shard_paths)
+            self._idx = open_index(self.data_dir)
         return self._idx
 
     def __len__(self):

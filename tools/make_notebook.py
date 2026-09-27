@@ -293,6 +293,11 @@ md("""---
 
 Colab 的 Drive 是 FUSE 挂载，直读比本地磁盘慢 3–5 倍，必须拷到本地。
 Kaggle 的 `/kaggle/input` 本来就是本地盘，直接用，**不拷**。
+
+**Kaggle 会把上传的 tar 自动解开**，数据集里是 `sv-0000/<panoID>.jpg` 这样的
+散文件而非 tar。读取器两种布局都认（`open_index` 自动判别），不需要做任何
+处理。散文件在这里没有性能问题：实测每条读取 0.33ms 对 tar 的 0.08ms，
+而每条样本的处理总耗时约 50ms。
 """)
 code("""
 %%bash
@@ -502,6 +507,7 @@ md("""---
 | `CUDA out of memory` | 调小 `batch_size` 或 `views.size`。**别调 `accum`**——梯度累积不省显存 |
 | 续跑后指标跳变 | 分片顺序漂移了；确认 `--seed` 与 `split.json` 没变 |
 | Kaggle 找不到分片 | Dataset 的 slug 要叫 `sv-shards`，且要 Add Input 到本 notebook |
+| Kaggle 数据集里是散文件不是 tar | 正常，Kaggle 上传后会自动解开。读取器两种布局都认 |
 | Kaggle 训练完 checkpoint 没了 | `/kaggle/working` 需 Save Version 才保留 |
 | 分配不到 GPU | Colab 免费档每周 15–40 GPU 小时且动态调整；Kaggle 每周 30 小时 |
 """)

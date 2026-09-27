@@ -88,6 +88,60 @@ class ShardIndex:
         self._fds.clear()
 
 
+class FileIndex:
+    """解包后的散文件布局：<子目录>/<key>.jpg（+ <key>.json）。
+
+    Kaggle 上传 tar 后会**自动解开**，数据集里就是这种布局。与其重传，不如
+    让读取器两种都认。散文件在这里没有性能问题——/kaggle/input 是本地盘，
+    不像 Colab 的 Drive 是 FUSE。
+    """
+
+    def __init__(self, dirs, want_json=False, progress=None):
+        self.keys = []
+        self._paths = {}
+        self._meta = {}
+        for i, d in enumerate(sorted(Path(x) for x in dirs)):
+            if progress:
+                progress(i, len(dirs), d.name)
+            for f in sorted(d.iterdir()):
+                if f.suffix in (".jpg", ".jpeg"):
+                    self._paths[f.stem] = f
+                    self.keys.append(f.stem)
+                elif want_json and f.suffix == ".json":
+                    try:
+                        self._meta[f.stem] = json.loads(f.read_text(encoding="utf-8"))
+                    except json.JSONDecodeError:
+                        pass
+        self.keys.sort()
+
+    def __len__(self):
+        return len(self.keys)
+
+    def __contains__(self, key):
+        return key in self._paths
+
+    def meta(self, key):
+        return self._meta.get(key, {})
+
+    def read(self, key):
+        return self._paths[key].read_bytes()
+
+    def close(self):
+        pass
+
+
+def open_index(data_dir, want_json=False, progress=None):
+    """按布局自动选读取器：优先 tar 分片，其次解包后的目录。"""
+    data_dir = Path(data_dir)
+    tars = sorted(data_dir.glob("*.tar"))
+    if tars:
+        return ShardIndex(tars, want_json, progress)
+    subs = sorted(p for p in data_dir.iterdir() if p.is_dir())
+    if subs:
+        return FileIndex(subs, want_json, progress)
+    raise ValueError(f"{data_dir} 下既没有 .tar 分片，也没有解包后的子目录")
+
+
 def load_samples(path):
     """读取 samples.jsonl，返回以 panoid 为键的字典。"""
     out = {}

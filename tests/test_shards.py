@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from data.shards import ShardIndex, load_split  # noqa: E402
+from data.shards import FileIndex, ShardIndex, load_split, open_index  # noqa: E402
 
 # 模块级：fork 出的子进程要用同一份期望值
 EXPECTED = {
@@ -187,6 +187,64 @@ class TestShardIndex(unittest.TestCase):
         with self.assertRaises(IOError):
             idx.read("a")
         idx.close()
+
+
+class TestFileIndex(unittest.TestCase):
+    """解包后的散文件布局。
+
+    Kaggle 上传 tar 后会**自动解开**，数据集里是 <子目录>/<key>.jpg 而非 tar。
+    读取器必须两种都认。
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        build_tar(self.tmp / "sv-0000.tar",
+                  [(k, EXPECTED[k], {"adcode": "510105"}) for k in ("a", "bb")])
+        build_tar(self.tmp / "sv-0001.tar",
+                  [(k, EXPECTED[k], {"adcode": "510104"}) for k in ("ccc", "d")])
+        self.tar_idx = ShardIndex(sorted(self.tmp.glob("sv-*.tar")))
+
+        # 按 Kaggle 的布局解出来：<分片名>/<key>.jpg + <key>.json
+        self.extracted = Path(tempfile.mkdtemp())
+        import tarfile
+        for t in sorted(self.tmp.glob("sv-*.tar")):
+            d = self.extracted / t.stem
+            d.mkdir()
+            with tarfile.open(t) as tf:
+                tf.extractall(d, filter="data")
+
+    def tearDown(self):
+        self.tar_idx.close()
+
+    def test_open_index_picks_file_index_for_dirs(self):
+        idx = open_index(self.extracted)
+        self.assertIsInstance(idx, FileIndex)
+        idx.close()
+
+    def test_open_index_prefers_tars_when_present(self):
+        idx = open_index(self.tmp)
+        self.assertIsInstance(idx, ShardIndex)
+        idx.close()
+
+    def test_same_keys_and_bytes_as_tar(self):
+        idx = open_index(self.extracted)
+        self.assertEqual(sorted(idx.keys), sorted(self.tar_idx.keys))
+        for k in self.tar_idx.keys:
+            self.assertEqual(idx.read(k), self.tar_idx.read(k),
+                             f"{k} 散文件与 tar 读出的字节不一致")
+        idx.close()
+
+    def test_metadata_sidecar(self):
+        idx = FileIndex(sorted(p for p in self.extracted.iterdir() if p.is_dir()),
+                        want_json=True)
+        self.assertEqual(idx.meta("a")["adcode"], "510105")
+        self.assertEqual(idx.meta("ccc")["adcode"], "510104")
+        idx.close()
+
+    def test_empty_dir_rejected(self):
+        empty = Path(tempfile.mkdtemp())
+        with self.assertRaises(ValueError):
+            open_index(empty)
 
 
 class TestLoadSplit(unittest.TestCase):
