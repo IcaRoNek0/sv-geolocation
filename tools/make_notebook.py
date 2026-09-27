@@ -245,10 +245,10 @@ echo "分片已在 $WORK/shards —— Kaggle 上把它 Save Version 后可作�
 md("""---
 # 路径 B：用已上传的分片
 
-第 ③ 格不通时走这条路。分片已经在本机 `ai/data/shards/`（9 个 tar +
-`samples.jsonl`，共 4.25 GB），需要让它出现在云端。
+第 ③ 格不通时走这条路。分片在本机 `ai/data/shards/`（9 个 tar +
+`samples.jsonl`，共 4.25 GB），要让它出现在云端。
 
-**Colab**：装 rclone 传到 Drive（Termux 里执行）
+**Colab**：rclone 传到 Drive（Termux 里执行）
 
 ```sh
 apt-get install -y rclone && rclone config     # n → gdrive → drive → 一路回车 → 浏览器授权
@@ -256,14 +256,33 @@ cd /data/data/com.termux/files/home/sv/ai
 rclone copy data/shards gdrive:sv/shards --progress     # 约 30 分钟
 ```
 
-**Kaggle**：做成 Dataset（更适合，一次上传长期复用）
+**Kaggle**：做成 Dataset。一次上传之后每次会话都是本地盘挂载、不下载，
+比每次重新拉一遍划算得多。
 
-1. kaggle.com → Datasets → New Dataset
-2. 上传 `ai/data/shards/` 里的 9 个 `.tar` 和 `samples.jsonl`
-3. 标题随意，slug 设为 **`sv-shards`**（要与第 ① 格的 `DATA` 一致）
-4. 在本 notebook 右侧 Add Input → 选这个 Dataset
+```sh
+pip install --no-deps kaggle
+pip install python-dateutil requests requests-toolbelt python-slugify \
+            text-unidecode six bleach python-dotenv kagglesdk protobuf
 
-传完之后继续跑 ⑥。
+# token 存这里（不是 kaggle.json 那两个字段）
+mkdir -p ~/.kaggle && chmod 700 ~/.kaggle
+printf '%s' '<你的 KGAT_ token>' > ~/.kaggle/access_token
+chmod 600 ~/.kaggle/access_token
+python -m kaggle config view          # 确认 username 与 auth_method: ACCESS_TOKEN
+
+cd /data/data/com.termux/files/home/sv/ai/data/shards
+printf '%s\n' '{"title":"sv-shards","id":"<用户名>/sv-shards","licenses":[{"name":"other"}]}' \
+  > dataset-metadata.json
+python -m kaggle datasets create -p . --dir-mode skip
+```
+
+`--no-deps` 是必需的：kaggle 的传递依赖里有需要 Rust 编译的包，Termux 下
+maturin 会因为平台判定（android vs linux-gnu）不一致而拒绝构建。
+
+**slug 必须是 `sv-shards`** —— 第 ① 格的 `DATA` 写死了 `/kaggle/input/sv-shards`。
+
+上传完成后在 notebook 右侧 **Add Input → Your Datasets → sv-shards**，然后
+继续跑 ⑥。
 """)
 
 # ── ⑥
