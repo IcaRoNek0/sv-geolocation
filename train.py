@@ -11,6 +11,7 @@ checkpoint 且必须写 Drive；分片顺序固定 seed，否则续跑等于换�
 import argparse
 import contextlib
 import json
+import os
 import random
 import time
 from collections import defaultdict
@@ -32,6 +33,7 @@ from utils.metrics import summarize
 
 
 _T0 = time.time()
+_IS_MAIN = True          # 分布式下只有 rank 0 打印与存盘
 
 
 def stage(msg):
@@ -39,7 +41,8 @@ def stage(msg):
 
     必须 flush：Colab 的 stdout 走管道默认块缓冲，不刷的话会静默十几秒。
     """
-    print(f"[{time.time() - _T0:6.1f}s] {msg}", flush=True)
+    if _IS_MAIN:
+        print(f"[{time.time() - _T0:6.1f}s] {msg}", flush=True)
 
 
 def _fmt_lr(opt):
@@ -219,14 +222,32 @@ def main():
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # 分布式是可选的：torchrun --nproc_per_node=2 启动即启用，
+    # 直接 python train.py 则走原来的单卡路径，行为不变。
+    world = int(os.environ.get("WORLD_SIZE", 1))
+    distributed = world > 1
+    if distributed:
+        torch.distributed.init_process_group(backend="nccl")
+        local_rank = int(os.environ["LOCAL_RANK"])
+        torch.cuda.set_device(local_rank)
+        rank = torch.distributed.get_rank()
+    else:
+        local_rank, rank = 0, 0
+    global _IS_MAIN
+    _IS_MAIN = rank == 0
+
+    device = (torch.device("cuda", local_rank) if torch.cuda.is_available()
+              else torch.device("cpu"))
     amp_dtype = pick_amp_dtype(device)
-    print(f"设备 {device}  精度 {amp_dtype}")
+    if _IS_MAIN:
+        print(f"设备 {device}  精度 {amp_dtype}  "
+              f"{'DDP ×' + str(world) if distributed else '单进程'}")
     if device.type == "cuda":
-        print(f"GPU {torch.cuda.get_device_name(0)}  "
-              f"显存 {torch.cuda.get_device_properties(0).total_memory/1e9:.1f} GB")
-        if amp_dtype is torch.float16:
-            print("提示：当前是 Turing 及更早架构，只能 fp16；若换到 L4/A100 会自动切 bf16")
+        print(f"  rank{rank} {torch.cuda.get_device_name(local_rank)}  "
+              f"显存 {torch.cuda.get_device_properties(local_rank).total_memory/1e9:.1f} GB",
+              flush=True)
+        if _IS_MAIN and amp_dtype is torch.float16:
+            print("提示：Turing 及更早架构只能 fp16；换到 L4/A100 会自动切 bf16")
 
     args.out.mkdir(parents=True, exist_ok=True)
     stage(f"设备 {device}  精度 {amp_dtype}")
@@ -303,14 +324,16 @@ def main():
           f"<10 条的 {sum(1 for v in cnt.values() if v < 10)} 个")
 
     train_ds = dataset("train", augment=True)
+    # 验证集只在 rank 0 上跑——各 rank 都评一遍同一份数据是纯粹的重复劳动
     val_loaders = {}
-    for name in ("val_same", "val_national", "test_county"):
-        try:
-            val_loaders[name] = make_loader(dataset(name, augment=False),
-                                            cfg.get("eval_batch", 16), False,
-                                            num_workers=cfg.get("workers", 2))
-        except ValueError:
-            print(f"划分 {name} 为空，跳过")
+    if _IS_MAIN:
+        for name in ("val_same", "val_national", "test_county"):
+            try:
+                val_loaders[name] = make_loader(dataset(name, augment=False),
+                                                cfg.get("eval_batch", 16), False,
+                                                num_workers=cfg.get("workers", 2))
+            except ValueError:
+                print(f"划分 {name} 为空，跳过")
     batch_size = cfg.get("batch_size", 8)
     n_cpu = _os.cpu_count() or 1
     workers = cfg.get("workers", 2)
@@ -325,6 +348,9 @@ def main():
     # ── 模型 ────────────────────────────────────────────────────────
     stage("构建模型…")
     model = build_model(len(adcodes), len(city_list), len(prov_list), cfg).to(device)
+    if distributed:
+        model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids=[local_rank], find_unused_parameters=False)
     n_par = sum(p.numel() for p in model.parameters()) / 1e6
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
     stage(f"模型就绪：{n_par:.1f}M 参数，其中可训练 {n_tr:.1f}M")
@@ -371,7 +397,7 @@ def main():
               f"主干{'可训练' if not model.freeze_backbone else '冻结'}）")
 
     # ── 训练 ────────────────────────────────────────────────────────
-    log_fh = (args.out / "log.jsonl").open("a", encoding="utf-8")
+    log_fh = (args.out / "log.jsonl").open("a", encoding="utf-8") if _IS_MAIN else None
     ckpt_minutes = cfg.get("ckpt_minutes", 30)
     last_ckpt = time.time()
     accum = cfg.get("accum", 1)
@@ -382,6 +408,10 @@ def main():
 
     stage(f"开始训练：{epochs} 轮 × {steps_per_epoch} 步 = {total_steps} 次优化步")
     for epoch in range(start_epoch, epochs):
+        # 不设 set_epoch 的话每个 epoch 的洗牌顺序完全相同，
+        # 等于永远只看同一批数据
+        if train_sampler is not None:
+            train_sampler.set_epoch(epoch)
         model.train()
         was_frozen = model.freeze_backbone
         apply_freeze_policy(model, epoch, cfg)
@@ -392,7 +422,7 @@ def main():
                   f"可训练参数 {n_tr:.1f}M", flush=True)
 
         do_eval = (eval_every <= 1 or epoch % eval_every == 0
-                   or epoch == epochs - 1)
+                   or epoch == epochs - 1) and _IS_MAIN
         t0, running, seen = time.time(), 0.0, 0
         t_data = t_compute = 0.0
         hit_num = hit_den = 0
@@ -481,9 +511,10 @@ def main():
               f"({t_data:.0f}s 等数据 / {t_compute:.0f}s 计算)  "
               f"{rec['samples_per_sec']:.0f} 样本/s  剩余约 {left/60:.0f} 分钟")
 
-        if not do_eval:
-            log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
-            log_fh.flush()
+        if not do_eval or not _IS_MAIN:
+            if _IS_MAIN:
+                log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
+                log_fh.flush()
             continue
 
         for name, loader in val_loaders.items():
@@ -504,13 +535,17 @@ def main():
                          model_only=True)
                     print(f"        新最好，已存 best.pt")
 
-        log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
-        log_fh.flush()
-        save(ckpt_path, model, opt, sched, scaler, epoch, best)
-        last_ckpt = time.time()
+        if _IS_MAIN:
+            log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
+            log_fh.flush()
+            save(ckpt_path, model, opt, sched, scaler, epoch, best)
+            last_ckpt = time.time()
 
-    log_fh.close()
-    print(f"完成。最好 top5 {best:.4f}  产物 {args.out}")
+    if log_fh:
+        log_fh.close()
+    if distributed:
+        torch.distributed.destroy_process_group()
+    stage(f"完成。最好 top5 {best:.4f}  产物 {args.out}")
 
 
 def save(path, model, opt, sched, scaler, epoch, best, model_only=False):

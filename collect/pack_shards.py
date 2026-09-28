@@ -60,7 +60,9 @@ def main():
         print("状态库里没有已完成的条目")
         return
 
-    # 采样池提供 vehicle/date/city —— 状态库里没存这些
+    # 采样池提供 vehicle/date/city —— 状态库里没存这些。
+    # 同时用它做一道成员校验：状态库可能残留上一轮的记录（state='done'
+    # 但已不在本轮池中），不滤掉就会把无关的图打进分片。
     pool = {}
     with (AI_ROOT / "data" / "pool" / "sample_pool.jsonl").open(encoding="utf-8") as fh:
         for line in fh:
@@ -95,6 +97,9 @@ def main():
 
     try:
         for panoid, adcode, part, nbytes, width, height, date, obsolete in rows:
+            if panoid not in pool:
+                missing.append(panoid)
+                continue
             img = IMAGE_DIR / part / adcode / f"{panoid}.jpg"
             if not img.exists():
                 missing.append(panoid)
@@ -143,7 +148,7 @@ def main():
 
     print(f"打包 {written:,} 条 → {len(manifest)} 个分片，{total/1e9:.2f} GB")
     if missing:
-        print(f"缺图 {len(missing)} 条（前几个：{missing[:3]}）")
+        print(f"缺图/不在本轮池中 {len(missing):,} 条（前几个：{missing[:3]}）")
     print(f"耗时 {time.time()-t0:.1f}s  产物 {args.out}")
 
 

@@ -373,7 +373,7 @@ from pathlib import Path
 sys.path.insert(0, AI_DIR)
 from data.shards import open_index
 
-EXPECTED = 21746          # 采集阶段的样本总数
+EXPECTED = 124762         # 第二轮采集的样本总数（按县配额 50/100）
 
 for f in ('samples.jsonl', 'split.json'):
     p = Path(DATA) / f
@@ -411,7 +411,9 @@ md("""---
 code("""
 %%bash
 cd $AI_DIR
-python train.py --config configs/default.yaml \\
+# 冒烟也走 torchrun：DDP 路径必须在小规模上先验证，否则正式训练才暴露就晚了
+torchrun --nproc_per_node=2 --master_port=29500 train.py \\
+    --config configs/default.yaml \\
     --data $DATA --points data/pool/county_points.npz \\
     --out $RUNS/smoke --overfit 64 --eval-every 5 \\
     > $WORK/smoke.log 2>&1
@@ -424,20 +426,26 @@ md("""---
 
 `nohup ... &` 放后台，页面断开不影响。每 25 分钟自动存 checkpoint。
 
-时间账（据冒烟实测外推）：约 **18 分钟/轮**，40 轮约 12 小时。但正式训练每轮
-1970 步，**跑 2 轮就等于冒烟的全部步数**，预计 10–15 轮收敛。
+**用两个 GPU**（Kaggle 右侧 Accelerator 选 `GPU T4 x2`）：`torchrun --nproc_per_node=2`
+起两个进程，各占一张卡。DDP 而非 DataParallel——后者受 GIL 限制，通常只有
+1.3–1.5×，DDP 能到约 1.8×。
 
-跑起来后盯 `val_same` 那一行，连续几轮不涨就可以停，`best.pt` 会自动保留
-最好的一版。想少等就改 `configs/default.yaml` 的 `epochs`。
+**若只分到 1 张卡，把 `--nproc_per_node=2` 改成 `1`**，否则会卡在初始化。
+
+时间账：12.4 万条 / batch 8 / 2 卡 ≈ 15,595 步/轮，预计 **约 20 分钟/轮**，
+10 轮约 3.5 小时，装得进一个 Kaggle 会话。
+
+跑起来后盯 `val_same` 那一行，连续几轮不涨就可以停。
 """)
 code("""
 %%bash
 cd $AI_DIR
-nohup python train.py --config configs/default.yaml \\
+nohup torchrun --nproc_per_node=2 --master_port=29500 train.py \\
+    --config configs/default.yaml \\
     --data $DATA --points data/pool/county_points.npz \\
     --out $RUNS/base --resume > $WORK/train.log 2>&1 &
-sleep 90
-tail -25 $WORK/train.log
+sleep 120
+tail -30 $WORK/train.log
 """, title="⑧ 正式训练（后台）")
 
 # ── ⑨
@@ -505,11 +513,12 @@ md("""---
 code("""
 %%bash
 cd $AI_DIR
-nohup python train.py --config configs/default.yaml \\
+nohup torchrun --nproc_per_node=2 --master_port=29500 train.py \\
+    --config configs/default.yaml \\
     --data $DATA --points data/pool/county_points.npz \\
     --out $RUNS/base --resume > $WORK/train.log 2>&1 &
-sleep 60
-tail -12 $WORK/train.log
+sleep 90
+tail -15 $WORK/train.log
 """, title="⑩ 续跑")
 
 # ── ⑪

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """唯一一次全表扫描主库，一次产出三个产物。
 
-    sample_pool.jsonl   采样池（四川按县配额，其余按省配额）
+    sample_pool.jsonl   采样池（**按县配额**，2604 县 × 50）
     histogram.json      各省/县可用量与选中量
     county_points.npz   每县真实点位（网格抽稀），选点用
 
@@ -25,10 +25,11 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (  # noqa: E402
-    NATIONAL_PER_PROVINCE,
     OUT_DIR,
     POINTS_GRID_M,
     POINTS_PER_COUNTY,
+    PER_COUNTY,
+    EXCLUDE_PREFIXES,
     SAMPLE_GRID_M,
     SICHUAN_PER_COUNTY,
     SICHUAN_PREFIX,
@@ -49,15 +50,20 @@ SELECT panoid, lng, lat, adcode
 """
 
 SEED = 20260926
-RESERVOIR_FACTOR = 2      # 蓄水池容量 = 配额 × 2，留出抽稀损耗
+RESERVOIR_FACTOR = 4      # 蓄水池容量 = 配额 × 4；网格放大到 500m 后
+                          # 抽稀损耗更多，需要更大基数才能填满配额
 
 
 def quota_for(adcode):
-    """返回 (分组键, 配额, 归属部分)。四川按县配额，其余按省配额。"""
+    """返回 (分组键, 配额, 归属部分)。
+
+    **分组键就是县本身**——按县配额而非按省，这是本轮相对第一轮的唯一改动。
+    按省配额会让大省的每个县只分到几条，模型学不出县级判别。
+    归属部分仍按省码判定，供抓图侧决定层级（四川 z=3、其余 z=2）。
+    """
     if adcode.startswith(SICHUAN_PREFIX):
         return adcode, SICHUAN_PER_COUNTY, "sichuan"
-    prov = province_of(adcode)
-    return prov, NATIONAL_PER_PROVINCE, "national"
+    return adcode, PER_COUNTY, "national"
 
 
 def main():
@@ -90,6 +96,8 @@ def main():
                 print(f"[{time.time()-t0:6.1f}s] 已扫 {scanned:,} 行", flush=True)
                 last_log = time.time()
 
+            if panoid.startswith(EXCLUDE_PREFIXES):
+                continue
             prov = province_of(adcode)
             county_total[adcode] += 1
             province_total[prov] += 1
@@ -136,8 +144,11 @@ def main():
     county_selected = defaultdict(int)
     province_selected = defaultdict(int)
     for group, rows in reservoirs.items():
-        _, quota, _ = quota_for(group)      # 分组键本身就是县或省 adcode
-        rows.sort(key=lambda r: r["panoid"])      # 固定顺序，保证可复现
+        _, quota, _ = quota_for(group)      # 分组键就是县 adcode
+        rows.sort(key=lambda r: r["panoid"])      # 先固定顺序，保证可复现
+        # 再打散：抽稀后按配额截断，若顺序仍是 panoid 升序，就总会取到
+        # panoid 最小的那批（即最早的车辆/日期），构成系统性偏差。
+        rng.shuffle(rows)
         thinner = GridThinner(SAMPLE_GRID_M)
         kept = 0
         for r in rows:
@@ -178,10 +189,7 @@ def main():
         "seed": SEED,
         "elapsed_seconds": round(time.time() - t0, 1),
         "grid": {"sample_m": SAMPLE_GRID_M, "points_m": POINTS_GRID_M},
-        "quota": {
-            "sichuan_per_county": SICHUAN_PER_COUNTY,
-            "national_per_province": NATIONAL_PER_PROVINCE,
-        },
+        "quota": {"per_county": PER_COUNTY, "sichuan_per_county": SICHUAN_PER_COUNTY},
         "totals": {
             "sample_rows": len(sample_rows),
             "sichuan_rows": sum(1 for r in sample_rows if r["part"] == "sichuan"),
@@ -193,25 +201,17 @@ def main():
             "sichuan_counties_covered": sum(
                 1 for c in sic_counties if county_total[c] > 0
             ),
-            "sichuan_counties_under_quota": sum(
-                1 for c in sic_counties if county_total[c] < SICHUAN_PER_COUNTY
-            ),
-            "national_groups_under_quota": sum(
-                1
-                for p in province_total
-                if not p.startswith(SICHUAN_PREFIX)
-                and province_total[p] < NATIONAL_PER_PROVINCE
-            ),
+            "counties_under_quota": sum(
+                1 for c, v in county_total.items()
+                if v < (SICHUAN_PER_COUNTY if c.startswith(SICHUAN_PREFIX)
+                        else PER_COUNTY)),
         },
         "provinces": {
             p: {
                 "available": province_total[p],
                 "selected": province_selected.get(p, 0),
-                "quota": (
-                    SICHUAN_PER_COUNTY * len(sic_counties)
-                    if p.startswith(SICHUAN_PREFIX)
-                    else NATIONAL_PER_PROVINCE
-                ),
+                "quota": PER_COUNTY * sum(
+                    1 for c in county_total if province_of(c) == p),
             }
             for p in sorted(province_total)
         },
@@ -231,9 +231,8 @@ def main():
     print(f"点位表        {t['counties_with_points']:,} 县 / {t['points_total']:,} 点")
     print(f"有数据的省    {t['provinces_with_data']}")
     print(f"耗时          {hist['elapsed_seconds']}s")
-    print(f"\n四川          {t['sichuan_counties_covered']}/{t['sichuan_counties']} 个县有数据，"
-          f"{t['sichuan_counties_under_quota']} 个县可用量不足配额")
-    print(f"全国          配额不足的省 {t['national_groups_under_quota']}")
+    print(f"\n配额不足的县  {t['counties_under_quota']} / {len(hist['counties'])}"
+          f"（这些县已取走全部可用量）")
     print(f"产物          {args.out}")
 
 

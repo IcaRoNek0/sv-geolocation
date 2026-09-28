@@ -85,13 +85,20 @@ class PanoramaDataset(Dataset):
         }
 
 
-def make_loader(dataset, batch_size, shuffle, num_workers=2, seed=0):
+def make_loader(dataset, batch_size, shuffle, num_workers=2, seed=0,
+                sampler=None, distributed=False):
+    """sampler 非空时用它分片（DDP），此时不能再传 shuffle。
+
+    分片模式下每个进程只看到自己那一份，且必须 drop_last——各进程的批数
+    不一致会让集合通信互相等待到死锁。
+    """
     return torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=shuffle,
+        shuffle=shuffle if sampler is None else False,
+        sampler=sampler,
         num_workers=num_workers,
-        drop_last=shuffle,
+        drop_last=shuffle if sampler is None else distributed,
         persistent_workers=num_workers > 0,
-        generator=torch.Generator().manual_seed(seed) if shuffle else None,
+        generator=torch.Generator().manual_seed(seed) if (shuffle and sampler is None) else None,
     )
