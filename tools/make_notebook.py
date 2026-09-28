@@ -207,7 +207,7 @@ code("""
 md("""## ③ 连通性测试：决定走 A 还是 B
 
 百度对境外/数据中心 IP 的行为未验证。花两分钟测一次：通过就走路径 A
-（在云端自己采集，省掉 4.25 GB 上传），不通过就用已上传的分片走路径 B。
+（在云端自己采集，省掉 12.4 GB 上传），不通过就用已上传的分片走路径 B。
 """)
 code("""
 import time, urllib.request
@@ -238,7 +238,7 @@ except Exception as e:
 md("""---
 # 路径 A：云端直接采集
 
-`sample_pool.jsonl`（含全部 21,746 个 panoID 与坐标）已在仓库里，所以云端
+`sample_pool.jsonl`（含全部 124,762 个 panoID 与坐标）已在仓库里，所以云端
 能自己去百度抓。
 
 **采集、打包、备份必须在同一个会话里做完**：工作目录随会话清空，中途断线
@@ -253,7 +253,7 @@ python collect/fetch_pano.py images --concurrency 160
 python collect/fetch_pano.py report
 """, title="④【路径 A】采集（约 25–40 分钟）")
 
-md("""期望看到 `done 21,746 / fail 0`。会话内中断可重跑本格续上（状态存 sqlite），
+md("""期望看到 `done 124,762 / fail 0`。会话内中断可重跑本格续上（状态存 sqlite），
 但**会话被回收后工作目录清空**，只能从头再来。
 """)
 
@@ -266,7 +266,7 @@ mkdir -p $WORK/shards
 cp data/shards/*.tar data/shards/samples.jsonl $WORK/shards/
 du -sh $WORK/shards
 echo
-echo "分片已在 $WORK/shards —— Kaggle 上把它 Save Version 后可作为 Dataset 复用"
+echo "分片已在 $WORK/shards —— 下一步：下载到本机再传 Kaggle Dataset"
 """, title="⑤【路径 A】打包并留在工作目录")
 
 # ── B
@@ -274,7 +274,7 @@ md("""---
 # 路径 B：用已上传的分片
 
 第 ③ 格不通时走这条路。分片在本机 `ai/data/shards/`（9 个 tar +
-`samples.jsonl`，共 4.25 GB），要让它出现在云端。
+`samples.jsonl`，**共约 12.4 GB**），要让它出现在云端。
 
 **Colab**：rclone 传到 Drive（Termux 里执行）
 
