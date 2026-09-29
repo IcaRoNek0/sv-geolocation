@@ -339,8 +339,14 @@ def main():
     workers = cfg.get("workers", 2)
     stage(f"CPU {n_cpu} 核，DataLoader {workers} 个 worker"
           + ("（worker 数超过核数会互相抢 CPU）" if workers > n_cpu else ""))
-    train_loader = make_loader(train_ds, batch_size, True,
-                               num_workers=cfg.get("workers", 2), seed=args.seed)
+    train_sampler = None
+    if distributed:
+        # drop_last 必须开：各进程批数不一致会让集合通信互相等待到死锁
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_ds, shuffle=True, drop_last=True)
+    train_loader = make_loader(train_ds, batch_size, True, sampler=train_sampler,
+                               num_workers=cfg.get("workers", 2), seed=args.seed,
+                               distributed=distributed)
     stage(f"就绪：训练 {len(train_ds):,} 条，验证 "
           f"{ {k: len(v.dataset) for k, v in val_loaders.items()} }")
     print(f"训练样本 {len(train_ds):,}  验证 {[f'{k}:{len(v.dataset)}' for k, v in val_loaders.items()]}")
