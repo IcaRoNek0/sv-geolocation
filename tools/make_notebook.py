@@ -373,7 +373,7 @@ from pathlib import Path
 sys.path.insert(0, AI_DIR)
 from data.shards import open_index
 
-EXPECTED = 124762         # 第二轮采集的样本总数（按县配额 50/100）
+EXPECTED = 124751         # 第二轮实际抓到的条数（池中 124,762，11 条所有层级都取不到）
 
 for f in ('samples.jsonl', 'split.json'):
     p = Path(DATA) / f
