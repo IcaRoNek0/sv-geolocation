@@ -347,10 +347,8 @@ def main():
 
     # ── 模型 ────────────────────────────────────────────────────────
     stage("构建模型…")
-    model = build_model(len(adcodes), len(city_list), len(prov_list), cfg).to(device)
-    if distributed:
-        model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[local_rank], find_unused_parameters=False)
+    raw_model = build_model(len(adcodes), len(city_list), len(prov_list), cfg).to(device)
+    model = raw_model
     n_par = sum(p.numel() for p in model.parameters()) / 1e6
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
     stage(f"模型就绪：{n_par:.1f}M 参数，其中可训练 {n_tr:.1f}M")
@@ -359,7 +357,7 @@ def main():
     # 收全部参数：冻结参数 grad 为 None 会被自动跳过，但漏收的话之后解冻
     # 的参数就永远进不了优化器。
     backbone_scale = cfg.get("backbone_lr_scale", 0.1)
-    backbone_ids = {id(q) for q in model.backbone.parameters()}
+    backbone_ids = {id(q) for q in raw_model.backbone.parameters()}
     groups = [
         {"params": [q for q in model.parameters() if id(q) in backbone_ids],
          "lr": cfg.get("lr", 3e-4) * backbone_scale},
@@ -368,6 +366,12 @@ def main():
     ]
     opt = torch.optim.AdamW(groups, lr=cfg.get("lr", 3e-4),
                             weight_decay=cfg.get("weight_decay", 0.05))
+    # DDP 包装放在优化器之后：DistributedDataParallel 不转发属性访问，
+    # 包上之后 model.backbone 就没了。它也不复制参数，优化器持有的仍是
+    # 同一批对象，所以先后顺序对更新无影响。
+    if distributed:
+        model = torch.nn.parallel.DistributedDataParallel(
+            raw_model, device_ids=[local_rank], find_unused_parameters=False)
     epochs = cfg.get("epochs", 40)
     if args.overfit:
         # 原有轮数只有 160 次优化步，测的是"步数不够"而非"管线通不通"。
@@ -387,14 +391,16 @@ def main():
     ckpt_path = args.out / "last.pt"
     if args.resume and ckpt_path.exists():
         state = torch.load(ckpt_path, map_location=device, weights_only=False)
-        model.load_state_dict(state["model"])
+        # 用未包装的模型：存盘时已去掉 module. 前缀（见 save），
+        # 在 DDP 包装体上加载会因键名不匹配而失败
+        raw_model.load_state_dict(state["model"])
         opt.load_state_dict(state["opt"])
         sched.load_state_dict(state["sched"])
         scaler.load_state_dict(state["scaler"])
         start_epoch, best = state["epoch"] + 1, state.get("best", -1.0)
-        apply_freeze_policy(model, start_epoch, cfg)
+        apply_freeze_policy(raw_model, start_epoch, cfg)
         print(f"从 epoch {start_epoch} 续跑（当前最好 {best:.4f}，"
-              f"主干{'可训练' if not model.freeze_backbone else '冻结'}）")
+              f"主干{'可训练' if not raw_model.freeze_backbone else '冻结'}）")
 
     # ── 训练 ────────────────────────────────────────────────────────
     log_fh = (args.out / "log.jsonl").open("a", encoding="utf-8") if _IS_MAIN else None
@@ -413,9 +419,9 @@ def main():
         if train_sampler is not None:
             train_sampler.set_epoch(epoch)
         model.train()
-        was_frozen = model.freeze_backbone
-        apply_freeze_policy(model, epoch, cfg)
-        if was_frozen and not model.freeze_backbone:
+        was_frozen = raw_model.freeze_backbone
+        apply_freeze_policy(raw_model, epoch, cfg)
+        if was_frozen and not raw_model.freeze_backbone:
             n_tr = sum(p.numel() for p in model.parameters()
                        if p.requires_grad) / 1e6
             print(f"  [{time.time() - _T0:7.1f}s] epoch {epoch}：解冻主干，"
@@ -492,7 +498,7 @@ def main():
 
             # 到点就存盘——Colab 随时会断，不能等到 epoch 结束
             if now - last_ckpt > ckpt_minutes * 60:
-                save(ckpt_path, model, opt, sched, scaler, epoch, best)
+                save(ckpt_path, raw_model, opt, sched, scaler, epoch, best)
                 print(f"  [{now - _T0:7.1f}s] checkpoint 已存：epoch {epoch} "
                       f"step {step}", flush=True)
                 last_ckpt = now
@@ -531,14 +537,14 @@ def main():
                 score = m.get("top5", 0.0)
                 if score > best:
                     best = score
-                    save(args.out / "best.pt", model, opt, sched, scaler, epoch, best,
-                         model_only=True)
+                    save(args.out / "best.pt", raw_model, opt, sched, scaler, epoch,
+                     best, model_only=True)
                     print(f"        新最好，已存 best.pt")
 
         if _IS_MAIN:
             log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
             log_fh.flush()
-            save(ckpt_path, model, opt, sched, scaler, epoch, best)
+            save(ckpt_path, raw_model, opt, sched, scaler, epoch, best)
             last_ckpt = time.time()
 
     if log_fh:
@@ -555,7 +561,12 @@ def save(path, model, opt, sched, scaler, epoch, best, model_only=False):
     可能被导出或上传的产物，不需要优化器状态。last.pt 则必须完整
     （约 340 MB），否则无法续跑。
     """
-    payload = {"model": model.state_dict(), "epoch": epoch, "best": best}
+    sd = model.state_dict()
+    # 防御：万一传进来的是 DDP 包装过的模型，去掉 module. 前缀，
+    # 否则推理端 load_state_dict 会因键名不匹配而失败
+    if any(k.startswith("module.") for k in sd):
+        sd = {k[len("module."):]: v for k, v in sd.items()}
+    payload = {"model": sd, "epoch": epoch, "best": best}
     if not model_only:
         payload.update(opt=opt.state_dict(), sched=sched.state_dict(),
                        scaler=scaler.state_dict())
