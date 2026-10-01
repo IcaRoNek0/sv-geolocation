@@ -99,3 +99,16 @@ class CountyLocator:
             if geom.contains(pt):
                 return code
         return None
+
+
+def optional_geography():
+    """Standalone GitHub checkout can predict adcodes without sibling GIS projects."""
+    try:
+        names = load_names()
+    except FileNotFoundError:
+        names = {}
+    try:
+        locator = CountyLocator() if COUNTY_ROOT.exists() else None
+    except ImportError:
+        locator = None
+    return names, locator

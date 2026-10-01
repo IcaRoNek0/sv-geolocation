@@ -1,0 +1,45 @@
+# Independent nadir-view classifier, sharing the tested DDP training loop.
+task: vehicle
+backbone: convnext_tiny
+pretrained: true
+freeze_backbone: false
+backbone_lr_scale: 0.1
+drop: 0.2
+min_vehicle_samples: 20
+min_vehicle_dates: 2
+views:
+  n_max: 1
+  min_views: 1
+  size: 224
+  fov: 90.0
+  fov_range: [80.0, 100.0]
+  single_view_prob: 1.0
+  brightness: 0.1
+  contrast: 0.15
+  saturation: 0.1
+  crop_scale: null
+  blur_prob: 0.05
+  jpeg_prob: 0.2
+  jpeg_quality: [75, 95]
+batch_size: 32
+accum: 1
+lr: 0.0003
+weight_decay: 0.05
+epochs: 10
+pct_start: 0.05
+clip: 5.0
+workers: 2
+cpu_threads: 1
+eval_batch: 64
+eval_modes: [panorama]
+selection_split: val_national
+selection_metric: macro_recall
+ckpt_minutes: 25
+loss:
+  geo_mix: 0.0
+  label_smoothing: 0.02
+  w_county: 1.0
+  w_view: 0.0
+  w_city: 0.2   # Year, for this task only.
+  w_prov: 0.05  # Vehicle prefix.
+  w_coord: 0.0

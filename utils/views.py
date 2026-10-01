@@ -15,7 +15,7 @@ DEFAULT_FOV_Y = 90.0
 DEFAULT_SIZE = 224
 
 
-@lru_cache(maxsize=8)
+@lru_cache(maxsize=32)
 def _base_maps(out_w, out_h, fov_y_deg, src_w, src_h):
     """朝向 0、俯仰 0 时的采样网格。
 
@@ -49,17 +49,19 @@ def _sample_maps(out_w, out_h, fov_y_deg, heading_deg, pitch_deg, src_w, src_h):
 
     相机坐标系：x 向右、y 向上、z 向前。
     """
-    u0, v = _base_maps(out_w, out_h, fov_y_deg, src_w, src_h)
-
     if pitch_deg == 0.0:
-        # 改变朝向 = 经度整体平移，v 不变。这是精确的，不是近似。
-        # 俯仰不为 0 时性质不成立，走一般路径。
-        shift = (heading_deg % 360.0) / 360.0 * src_w
-        u = np.mod(u0 - 1.0 + shift, src_w) + 1.0
-        return u, v
+        u0, v = _base_maps(out_w, out_h, fov_y_deg, src_w, src_h)
+    else:
+        u0, v = _pitched_base_maps(out_w, out_h, fov_y_deg, pitch_deg, src_w, src_h)
+    shift = (heading_deg % 360.0) / 360.0 * src_w
+    u = np.mod(u0 - 1.0 + shift, src_w) + 1.0
+    return u, v
 
-    return _general_maps(out_w, out_h, fov_y_deg, heading_deg, pitch_deg,
-                         src_w, src_h)
+
+@lru_cache(maxsize=32)
+def _pitched_base_maps(out_w, out_h, fov, pitch, src_w, src_h):
+    # Yaw adds longitude even with pitch; cache the expensive camera geometry.
+    return _general_maps(out_w, out_h, fov, 0.0, pitch, src_w, src_h)
 
 
 def _general_maps(out_w, out_h, fov_y_deg, heading_deg, pitch_deg, src_w, src_h):
@@ -169,3 +171,13 @@ def surround_headings(n=DEFAULT_VIEWS, offset=0.0):
 def random_headings(n, rng):
     """随机朝向的 n 个视图，用于增强。"""
     return sorted(rng.uniform(0, 360) for _ in range(n))
+
+
+def extract_perspective(pano, heading=0.0, pitch=0.0, fov_y=60.0,
+                        width=398, height=224):
+    """Render a rectangular perspective image, not a crop of the panorama."""
+    if width < 1 or height < 1 or not 0 < fov_y < 180:
+        raise ValueError("Invalid perspective dimensions or FOV")
+    u, v = _sample_maps(width, height, fov_y, heading, pitch,
+                        pano.shape[1], pano.shape[0])
+    return _bilinear(_wrapped(pano), u, v)

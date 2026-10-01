@@ -24,10 +24,13 @@ def to_log_probs(probs, adcodes):
 
 
 def fuse(env_probs, text_probs=None, w_env=1.0, w_text=1.0, adcodes=None,
-         temperature=1.0):
+         temperature=1.0, from_logits=False):
     """融合两条线索，返回归一化的 {县码: 概率}。
 
-    两个输入可以是 {县码: 概率} 或与 adcodes 对齐的数组。
+    两个输入可以是 {县码: 概率} 或与 adcodes 对齐的数组。数组形式必须用
+    from_logits 指明是概率还是未归一化的 logits——模型头直接输出 logits，
+    若被当成概率走 log()，负值统统夹到 LOG_FLOOR，占绝大多数的尾部会并成
+    一条平线，top-k 退化成按类别下标排序。
     """
     if adcodes is None:
         adcodes = sorted(env_probs if isinstance(env_probs, dict) else
@@ -38,10 +41,10 @@ def fuse(env_probs, text_probs=None, w_env=1.0, w_text=1.0, adcodes=None,
             return None
         if isinstance(x, dict):
             return to_log_probs(x, adcodes)
-        arr = np.asarray(x, dtype=np.float64)
+        arr = np.asarray(x, dtype=np.float64).ravel()
         if len(arr) != len(adcodes):
             raise ValueError(f"分布长度 {len(arr)} 与类别数 {len(adcodes)} 不符")
-        return np.log(np.maximum(arr, LOG_FLOOR))
+        return arr if from_logits else np.log(np.maximum(arr, LOG_FLOOR))
 
     logp = w_env * as_log(env_probs)
     if text_probs is not None:

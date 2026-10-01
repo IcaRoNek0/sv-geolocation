@@ -106,11 +106,11 @@ class Tester:
             print(f"  取图失败：{type(e).__name__}: {e}\n")
             return
 
-        is_pano = img.shape[1] / img.shape[0] >= 1.6
+        is_pano = True  # This endpoint always fetches equirectangular panoramas.
         views, vmask, n = to_views(img, is_pano, 8, self.fov, self.size, self.n_max)
         x = views[None].transpose(0, 1, 4, 2, 3)
         out = self.sess.run(["county"], {"views": x, "vmask": vmask[None]})[0][0]
-        probs = fuse(out, adcodes=self.adcodes)
+        probs = fuse(out, adcodes=self.adcodes, from_logits=True)
         top = top_counties(probs, k=self.topk)
         lon, lat, used = predict_location(probs, self.cp, top_k=self.select_k)
 

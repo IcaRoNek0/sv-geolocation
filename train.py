@@ -12,6 +12,9 @@ import argparse
 import contextlib
 import json
 import os
+import math
+import hashlib
+from datetime import timedelta
 import random
 import time
 from collections import defaultdict
@@ -143,6 +146,7 @@ def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
     model.eval()
     all_scores, all_targets, all_true_coord = [], [], []
     losses = []
+    auxiliary = np.zeros(4, dtype=np.int64)
     for batch in loader:
         views = batch["views"].to(device, non_blocking=True)
         vmask = batch["vmask"].to(device, non_blocking=True)
@@ -153,8 +157,14 @@ def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
                  if k in ("county", "city", "prov", "coord")}
             _, parts = loss_fn(out, b)
             losses.append(parts)
+        for j, head in enumerate(("city", "prov")):
+            target = batch[head].numpy()
+            valid_aux = target >= 0
+            pred = out[head].argmax(dim=-1).cpu().numpy()
+            auxiliary[2*j] += ((pred == target) & valid_aux).sum()
+            auxiliary[2*j+1] += valid_aux.sum()
         scores = out["county"].float().cpu().numpy()
-        all_scores.append(scores)
+        all_scores.append(np.argsort(-scores, axis=1)[:, :min(10, n_classes)])
         all_targets.append(batch["county"].numpy())
         # 必须 stack 成 (N, 2)，不能留着元组列表去 concatenate：
         # np.concatenate 会把每个 (lon, lat) 元组当一维序列拼起来，
@@ -164,12 +174,27 @@ def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
         all_true_coord.append(np.stack([lon, lat], axis=1))
     model.train()
 
-    scores = np.concatenate(all_scores)
-    targets = np.concatenate(all_targets)
+    local = {
+        "auxiliary": auxiliary,
+        "order": np.concatenate(all_scores) if all_scores else np.empty((0, min(10, n_classes)), dtype=np.int64),
+        "targets": np.concatenate(all_targets) if all_targets else np.empty(0, dtype=np.int64),
+        "coords": np.concatenate(all_true_coord) if all_true_coord else np.empty((0, 2)),
+    }
+    gathered = [local]
+    if torch.distributed.is_initialized():
+        gathered = [None] * torch.distributed.get_world_size()
+        # Only transmit ranked indices, not the full N x 2604 logit matrix.
+        torch.distributed.all_gather_object(gathered, local)
+    order = np.concatenate([part["order"] for part in gathered])
+    targets = np.concatenate([part["targets"] for part in gathered])
+    coords = np.concatenate([part["coords"] for part in gathered])
+    scores = np.full((len(targets), n_classes), -np.inf, dtype=np.float32)
+    scores[np.arange(len(targets))[:, None], order] = -np.arange(order.shape[1])
+
     valid = targets >= 0
     scores, targets = scores[valid], targets[valid]
     if len(targets) == 0:
-        return {}
+        return {"known_fraction": 0.0, "n": 0}
 
     m = summarize(scores, targets, n_classes,
                   class_centroids=cent if len(cent) == n_classes else None)
@@ -179,12 +204,18 @@ def evaluate(model, loader, device, amp_dtype, n_classes, cent, loss_fn=None):
         cent[scores[i].argmax()] if len(cent) > scores[i].argmax() else (np.nan, np.nan)
         for i in range(len(scores))
     ])
-    true_loc = np.concatenate(all_true_coord, axis=0)[valid]
+    true_loc = coords[valid]
     ok = np.isfinite(pred_loc).all(axis=1)
     if ok.any():
         from utils.metrics import distance_summary
         m.update({f"top1_{k}": v for k, v in
                   distance_summary(pred_loc[ok], true_loc[ok]).items()})
+    m["known_fraction"] = float(valid.mean())
+    m["all_top1"] = m["top1"] * m["known_fraction"]
+    m["all_top5"] = m["top5"] * m["known_fraction"]
+    auxiliary = sum((part["auxiliary"] for part in gathered), np.zeros(4, dtype=np.int64))
+    m["city_or_year_top1"] = float(auxiliary[0] / max(1, auxiliary[1]))
+    m["province_or_prefix_top1"] = float(auxiliary[2] / max(1, auxiliary[3]))
     if losses:
         m["loss"] = float(np.mean([l["county"] for l in losses]))
     return m
@@ -198,6 +229,8 @@ def main():
     ap.add_argument("--points", type=Path, default=Path("data/pool/county_points.npz"))
     ap.add_argument("--out", type=Path, required=True, help="checkpoint 与日志目录")
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--init", type=Path, help="Warm-start compatible .pt weights with a fresh optimizer")
+    ap.add_argument("--epochs", type=int, help="Override epoch budget, including overfit mode")
     ap.add_argument("--overfit", type=int, default=0,
                     help="只用 N 条样本训练，验证能否过拟合（M0 冒烟）")
     ap.add_argument("--workers", type=int, default=None,
@@ -210,6 +243,8 @@ def main():
                          "验证集上的前向和训练一样贵")
     ap.add_argument("--seed", type=int, default=20260926)
     args = ap.parse_args()
+    if args.resume and args.init:
+        raise ValueError("Use --init for a new experiment or --resume, not both")
 
     import sys
     for stream in (sys.stdout, sys.stderr):
@@ -219,6 +254,10 @@ def main():
             pass
 
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    if args.epochs is not None:
+        if args.epochs < 1:
+            raise ValueError("epochs must be positive")
+        cfg["epochs"] = args.epochs
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
@@ -227,7 +266,7 @@ def main():
     world = int(os.environ.get("WORLD_SIZE", 1))
     distributed = world > 1
     if distributed:
-        torch.distributed.init_process_group(backend="nccl")
+        torch.distributed.init_process_group(backend="nccl", timeout=timedelta(hours=2))
         local_rank = int(os.environ["LOCAL_RANK"])
         torch.cuda.set_device(local_rank)
         rank = torch.distributed.get_rank()
@@ -239,6 +278,9 @@ def main():
     device = (torch.device("cuda", local_rank) if torch.cuda.is_available()
               else torch.device("cpu"))
     amp_dtype = pick_amp_dtype(device)
+    if device.type == "cuda":
+        torch.backends.cudnn.benchmark = True
+    torch.set_num_threads(cfg.get("cpu_threads", 1))
     if _IS_MAIN:
         print(f"设备 {device}  精度 {amp_dtype}  "
               f"{'DDP ×' + str(world) if distributed else '单进程'}")
@@ -257,30 +299,50 @@ def main():
     samples = load_samples(args.data / "samples.jsonl")
     stage(f"元数据 {len(samples):,} 条，数据目录 {args.data}")
     split, split_payload = load_split(args.data / "split.json")
-    cp = CountyPoints(args.points)
-    stage(f"划分与点位表就绪（点位表 {len(cp)} 县）")
-
-    adcodes, class_index = build_classes(list(samples.values()), cp)
-    cent = centroids(adcodes, cp)
-    stage(f"类别空间 {len(adcodes)} 县，质心已算")
-    soft = soft_targets(cent, half_km=cfg.get("soft_half_km", 50.0))
-    stage(f"地理软标签矩阵 {soft.shape[0]}×{soft.shape[1]} 已算")
-    (county_index, coord_index, city_index, prov_index,
-     city_list, prov_list) = build_indices(samples, class_index)
-    print(f"类别 {len(adcodes)} 县 / {len(city_list)} 市 / {len(prov_list)} 省")
+    task = cfg.get("task", "environment")
+    if task == "vehicle":
+        from data.vehicle import build_vehicle_indices
+        (adcodes, city_list, prov_list, county_index, city_index, prov_index,
+         coord_index) = build_vehicle_indices(samples, split,
+             cfg.get("min_vehicle_samples", 20), cfg.get("min_vehicle_dates", 2))
+        soft = np.eye(len(adcodes), dtype=np.float32)
+        cent = np.empty((0, 2))
+        stage(f"Vehicle classes {len(adcodes)}, years {len(city_list)}")
+    elif task == "environment":
+        cp = CountyPoints(args.points)
+        adcodes, class_index = build_classes(list(samples.values()), cp)
+        cent = centroids(adcodes, cp)
+        soft = soft_targets(cent, half_km=cfg.get("soft_half_km", 50.0))
+        (county_index, coord_index, city_index, prov_index,
+         city_list, prov_list) = build_indices(samples, class_index)
+        stage(f"Classes {len(adcodes)} counties / {len(city_list)} cities / {len(prov_list)} provinces")
+    else:
+        raise ValueError(f"Unknown task: {task}")
 
     # 类别表随 checkpoint 一起存：推理端靠它把 logit 下标映回县码。
     # 不这样做的话，推理时重建类别表一旦与训练时不一致，预测会被静默地
     # 解释成别的县——而且完全看不出来。
-    (args.out / "classes.json").write_text(json.dumps({
-        "adcodes": adcodes,
-        "cities": city_list,
-        "provinces": prov_list,
+    run_meta = {
+        "adcodes": adcodes, "cities": city_list, "provinces": prov_list,
         "backbone": cfg.get("backbone", "convnext_tiny"),
-        "views": cfg.get("views", {}),
-        "soft_half_km": cfg.get("soft_half_km", 50.0),
-        "seed": args.seed,
-    }, ensure_ascii=False, indent=2), encoding="utf-8")
+        "views": cfg.get("views", {}), "soft_half_km": cfg.get("soft_half_km", 50.0),
+        "seed": args.seed, "task": cfg.get("task", "environment"),
+        "loss": cfg.get("loss", {}), "format_version": 2,
+        "samples_sha256": hashlib.sha256((args.data / "samples.jsonl").read_bytes()).hexdigest(),
+        "split_sha256": hashlib.sha256((args.data / "split.json").read_bytes()).hexdigest(),
+    }
+    meta_path = args.out / "classes.json"
+    if args.resume:
+        if not (args.out / "last.pt").exists() or not meta_path.exists():
+            raise ValueError("--resume requires last.pt and classes.json")
+        old_meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        for key in run_meta if old_meta.get("format_version") == 2 else ("adcodes", "cities", "provinces", "backbone", "views", "seed"):
+            if old_meta.get(key) != run_meta[key]:
+                raise ValueError(f"Resume metadata mismatch: {key}; use a new directory")
+    elif (args.out / "last.pt").exists() or (args.out / "best.pt").exists():
+        raise ValueError("Output contains checkpoints; use --resume or a new directory")
+    if _IS_MAIN:
+        meta_path.write_text(json.dumps(run_meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # ── 数据集 ──────────────────────────────────────────────────────
     vcfg = ViewConfig(**cfg.get("views", {}))
@@ -299,11 +361,11 @@ def main():
     if args.batch_size is not None:
         cfg["batch_size"] = args.batch_size
 
-    def dataset(split_name, augment):
+    def dataset(split_name, augment, eval_mode="panorama"):
         ds = PanoramaDataset(
             args.data, split, samples, county_index, coord_index,
             city_index, prov_index, split=split_name, view_cfg=vcfg,
-            augment=augment, seed=args.seed)
+            augment=augment, seed=args.seed, eval_mode=eval_mode, task=task)
         # 索引只在父进程建一次（扫 tar 头要几秒）。fd 跨 fork 共享是安全的，
         # 因为 read() 用 os.pread——它在偏移量处读、不移动文件位置。
         if "idx" not in idx_cache:
@@ -311,8 +373,12 @@ def main():
                 args.data,
                 progress=lambda i, n, name: stage(f"扫描分片 {i+1}/{n} {name}"))
         ds._idx = idx_cache["idx"]
+        if task == "vehicle" and augment:
+            ds.keys = [k for k in ds.keys if county_index[k] >= 0]
         if args.overfit:
-            ds.keys = stratified_subset(ds.keys, samples, args.overfit, args.seed)
+            subset_labels = ({k: {"adcode": str(county_index[k])} for k in ds.keys}
+                             if task == "vehicle" else samples)
+            ds.keys = stratified_subset(ds.keys, subset_labels, args.overfit, args.seed)
         return ds
 
     # 各类样本量分布：长尾有多长直接决定县级能做到什么程度
@@ -324,36 +390,57 @@ def main():
           f"<10 条的 {sum(1 for v in cnt.values() if v < 10)} 个")
 
     train_ds = dataset("train", augment=True)
-    # 验证集只在 rank 0 上跑——各 rank 都评一遍同一份数据是纯粹的重复劳动
+    # Exact strided validation shards: no padding duplicates and no dropped tail.
     val_loaders = {}
-    if _IS_MAIN:
-        for name in ("val_same", "val_national", "test_county"):
-            try:
-                val_loaders[name] = make_loader(dataset(name, augment=False),
-                                                cfg.get("eval_batch", 16), False,
-                                                num_workers=cfg.get("workers", 2))
-            except ValueError:
-                print(f"划分 {name} 为空，跳过")
+    for name in ("val_same", "val_national", "test_county"):
+        if not any(v == name and k in samples for k, v in split.items()):
+            continue
+        for mode in cfg.get("eval_modes", ["panorama"]):
+            key = name if mode == "panorama" else f"{name}_{mode}"
+            ds = dataset(name, False, mode)
+            val_loaders[key] = make_loader(ds, cfg.get("eval_batch", 16), False,
+                num_workers=cfg.get("workers", 2),
+                sampler=range(rank, len(ds), world) if distributed else None)
+    if cfg.get("selection_split", "val_same") not in val_loaders:
+        raise ValueError("Configured selection_split has no validation samples")
     batch_size = cfg.get("batch_size", 8)
     n_cpu = _os.cpu_count() or 1
     workers = cfg.get("workers", 2)
     stage(f"CPU {n_cpu} 核，DataLoader {workers} 个 worker"
           + ("（worker 数超过核数会互相抢 CPU）" if workers > n_cpu else ""))
-    train_sampler = None
+    # Keep shuffle RNG separate from worker seeding, including mid-epoch resume.
+    train_sampler = torch.utils.data.RandomSampler(train_ds,
+                        generator=torch.Generator().manual_seed(args.seed))
     if distributed:
         # drop_last 必须开：各进程批数不一致会让集合通信互相等待到死锁
         train_sampler = torch.utils.data.distributed.DistributedSampler(
-            train_ds, shuffle=True, drop_last=True)
+            train_ds, shuffle=True, drop_last=True, seed=args.seed)
     train_loader = make_loader(train_ds, batch_size, True, sampler=train_sampler,
                                num_workers=cfg.get("workers", 2), seed=args.seed,
                                distributed=distributed)
+    if not len(train_loader):
+        raise ValueError("No training batches; reduce batch size")
     stage(f"就绪：训练 {len(train_ds):,} 条，验证 "
           f"{ {k: len(v.dataset) for k, v in val_loaders.items()} }")
     print(f"训练样本 {len(train_ds):,}  验证 {[f'{k}:{len(v.dataset)}' for k, v in val_loaders.items()]}")
 
     # ── 模型 ────────────────────────────────────────────────────────
     stage("构建模型…")
-    raw_model = build_model(len(adcodes), len(city_list), len(prov_list), cfg).to(device)
+    model_cfg = dict(cfg)
+    if args.init or args.resume:
+        model_cfg["pretrained"] = False
+    raw_model = build_model(len(adcodes), len(city_list), len(prov_list), model_cfg).to(device)
+    if args.init:
+        initial = torch.load(args.init, map_location="cpu", weights_only=False)
+        initial_meta = initial.get("run_meta") or json.loads(
+            (args.init.parent / "classes.json").read_text(encoding="utf-8"))
+        for key in ("adcodes", "cities", "provinces", "backbone"):
+            if initial_meta[key] != run_meta[key]:
+                raise ValueError(f"Warm-start class/model mismatch: {key}")
+        if initial_meta.get("task", "environment") != task:
+            raise ValueError("Warm-start task mismatch")
+        raw_model.load_state_dict(initial["model"])
+        stage(f"Initialized from {args.init}; optimizer and scheduler start fresh")
     model = raw_model
     n_par = sum(p.numel() for p in model.parameters()) / 1e6
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
@@ -375,17 +462,20 @@ def main():
     # DDP 包装放在优化器之后：DistributedDataParallel 不转发属性访问，
     # 包上之后 model.backbone 就没了。它也不复制参数，优化器持有的仍是
     # 同一批对象，所以先后顺序对更新无影响。
+    if distributed and cfg.get("freeze_backbone", False) and cfg.get("unfreeze_after", 0):
+        raise ValueError("DDP staged unfreezing unsupported; use freeze_backbone: false")
     if distributed:
         model = torch.nn.parallel.DistributedDataParallel(
-            raw_model, device_ids=[local_rank], find_unused_parameters=False)
+            raw_model, device_ids=[local_rank], find_unused_parameters=False,
+            gradient_as_bucket_view=True, broadcast_buffers=False)
     epochs = cfg.get("epochs", 40)
     if args.overfit:
         # 原有轮数只有 160 次优化步，测的是"步数不够"而非"管线通不通"。
         # 预热 10% 在 3200 步下等于前 40 轮全在热身，一并压缩。
-        epochs = max(epochs, cfg.get("overfit_epochs", 400))
+        epochs = max(epochs, cfg.get("overfit_epochs", 400)) if args.epochs is None else args.epochs
         cfg["accum"] = 1
         cfg["pct_start"] = 0.02
-    steps_per_epoch = max(1, len(train_loader) // cfg.get("accum", 1))
+    steps_per_epoch = math.ceil(len(train_loader) / cfg.get("accum", 1))
     total_steps = epochs * steps_per_epoch
     pct_start = cfg.get("pct_start", 0.1)
     sched = torch.optim.lr_scheduler.OneCycleLR(
@@ -393,7 +483,7 @@ def main():
         total_steps=total_steps, pct_start=pct_start)
     scaler = torch.amp.GradScaler(enabled=(amp_dtype is torch.float16))
 
-    start_epoch, best = 0, -1.0
+    start_epoch, best, resume_batch = 0, -1.0, 0
     ckpt_path = args.out / "last.pt"
     if args.resume and ckpt_path.exists():
         state = torch.load(ckpt_path, map_location=device, weights_only=False)
@@ -404,6 +494,14 @@ def main():
         sched.load_state_dict(state["sched"])
         scaler.load_state_dict(state["scaler"])
         start_epoch, best = state["epoch"] + 1, state.get("best", -1.0)
+        if not state.get("epoch_complete", True):
+            start_epoch, resume_batch = state["epoch"], state["next_batch"]
+        if state.get("run_meta", run_meta) != run_meta:
+            raise ValueError("Checkpoint metadata/config mismatch")
+        expected = {"batches": len(train_loader), "world": world, "accum": cfg.get("accum", 1),
+                    "total_steps": total_steps, "batch_size": batch_size}
+        if state.get("loader_contract", expected) != expected:
+            raise ValueError("Resume loader/scheduler changed; start a new run")
         apply_freeze_policy(raw_model, start_epoch, cfg)
         print(f"从 epoch {start_epoch} 续跑（当前最好 {best:.4f}，"
               f"主干{'可训练' if not raw_model.freeze_backbone else '冻结'}）")
@@ -418,12 +516,21 @@ def main():
     if eval_every > 1:
         print(f"每 {eval_every} 轮验证一次")
 
+    checkpoint_contract = {"batches": len(train_loader), "world": world, "accum": accum,
+                           "total_steps": total_steps, "batch_size": batch_size}
+    if _IS_MAIN:
+        (args.out / "config.json").write_text(json.dumps(cfg, indent=2), encoding="utf-8")
     stage(f"开始训练：{epochs} 轮 × {steps_per_epoch} 步 = {total_steps} 次优化步")
     for epoch in range(start_epoch, epochs):
         # 不设 set_epoch 的话每个 epoch 的洗牌顺序完全相同，
         # 等于永远只看同一批数据
-        if train_sampler is not None:
+        if distributed:
             train_sampler.set_epoch(epoch)
+        else:
+            train_sampler.generator.manual_seed(args.seed + epoch)
+        train_ds.set_epoch(0 if args.overfit else epoch)
+        if train_loader.generator is not None:
+            train_loader.generator.manual_seed(args.seed + epoch)
         model.train()
         was_frozen = raw_model.freeze_backbone
         apply_freeze_policy(raw_model, epoch, cfg)
@@ -434,7 +541,7 @@ def main():
                   f"可训练参数 {n_tr:.1f}M", flush=True)
 
         do_eval = (eval_every <= 1 or epoch % eval_every == 0
-                   or epoch == epochs - 1) and _IS_MAIN
+                   or epoch == epochs - 1)
         t0, running, seen = time.time(), 0.0, 0
         t_data = t_compute = 0.0
         hit_num = hit_den = 0
@@ -448,6 +555,8 @@ def main():
         for step in range(n_batches):
             t_batch = time.time()
             batch = next(loader_it)
+            if epoch == start_epoch and step < resume_batch:
+                continue
             t_data += time.time() - t_batch
             t_work = time.time()
 
@@ -456,13 +565,18 @@ def main():
             targets = {k: v.to(device, non_blocking=True)
                        for k, v in batch.items()
                        if k in ("county", "city", "prov", "coord")}
-            with autocast_ctx(device, amp_dtype):
-                out = model(views, vmask)
-                loss, _ = loss_fn(out, targets)
-                loss = loss / accum
-            scaler.scale(loss).backward()
+            targets["vmask"] = vmask
+            update = (step + 1) % accum == 0 or step + 1 == n_batches
+            group_size = min(accum, n_batches - (step // accum) * accum)
+            sync = model.no_sync() if distributed and not update else contextlib.nullcontext()
+            with sync:
+                with autocast_ctx(device, amp_dtype):
+                    out = model(views, vmask, return_view_logits=bool(cfg.get("loss", {}).get("w_view", 0)))
+                    loss, _ = loss_fn(out, targets)
+                    loss = loss / group_size
+                scaler.scale(loss).backward()
 
-            if (step + 1) % accum == 0:
+            if update:
                 scaler.unscale_(opt)
                 torch.nn.utils.clip_grad_norm_(model.parameters(),
                                                cfg.get("clip", 5.0))
@@ -473,7 +587,7 @@ def main():
                 before = scaler.get_scale()
                 scaler.step(opt)
                 scaler.update()
-                if scaler.get_scale() >= before and sched.last_epoch < sched.total_steps - 1:
+                if scaler.get_scale() >= before and sched.last_epoch < sched.total_steps:
                     sched.step()
                 opt.zero_grad(set_to_none=True)
 
@@ -487,7 +601,7 @@ def main():
                     hit_num += int((pred[ok] == tgt[ok]).sum())
                     hit_den += int(ok.sum())
 
-            running += float(loss.detach()) * accum
+            running += float(loss.detach()) * group_size
             seen += 1
             t_compute += time.time() - t_work
 
@@ -503,80 +617,95 @@ def main():
                 last_log = now
 
             # 到点就存盘——Colab 随时会断，不能等到 epoch 结束
-            if now - last_ckpt > ckpt_minutes * 60:
-                save(ckpt_path, raw_model, opt, sched, scaler, epoch, best)
+            if _IS_MAIN and update and now - last_ckpt > ckpt_minutes * 60:
+                save(ckpt_path, raw_model, opt, sched, scaler, epoch, best,
+                     epoch_complete=False, next_batch=step + 1,
+                     run_meta=run_meta, loader_contract=checkpoint_contract)
                 print(f"  [{now - _T0:7.1f}s] checkpoint 已存：epoch {epoch} "
                       f"step {step}", flush=True)
                 last_ckpt = now
 
-        train_loss = running / max(1, seen)
+        if distributed:
+            totals = torch.tensor([running, seen, hit_num, hit_den], dtype=torch.float64, device=device)
+            torch.distributed.all_reduce(totals)
+            total_running, total_seen, total_hit, total_den = totals.tolist()
+        else:
+            total_running, total_seen, total_hit, total_den = running, seen, hit_num, hit_den
+        train_loss = total_running / max(1, total_seen)
         epoch_sec = time.time() - t0
         rec = {"epoch": epoch, "train_loss": train_loss,
-               "train_acc": hit_num / max(1, hit_den),
+               "train_acc": total_hit / max(1, total_den),
                "minutes": round(epoch_sec / 60, 1),
+               "world_size": world, "effective_batch_size": batch_size * world * accum,
+               "gpu_peak_gb": round(torch.cuda.max_memory_allocated(device) / 1e9, 2) if device.type == "cuda" else 0.0,
                "data_seconds": round(t_data, 1),
                "compute_seconds": round(t_compute, 1),
-               "samples_per_sec": round(seen * batch_size / max(epoch_sec, 1e-6), 1)}
+               "samples_per_sec": round(seen * batch_size * world / max(epoch_sec, 1e-6), 1)}
         left = (epochs - epoch - 1) * epoch_sec
         print(f"  e{epoch:02d} 损失 {train_loss:.4f} 训练top1 "
               f"{rec['train_acc']:.3f}  {epoch_sec:.0f}s "
               f"({t_data:.0f}s 等数据 / {t_compute:.0f}s 计算)  "
               f"{rec['samples_per_sec']:.0f} 样本/s  剩余约 {left/60:.0f} 分钟")
 
-        if not do_eval or not _IS_MAIN:
-            if _IS_MAIN:
-                log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
-                log_fh.flush()
-            continue
-
-        for name, loader in val_loaders.items():
-            m = evaluate(model, loader, device, amp_dtype, len(adcodes), cent)
-            rec[name] = m
-            if name == "val_same":
-                print(f"  e{epoch} 同县留出 top1 {m.get('top1', 0):.3f} "
-                      f"top5 {m.get('top5', 0):.3f} "
-                      f"宏平均 {m.get('macro_recall', 0):.3f} "
-                      f"多数类基线 {m.get('majority_baseline', 0):.3f} "
-                      f"中位误差 {m.get('top1_median_km', float('nan')):.1f} km")
-                print(f"        候选邻近率(top5 落在真值 150km 内) "
-                      f"{m.get('top5_nearby_150km', float('nan')):.3f}")
-                score = m.get("top5", 0.0)
-                if score > best:
-                    best = score
-                    save(args.out / "best.pt", raw_model, opt, sched, scaler, epoch,
-                     best, model_only=True)
-                    print(f"        新最好，已存 best.pt")
-
+        if distributed:
+            torch.distributed.barrier()
+        if do_eval:
+            for name, loader in val_loaders.items():
+                if name.startswith("test_county") and epoch != epochs - 1:
+                    continue
+                # DDP collectives belong to training; evaluation uses independent shards.
+                m = evaluate(raw_model, loader, device, amp_dtype, len(adcodes), cent)
+                rec[name] = m
+                stage(f"{name}: top1={m.get('top1', 0):.3f} top5={m.get('top5', 0):.3f}")
+            selection = cfg.get("selection_split", "val_same")
+            metric = cfg.get("selection_metric", "top5")
+            score = rec.get(selection, {}).get(metric)
+            if score is not None and score > best:
+                best = score
+                save(args.out / "best.pt", raw_model, opt, sched, scaler, epoch,
+                     best, model_only=True, run_meta=run_meta)
+                stage(f"New best {selection}/{metric}={best:.4f}")
         if _IS_MAIN:
             log_fh.write(json.dumps(rec, ensure_ascii=False, default=float) + "\n")
             log_fh.flush()
-            save(ckpt_path, raw_model, opt, sched, scaler, epoch, best)
+            save(ckpt_path, raw_model, opt, sched, scaler, epoch, best,
+                 run_meta=run_meta, loader_contract=checkpoint_contract)
             last_ckpt = time.time()
+        if distributed:
+            torch.distributed.barrier()
+        resume_batch = 0
 
     if log_fh:
         log_fh.close()
     if distributed:
         torch.distributed.destroy_process_group()
-    stage(f"完成。最好 top5 {best:.4f}  产物 {args.out}")
+    stage(f"完成。最佳选择指标 {best:.4f}  产物 {args.out}")
 
 
-def save(path, model, opt, sched, scaler, epoch, best, model_only=False):
+def save(path, model, opt, sched, scaler, epoch, best, model_only=False,
+         epoch_complete=True, next_batch=0, run_meta=None, loader_contract=None):
     """存 checkpoint。
 
     model_only=True 只存权重（约 112 MB），用于 best.pt——它是要长期保留、
     可能被导出或上传的产物，不需要优化器状态。last.pt 则必须完整
     （约 340 MB），否则无法续跑。
     """
+    if not _IS_MAIN:
+        return
     sd = model.state_dict()
     # 防御：万一传进来的是 DDP 包装过的模型，去掉 module. 前缀，
     # 否则推理端 load_state_dict 会因键名不匹配而失败
     if any(k.startswith("module.") for k in sd):
         sd = {k[len("module."):]: v for k, v in sd.items()}
-    payload = {"model": sd, "epoch": epoch, "best": best}
+    payload = {"model": sd, "epoch": epoch, "best": best,
+               "epoch_complete": epoch_complete, "next_batch": next_batch,
+               "run_meta": run_meta, "loader_contract": loader_contract}
     if not model_only:
         payload.update(opt=opt.state_dict(), sched=sched.state_dict(),
                        scaler=scaler.state_dict())
-    torch.save(payload, path)
+    partial = path.with_suffix(path.suffix + ".tmp")
+    torch.save(payload, partial)
+    os.replace(partial, path)
 
 
 if __name__ == "__main__":

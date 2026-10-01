@@ -60,3 +60,11 @@ venv/
 
 # 临时调试输出
 *.txt
+!requirements-export.txt
+
+# Local model exports and diagnostic caches; reviewed reports live in reports/.
+*.onnx
+*.onnx.data
+round2/
+*.tmp
+*.tar.gz

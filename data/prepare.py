@@ -3,10 +3,13 @@
 视图数可变（1–8）并以一定概率取 1：推理输入可能只是一张截图，所以
 "单图可用"必须是被训练过的能力，而不是只在推理时才遇到的情形。
 """
-import numpy as np
-from PIL import Image
+import io
+import zlib
 
-from utils.views import extract_views, surround_headings
+import numpy as np
+from PIL import Image, ImageOps
+
+from utils.views import extract_views, surround_headings, extract_perspective
 
 
 class ViewConfig:
@@ -16,7 +19,9 @@ class ViewConfig:
                  single_view_prob=0.15, min_views=1,
                  brightness=0.3, contrast=0.3, saturation=0.3,
                  channel_gain=0.05,
-                 crop_scale=(0.7, 1.0), blur_prob=0.15):
+                 crop_scale=(0.7, 1.0), blur_prob=0.15,
+                 fov_range=None, pitch_range=None, screenshot_prob=0.0,
+                 jpeg_prob=0.0, jpeg_quality=(65, 95), resize_prob=0.0):
         self.n_max = n_max
         self.fov = fov
         self.size = size
@@ -28,13 +33,25 @@ class ViewConfig:
         self.channel_gain = channel_gain
         self.crop_scale = crop_scale
         self.blur_prob = blur_prob
+        self.fov_range = fov_range
+        self.pitch_range = pitch_range
+        self.screenshot_prob = screenshot_prob
+        self.jpeg_prob = jpeg_prob
+        self.jpeg_quality = jpeg_quality
+        self.resize_prob = resize_prob
+        if not 1 <= min_views <= n_max <= 8:
+            raise ValueError("Require 1 <= min_views <= n_max <= 8")
+        if not 0 <= single_view_prob <= 1:
+            raise ValueError("single_view_prob must be in [0, 1]")
 
 
 def choose_view_count(rng, cfg):
     """随机取视图数。以 single_view_prob 的概率取单视图，其余在 2..n_max 间取。"""
+    if cfg.n_max == cfg.min_views:
+        return cfg.n_max
     if rng.random() < cfg.single_view_prob:
         return cfg.min_views
-    return int(rng.integers(2, cfg.n_max + 1))
+    return int(rng.integers(max(2, cfg.min_views), cfg.n_max + 1))
 
 
 def _resample_uint8(arr, out_hw):
@@ -72,7 +89,7 @@ def augment(views, rng, cfg):
         f = rng.uniform(lo, hi)
         if f < 0.999:
             h, w = views.shape[1], views.shape[2]
-            ch, cw = max(8, int(h * f)), max(8, int(w * f))
+            ch, cw = min(h, max(1, int(h * f))), min(w, max(1, int(w * f)))
             out = np.empty_like(views)
             for i in range(len(views)):
                 y0 = int(rng.integers(0, h - ch + 1))
@@ -83,7 +100,27 @@ def augment(views, rng, cfg):
     if cfg.blur_prob and rng.random() < cfg.blur_prob:
         rad = float(rng.uniform(0.4, 1.2))
         views = np.stack([_blur(v, rad) for v in views])
+    if cfg.resize_prob and rng.random() < cfg.resize_prob:
+        h, w = views.shape[1:3]
+        factor = float(rng.uniform(0.55, 1.0))
+        small = (max(1, int(h * factor)), max(1, int(w * factor)))
+        views = np.stack([_resample_uint8(_resample_uint8(v, small), (h, w))
+                          for v in views])
+    if cfg.jpeg_prob and rng.random() < cfg.jpeg_prob:
+        quality = int(rng.integers(cfg.jpeg_quality[0], cfg.jpeg_quality[1] + 1))
+        encoded = []
+        for v in views:
+            buf = io.BytesIO()
+            Image.fromarray(v).save(buf, format="JPEG", quality=quality)
+            with Image.open(io.BytesIO(buf.getvalue())) as im:
+                encoded.append(np.asarray(im.convert("RGB")))
+        views = np.stack(encoded)
     return views
+
+
+def sample_rng(seed, key, epoch=0):
+    """Sample/epoch seed independent of DataLoader worker assignment."""
+    return np.random.default_rng([seed, zlib.crc32(key.encode()), epoch])
 
 
 def _blur(arr, rad):
@@ -93,18 +130,28 @@ def _blur(arr, rad):
     return _resample_uint8(_resample_uint8(arr, small), (h, w))
 
 
-def make_sample(pano, rng, cfg, augment_on=True):
+def make_sample(pano, rng, cfg, augment_on=True, eval_mode="random"):
     """由全景生成一条样本，返回 (views, vmask)。
 
     views (n_max, size, size, 3) uint8，未用槽位为 0；vmask (n_max,) bool。
     固定形状便于组装 batch，掩码保证池化忽略空槽。
     """
-    n = choose_view_count(rng, cfg)
-    # 随机起始朝向，避免模型依赖"哪个方向恰好是 0 度"这种与地点无关的巧合
-    offset = float(rng.uniform(0, 360))
-    headings = surround_headings(cfg.n_max, offset=offset)[:n]
-
-    used = extract_views(pano, headings, fov_y=cfg.fov, size=cfg.size)
+    if not augment_on and eval_mode in ("single", "panorama"):
+        n = 1 if eval_mode == "single" else cfg.n_max
+    else:
+        n = choose_view_count(rng, cfg)
+    offset = float(rng.uniform(0, 360)) if augment_on or eval_mode != "panorama" else 0.0
+    fov = float(rng.choice(np.linspace(*cfg.fov_range, 5))) if augment_on and cfg.fov_range else cfg.fov
+    pitch = float(rng.choice(np.linspace(*cfg.pitch_range, 3))) if augment_on and cfg.pitch_range else 0.0
+    if augment_on and n == 1 and rng.random() < cfg.screenshot_prob:
+        aspect = float(rng.choice([1.0, 4 / 3, 16 / 9]))
+        shot = extract_perspective(pano, offset, pitch, fov,
+                                   width=round(cfg.size * aspect), height=cfg.size)
+        used = np.asarray(ImageOps.fit(Image.fromarray(shot), (cfg.size, cfg.size),
+                                       method=Image.Resampling.BILINEAR))[None]
+    else:
+        headings = surround_headings(cfg.n_max, offset=offset)[:n]
+        used = extract_views(pano, headings, fov_y=fov, size=cfg.size, pitch=pitch)
     if augment_on:
         used = augment(used, rng, cfg)
 

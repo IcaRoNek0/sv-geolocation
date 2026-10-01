@@ -1,7 +1,6 @@
 """地理计算：距离、真实点位表、加权几何中位数选点。
 
-选点用各县的真实街景点位而非质心：质心可能落在水域或山区，真实点位必然
-落在有路的地方。给定县级概率分布后即求加权几何中位数
+选点用各县的真实街景点位而非质心：质心可能落在水域或山区，中位数不保证落在点集中、道路上或最高概率县内。给定县级概率分布后即求加权几何中位数
 
     min_c Σ_i p_i · d(c, c_i)
 
@@ -68,12 +67,14 @@ def weighted_geometric_median(points, weights):
     """加权几何中位数：最小化 Σ w_i·‖c − p_i‖，points 为 (N,2) 的 (lon,lat)。
 
     在局部等距平面上迭代。退化情形是迭代点恰好落在数据点上（该处梯度
-    不可导），此时该点即最优，直接返回。
+    不可导），需检验次梯度条件，不能直接当成最优。
     """
     pts = np.asarray(points, dtype=np.float64)
     w = np.asarray(weights, dtype=np.float64)
     if pts.ndim != 2 or pts.shape[1] != 2:
         raise ValueError("points 必须是 (N, 2) 的 (lon, lat)")
+    if not np.isfinite(pts).all() or not np.isfinite(w).all():
+        raise ValueError("Non-finite coordinates or weights")
     if len(pts) == 0:
         raise ValueError("点位为空")
     if len(pts) != len(w):
@@ -97,15 +98,25 @@ def weighted_geometric_median(points, weights):
     for _ in range(WEISZFELD_MAX_ITER):
         d = np.hypot(x - cx, y - cy)
         hit = d < COINCIDENT_M
+        nonhit = ~hit
+        if not nonhit.any():
+            break
+        inv = w[nonhit] / d[nonhit]
+        mass = inv.sum()
+        if mass == 0:
+            break
+        nx = float((inv * x[nonhit]).sum() / mass)
+        ny = float((inv * y[nonhit]).sum() / mass)
         if hit.any():
-            # 迭代点落在数据点上：该点是加权 1-median 的最优解
-            i = int(np.argmax(np.where(hit, w, 0.0)))
-            if w[i] > 0:
-                return float(pts[i, 0]), float(pts[i, 1])
-        d = np.maximum(d, COINCIDENT_M)
-        inv = w / d
-        s = inv.sum()
-        nx, ny = float((inv * x).sum() / s), float((inv * y).sum() / s)
+            # Coincidence alone does not imply optimality (modified Weiszfeld).
+            residual = math.hypot(float((inv * (x[nonhit] - cx)).sum()),
+                                  float((inv * (y[nonhit] - cy)).sum()))
+            hit_mass = float(w[hit].sum())
+            if residual <= hit_mass:
+                break
+            fraction = hit_mass / residual
+            nx, ny = ((1 - fraction) * nx + fraction * cx,
+                      (1 - fraction) * ny + fraction * cy)
         shift = math.hypot(nx - cx, ny - cy)
         cx, cy = nx, ny
         if shift <= WEISZFELD_EPS * max(1.0, math.hypot(cx, cy)):
@@ -159,6 +170,8 @@ def select_point(probs, county_points, top_k=20, spread="uniform"):
     top_k 只考虑概率最高的 K 个县：尾部贡献可忽略，却会把参与迭代的点数
     放大一个量级。返回 (lon, lat, 用到的县列表)。
     """
+    if top_k < 1:
+        raise ValueError("top_k must be positive")
     items = [(a, float(p)) for a, p in
              (probs.items() if isinstance(probs, dict) else zip(*probs))]
     items = [(a, p) for a, p in items if p > 0 and a in county_points]

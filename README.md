@@ -1,99 +1,65 @@
-# 纯视觉街景定位系统
+# 纯视觉街景县级定位
 
-输入一张无元数据的街景图（全景或单张透视截图），输出中国县级概率分布，
-并给出期望得分最高的坐标。
+输入单张街景截图或全景，输出县级概率分布；坐标选点是附加的近似距离优化。
+主要使用 **PyTorch** 训练与推理，ONNX 仅作为 Termux 的运行产物。
 
 ## 当前状态
 
-| 阶段 | 状态 |
-|---|---|
-| 方案设计 | 完成 → [PLAN.md](PLAN.md) |
-| 主库扫描（采样池 / 直方图 / 点位表） | 完成 |
-| 图像采集（2.17 万条） | 进行中 |
-| 模型 / 损失 / 训练 / 推理代码 | 完成，**待 Colab 上验证** |
-| 训练 | 未开始 → [COLAB.md](COLAB.md) |
+- 数据：124,751 张、26 个分片，107,099 张训练，输出空间 2,604 县。
+- 第二轮：149 个有真值的外部全景 Top-1 28.9%、Top-5 53.0%；单图显著弱于全景。
+- 第三轮：硬/软县级标签混合、每视图辅助监督、截图增强、双卡 DDP 训练和验证。
+- 街景车：独立车号/年份任务、俯视图预处理、轨迹先验和保守融合接口已实现。
+  排除个人上传类型后 434 个训练车号；尚未训练验证识别效果。
+- OCR 未实现。第三轮代码不代表已有新的高精度权重。
 
-## 快速开始
+完整诊断、补数据建议及验收口径见 [第二轮复盘](reports/round2-review.md)。
+旧 [PLAN.md](PLAN.md) 保留设计历史，以复盘和第三轮配置为准。
+
+## Kaggle 双 T4
+
+使用 [kaggle.ipynb](kaggle.ipynb)，具体步骤见 [KAGGLE.md](KAGGLE.md)。
+`colab.ipynb` 是相同内容的 Colab 兼容入口。
 
 ```sh
-# 采集端（本机，不依赖 torch）
-cd collect
-python sample_pool.py                       # 唯一一次全表扫描，约 90 秒
-python fetch_pano.py meta                   # 批量取元数据定层级
-python fetch_pano.py images --concurrency 160
-python pack_shards.py                       # 打成 WebDataset 分片
-python make_splits.py                       # 划分，只做一次
+# 两张卡共同训练环境模型
+python -m torch.distributed.run --standalone --nproc_per_node=2 train.py \
+  --config configs/round3.yaml --data data/shards --out runs/round3_env_v1
 
-# 训练端（Colab），详见 COLAB.md
-python train.py --config configs/default.yaml --data data/shards --out runs/base
+# 独立训练街景车模型，同样使用两张卡
+python -m torch.distributed.run --standalone --nproc_per_node=2 train.py \
+  --config configs/vehicle.yaml --data data/shards --out runs/vehicle_v1
 ```
 
-## 结构
+首次训练不加 `--resume`。续跑使用相同配置；改变实验设置时用新目录，必要时
+`--init /path/to/best.pt` 仅初始化权重。现有 ONNX 文件不能直接继续训练。
 
-```text
-├── PLAN.md                 完整方案：数据管线、模型、选点、里程碑、风险
-├── COLAB.md                Colab 操作手册（挂载、续跑、会踩的坑）
-├── collect/                采集端，本机跑
-│   ├── common.py           路径、panoID 解析、网格抽稀、只读连接
-│   ├── sample_pool.py      唯一一次全表扫描 → 采样池 + 直方图 + 点位表
-│   ├── fetch_pano.py       sdata 定层级 → pdata 拼全景，可断点续传
-│   ├── pack_shards.py      → WebDataset 分片 + 元数据表
-│   └── make_splits.py      按 (车辆, 日期) 分组划分，内置泄漏自检
-├── data/                   数据集与准备
-│   ├── shards.py           分片索引（纯标准库，随机访问不解包）
-│   ├── prepare.py          可变视图数与增强（纯 numpy）
-│   ├── dataset.py          torch Dataset
-│   └── labels.py           类别空间与地理软标签
-├── models/                 env_model / losses / fusion
-├── utils/                  views（全景→透视）/ geo_utils（选点）/ metrics
-├── train.py  inference.py
-└── tests/                  60 个测试，无需 torch 即可运行
+## 推理
+
+```sh
+python inference.py --run runs/round3_env_v1 --image shot.jpg --mode screenshot --json env.json
+python inference.py --run runs/round3_env_v1 --image pano.jpg --mode panorama
+python inference_vehicle.py --run runs/vehicle_v1 --image pano.jpg --mode panorama
 ```
 
-## 几个关键决策
+默认把输入当截图。宽高比不能可靠区分全景与截图；请明确指定模式。
+车分支必须有可见车顶，默认不融合。轨迹来自 `data/pool/vehicle_coverage.json`，
+推理不读取文件名/panoID/EXIF 中的位置或车辆编号。
+县名和边界是可选显示资源；独立仓库缺少相邻 GIS 项目时仍输出县码。
 
-**视图数可变（1–8）。** 推理输入可能只是一张截图，所以"单图可用"必须是被
-训练过的能力，而不是只在推理时才遇到的情形。同一套权重吃 1 张和 8 张。
+## 验证
 
-**县级用地理软标签** `exp(-d/τ)` 而非 one-hot。相邻县的地貌与建筑高度相似，
-one-hot 会把"隔壁县"和"隔着半个中国的县"同等惩罚。
+```sh
+python -m unittest discover -s tests -q
+python tools/preflight.py --data data/shards
+python tools/make_notebook.py
+python tools/check_notebook.py
+```
 
-**选点用各县真实街景点位，不取质心。** 质心可能落在水域或没有街景的山区，
-真实点位必然落在有路的地方。给定概率分布后求加权几何中位数（Weiszfeld）。
+没有 PyTorch 的环境会明确跳过 Torch 测试。Kaggle 笔记本会运行这些测试，
+并在正式训练前执行双卡短冒烟。当前本地未完成第三轮 GPU 实跑。
 
-**划分单位是 (车辆, 日期) 分组，不是单张图。** 同一辆车同一天的相邻帧几乎
-重复，随机划分会让验证集出现训练集见过的地点，指标虚高却不报错。
+导出到 Termux 时，另装 `requirements-export.txt` 并运行
+`python tools/export_onnx.py --run runs/round3_env_v1`；默认检查数值一致性。
 
-**指标必须并列报多数类基线。** top-1 高于基线不等于模型在学地理——它可能
-只是背下了样本最多的那个县。另有"候选邻近率"（top-5 落在真值 150km 内的
-比例），它比 top-1 更早给出信号。
-
-## 实测数据
-
-| 项 | 数值 |
-|---|---|
-| 主库可用行 | 1213 万（全表扫描 90 秒） |
-| 采样池 | 21 746 条（四川 12 130 + 全国 9 616） |
-| 点位表 | 2 604 县 / 192 075 个真实点位 |
-| 四川有数据的县 | 177 / 183（117 个点位不足配额） |
-| 单条体积 | 四川 z=3 约 282 KB；全国 z=2 约 74 KB |
-| 数据集体积 | 约 4.1 GB |
-
-## 诚实的预期
-
-本期无文字线索、四川每县实际只有约 70 个空间点位，**县级 top-1 不会好看**
-——同省内相邻县的地貌与建筑差异本就细微。M1 的验收标准是：
-
-1. 县级 top-5 显著高于多数类基线；
-2. **top-5 候选县在地理上确实相邻**。
-
-第 2 条是关键。看不到"候选县连成一片"，就说明模型还没学到地理，此时加
-数据量没有用，应该先查标签与采样。
-
-## 数据与仓库约定
-
-本仓库含代码、文档与**派生的轻量数据集**（采样池、点位表、直方图，共约
-6 MB）。街景图像分片约 4.1 GB，走 Google Drive 而非 git——GitHub 单文件
-上限 100 MB，仓库超过 1 GB 会出问题，这是平台限制而非策略选择。
-
-密钥类文件不入库，另存脱敏的 `.example`。
+图像、原始数据库、checkpoint 和 ONNX 大文件不入 git。仓库保留代码、配置、
+轻量派生标签/点位表与审阅报告，训练分片仍使用既有 Kaggle Dataset。

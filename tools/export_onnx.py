@@ -33,6 +33,8 @@ def main():
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--views", type=int, default=None,
                     help="导出时固定的视图数；默认从 classes.json 读")
+    ap.add_argument("--skip-verify", action="store_true",
+                    help="Explicitly skip PyTorch/ONNX numerical parity check")
     args = ap.parse_args()
 
     import json
@@ -50,6 +52,8 @@ def main():
                      len(meta["provinces"]), backbone=meta["backbone"],
                      pretrained=False)
     state = torch.load(ckpt, map_location="cpu", weights_only=False)
+    if state.get("run_meta") and state["run_meta"] != meta:
+        raise ValueError("Checkpoint and classes.json metadata differ")
     model.load_state_dict(state["model"])
     model.eval()
 
@@ -68,6 +72,22 @@ def main():
         # 依赖不同（dynamo 要 onnxscript）；固定走稳定路径，可预测。
         dynamo=False,
     )
+    if not args.skip_verify:
+        import numpy as np
+        import onnxruntime as ort
+        sess = ort.InferenceSession(str(out), providers=["CPUExecutionProvider"])
+        generator = torch.Generator().manual_seed(42)
+        for count in sorted({1, n_max}):
+            sample = torch.randint(0, 256, views.shape, dtype=torch.uint8, generator=generator)
+            mask = torch.arange(n_max)[None] < count
+            sample[:, count:] = 0
+            with torch.no_grad():
+                expected = model(sample, mask)
+            actual = sess.run(None, {"views": sample.numpy(), "vmask": mask.numpy()})
+            for name, arr in zip([o.name for o in sess.get_outputs()], actual):
+                np.testing.assert_allclose(arr, expected[name].numpy(), rtol=1e-3, atol=1e-4,
+                                           err_msg=f"ONNX parity failed: {name}, {count} views")
+        print("PyTorch/ONNX parity passed for single and full views")
     print(f"已导出 {out}  {out.stat().st_size/1e6:.0f} MB")
     print(f"类别 {len(meta['adcodes'])} 县  视图 {n_max}×{size}²")
     print()

@@ -20,8 +20,8 @@ import tempfile
 NB = pathlib.Path(__file__).resolve().parent.parent / "colab.ipynb"
 
 
-def main():
-    nb = json.loads(NB.read_text(encoding="utf-8"))
+def check(path):
+    nb = json.loads(path.read_text(encoding="utf-8"))
     bad = sh = py = 0
 
     for i, cell in enumerate(nb["cells"]):
@@ -49,9 +49,9 @@ def main():
                 print(f"格 {i} python 语法错误: {e}")
                 bad += 1
 
-    print(f"bash 格 {sh} / python 格 {py} / 问题 {bad}")
+    print(f"{path.name}: bash 格 {sh} / python 格 {py} / 问题 {bad}")
     return 1 if bad else 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(max(check(p) for p in (NB, NB.with_name("kaggle.ipynb"))))

@@ -23,6 +23,8 @@ class MaskedAttentionPool(nn.Module):
         s = self.score(feats).squeeze(-1)                 # (B, V)
         s = s.masked_fill(~vmask, self.mask_value)
         a = torch.softmax(s.float(), dim=1).to(feats.dtype)
+        a = a * vmask.to(a.dtype)
+        a = a / a.sum(dim=1, keepdim=True).clamp_min(1e-6)
         return (feats * a.unsqueeze(-1)).sum(dim=1), a
 
 
@@ -68,7 +70,7 @@ class EnvModel(nn.Module):
         for p in self.backbone.parameters():
             p.requires_grad = trainable
 
-    def forward(self, views, vmask):
+    def forward(self, views, vmask, return_view_logits=False):
         """views (B, V, 3, H, W) uint8 或 float，vmask (B, V) bool。
 
         输入 uint8（0–255）。必须先转 float：autocast 只转权重，不转整数
@@ -78,20 +80,32 @@ class EnvModel(nn.Module):
         flat = views.reshape(b * v, *views.shape[2:])
         flat = flat.float().div_(255.0)
         flat = (flat - self.pixel_mean) / self.pixel_std
-        feats = self.backbone(flat)
+        if self.training and return_view_logits:
+            # Third-round training avoids backbone work on padded slots. Export/eval
+            # retain the fixed-shape path, with exactly the same valid-view features.
+            valid = vmask.reshape(-1)
+            real = self.backbone(flat[valid])
+            feats = real.new_zeros((b * v, real.shape[-1]))
+            feats[valid] = real
+        else:
+            feats = self.backbone(flat)
         feats = feats.reshape(b, v, -1)
         feats = self.view_proj(feats)
 
         pooled, attn = self.pool(feats, vmask)
         pooled = self.drop(self.norm(pooled))
 
-        return {
+        result = {
             "county": self.head_county(pooled),
             "city": self.head_city(pooled),
             "prov": self.head_prov(pooled),
             "coord": self.head_coord(pooled),
             "attn": attn,
         }
+        if return_view_logits:
+            # Shared county head forces every real view to carry usable location evidence.
+            result["view_county"] = self.head_county(self.drop(self.norm(feats)))
+        return result
 
 
 def build_model(n_counties, n_cities, n_provinces, cfg):
