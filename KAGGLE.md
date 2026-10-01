@@ -105,3 +105,40 @@ python inference_vehicle.py --run runs/vehicle_v1 --image pano.jpg --mode panora
 本地完成数据检查、非 Torch 回归测试、第二轮导出模型重评和笔记本语法检查。
 当前机器无法运行 PyTorch/CUDA，尚未在真实 Kaggle 双 T4 会话完成第三轮训练；
 因此依赖格的 Torch 测试与双卡冒烟格是正式训练前的必做检查。
+
+## 第三轮慢速排查与本次修复
+
+`round3` 截图中的红字是 Python 3.12 fork 和 PyTorch 2.10 pin_memory 的
+DeprecationWarning；截图底部为 `Ran 99 tests / OK (skipped=2)`、returncode=0，
+不是训练异常退出。fork 警告说明多线程父进程派生 worker 有死锁风险；如果实际
+卡在取数，可先设 `WORKERS=0` 验证。pin_memory 警告来自框架内部，暂不禁用
+异步传输，也不屏蔽整个警告类别。若发生真正退出，需要训练日志中的 traceback。
+
+发现原版第三轮同时使用有效视图打包和 `cudnn.benchmark=True`：主干的输入
+batch 随每批有效视图数改变，可能反复触发昂贵的算法搜索。本次默认关闭自动
+调优，且打包开启时禁止自动调优；`pack_views` 独立于单视图辅助损失。
+保留原有打包计算以节省双 T4 显存与计算量。训练不再为未使用的损失明细逐项
+执行 GPU 到 CPU 标量转换。20 秒的具体来源尚需真实 T4 测量，不能据此保证提速倍数。
+
+操作顺序：
+
+1. 先保留当前 `last.pt`、`classes.json` 和日志，再停止旧训练进程。重跑拉取代码
+   单元格只影响后续新进程，不能修改已经运行的训练进程。
+2. 导入最新 `kaggle.ipynb`；保持数据、双卡、batch、accum、epochs、损失和视图设置。
+   新会话按上面的断点续跑流程设置 `RESUME_FROM`；同会话的原 OUT 自动续跑。
+   本次执行策略和计时变更兼容原第三轮 checkpoint，不必重新训练或补采数据。
+3. 排查时设 `RUN_BENCHMARK=True`，可先设 `RUN_TRAINING=False`。第 3.5 格分别
+   输出 packed/dense 的每卡稳态均值、中位数、P90 和峰值显存；日志保存到
+   `/kaggle/working/benchmark_packed.log` 与 `benchmark_dense.log`。
+4. 双卡冒烟通过后设 `RUN_TRAINING=True`。观察几十批后的两张卡日志：
+   `recent20` 为最近 20 批平均，`data` 为等待 DataLoader，`work` 含传输、前后向、
+   优化器和 DDP 等待。它们是主机端墙钟测量，不是独立 CUDA kernel 计时；已有
+   训练指标的标量读取会等待 GPU。`epoch_avg` 还包含启动、恢复跳批与存盘。
+5. 若 `data` 很长，比较每 rank 的 WORKERS=0/1/2，并检查数据是否已完成挂载；
+   若合成基准也很慢，检查 GPU 利用率、两卡耗时和 DDP。若基准快但 `work` 慢，
+   检查另一张卡的取数延迟：快卡可能在 DDP 等慢卡，不能只看 rank 0。
+
+基准每个模式启动独立双卡进程，采用合成输入和未预训练的相同主干，包含混合
+精度、辅助损失、梯度累积和优化器；不含真实读取/增强，不衡量准确率。默认
+关闭，避免每次正常续训重复消耗配额。若 dense 确实更快且显存允许，可在配置
+中设置 `pack_views: false` 做后续对比，保持单视图损失权重不变。

@@ -17,7 +17,7 @@ import hashlib
 from datetime import timedelta
 import random
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from pathlib import Path
 
 import numpy as np
@@ -279,7 +279,11 @@ def main():
               else torch.device("cpu"))
     amp_dtype = pick_amp_dtype(device)
     if device.type == "cuda":
-        torch.backends.cudnn.benchmark = True
+        # Packed views change convolution batch shapes on every step.
+        # Autotuning those shapes can dominate useful GPU work.
+        packed = cfg.get("pack_views", bool(cfg.get("loss", {}).get("w_view", 0)))
+        torch.backends.cudnn.benchmark = bool(cfg.get("cudnn_benchmark", False)) and not packed
+        stage(f"cuDNN benchmark={torch.backends.cudnn.benchmark}, pack_views={packed}")
     torch.set_num_threads(cfg.get("cpu_threads", 1))
     if _IS_MAIN:
         print(f"设备 {device}  精度 {amp_dtype}  "
@@ -544,6 +548,7 @@ def main():
                    or epoch == epochs - 1)
         t0, running, seen = time.time(), 0.0, 0
         t_data = t_compute = 0.0
+        recent = deque(maxlen=20)
         hit_num = hit_den = 0
         opt.zero_grad(set_to_none=True)
 
@@ -557,7 +562,8 @@ def main():
             batch = next(loader_it)
             if epoch == start_epoch and step < resume_batch:
                 continue
-            t_data += time.time() - t_batch
+            data_sec = time.time() - t_batch
+            t_data += data_sec
             t_work = time.time()
 
             views = batch["views"].to(device, non_blocking=True)
@@ -572,7 +578,7 @@ def main():
             with sync:
                 with autocast_ctx(device, amp_dtype):
                     out = model(views, vmask, return_view_logits=bool(cfg.get("loss", {}).get("w_view", 0)))
-                    loss, _ = loss_fn(out, targets)
+                    loss, _ = loss_fn(out, targets, collect_parts=False)
                     loss = loss / group_size
                 scaler.scale(loss).backward()
 
@@ -603,27 +609,33 @@ def main():
 
             running += float(loss.detach()) * group_size
             seen += 1
-            t_compute += time.time() - t_work
+            compute_sec = time.time() - t_work
+            t_compute += compute_sec
+            recent.append((data_sec, compute_sec))
 
             # 按时间而非步数打点：步速随硬件变化，定步数要么刷屏要么没动静
             now = time.time()
             if now - last_log >= cfg.get("log_seconds", 15) or step == n_batches - 1:
-                print(f"  [{now - _T0:7.1f}s] e{epoch:02d} {step+1}/{n_batches} "
+                print(f"  [rank{rank} {now - _T0:7.1f}s] e{epoch:02d} {step+1}/{n_batches} "
                       f"步 {min(sched.last_epoch, total_steps)}/{total_steps} "
                       f"损失 {running/seen:.4f} 训练top1 "
                       f"{hit_num/max(1,hit_den):.3f} "
                       f"lr {_fmt_lr(opt)} "
-                      f"{(now-t0)/max(1,seen):.2f}s/batch", flush=True)
+                      f"recent{len(recent)}={sum(d+c for d,c in recent)/len(recent):.2f}s/batch "
+                      f"data={sum(d for d,c in recent)/len(recent):.2f}s "
+                      f"work={sum(c for d,c in recent)/len(recent):.2f}s "
+                      f"epoch_avg={(now-t0)/max(1,seen):.2f}s/batch", flush=True)
                 last_log = now
 
             # 到点就存盘——Colab 随时会断，不能等到 epoch 结束
             if _IS_MAIN and update and now - last_ckpt > ckpt_minutes * 60:
+                checkpoint_start = time.time()
                 save(ckpt_path, raw_model, opt, sched, scaler, epoch, best,
                      epoch_complete=False, next_batch=step + 1,
                      run_meta=run_meta, loader_contract=checkpoint_contract)
                 print(f"  [{now - _T0:7.1f}s] checkpoint 已存：epoch {epoch} "
-                      f"step {step}", flush=True)
-                last_ckpt = now
+                      f"step {step} ({time.time()-checkpoint_start:.1f}s)", flush=True)
+                last_ckpt = time.time()
 
         if distributed:
             totals = torch.tensor([running, seen, hit_num, hit_den], dtype=torch.float64, device=device)

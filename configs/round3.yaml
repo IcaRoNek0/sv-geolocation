@@ -5,6 +5,9 @@ pretrained: true
 freeze_backbone: false
 backbone_lr_scale: 0.1
 drop: 0.2
+# Variable valid-view counts must not trigger repeated cuDNN autotuning.
+pack_views: true
+cudnn_benchmark: false
 views:
   n_max: 4
   size: 224

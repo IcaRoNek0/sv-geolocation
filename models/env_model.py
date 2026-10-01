@@ -37,13 +37,14 @@ class EnvModel(nn.Module):
 
     def __init__(self, n_counties, n_cities, n_provinces,
                  backbone="convnext_tiny", pretrained=True,
-                 drop=0.2, freeze_backbone=False):
+                 drop=0.2, freeze_backbone=False, pack_views=False):
         super().__init__()
         import timm
         self.backbone = timm.create_model(backbone, pretrained=pretrained,
                                           num_classes=0)
         dim = self.backbone.num_features
         self.freeze_backbone = freeze_backbone
+        self.pack_views = pack_views
         if freeze_backbone:
             for p in self.backbone.parameters():
                 p.requires_grad = False
@@ -80,7 +81,7 @@ class EnvModel(nn.Module):
         flat = views.reshape(b * v, *views.shape[2:])
         flat = flat.float().div_(255.0)
         flat = (flat - self.pixel_mean) / self.pixel_std
-        if self.training and return_view_logits:
+        if self.training and self.pack_views:
             # Third-round training avoids backbone work on padded slots. Export/eval
             # retain the fixed-shape path, with exactly the same valid-view features.
             valid = vmask.reshape(-1)
@@ -118,4 +119,5 @@ def build_model(n_counties, n_cities, n_provinces, cfg):
         pretrained=cfg.get("pretrained", True),
         drop=cfg.get("drop", 0.2),
         freeze_backbone=cfg.get("freeze_backbone", False),
+        pack_views=cfg.get("pack_views", bool(cfg.get("loss", {}).get("w_view", 0))),
     )

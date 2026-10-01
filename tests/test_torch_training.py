@@ -54,9 +54,17 @@ class TorchTrainingTests(unittest.TestCase):
         m = model().train()
         x = torch.randint(0, 255, (2, 4, 3, 16, 16), dtype=torch.uint8)
         mask = torch.tensor([[True, False, False, False], [True, True, False, False]])
-        dense = m(x, mask)
+        sizes = []
+        hook = m.backbone.register_forward_pre_hook(lambda module, inputs: sizes.append(inputs[0].shape[0]))
+        dense = m(x, mask, return_view_logits=True)
+        m.pack_views = True
         packed = m(x, mask, return_view_logits=True)
         torch.testing.assert_close(dense['county'], packed['county'])
+        torch.testing.assert_close(dense['view_county'][mask], packed['view_county'][mask])
+        torch.testing.assert_close(m(x, mask)['county'], packed['county'])
+        self.assertEqual(sizes, [8, 3, 3])
+        hook.remove()
+        self.assertEqual(set(m.state_dict()), set(model().state_dict()))
         loss = packed['county'].sum() + packed['view_county'][mask].sum()
         loss.backward()
         self.assertTrue(torch.isfinite(m.backbone.conv.weight.grad).all())
@@ -70,7 +78,11 @@ class TorchTrainingTests(unittest.TestCase):
         batch = {'county':torch.tensor([0, 1]), 'city':torch.tensor([-1, -1]),
                  'prov':torch.tensor([-1, -1]), 'coord':torch.zeros(2,2), 'vmask':mask}
         loss_fn = MultiTaskLoss(np.eye(3), geo_mix=.15, w_view=.25)
-        loss, _ = loss_fn(out, batch)
+        loss, parts = loss_fn(out, batch)
+        fast_loss, fast_parts = loss_fn(out, batch, collect_parts=False)
+        torch.testing.assert_close(loss, fast_loss)
+        self.assertTrue(parts)
+        self.assertEqual(fast_parts, {})
         self.assertTrue(torch.isfinite(loss))
         loss.backward()
         self.assertGreater(m.head_county.weight.grad.abs().sum(), 0)

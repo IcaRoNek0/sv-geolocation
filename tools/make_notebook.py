@@ -35,6 +35,7 @@ DATA_OVERRIDE = ''             # 多个数据集时填写包含 samples.jsonl �
 RESUME_FROM = ''               # 上次输出中含 last.pt/classes.json 的目录（Add Input 挂载）
 INIT_WEIGHTS = ''              # 可选 round2/best.pt，仅初始化环境模型权重；不能填 ONNX
 RUN_SMOKE = True
+RUN_BENCHMARK = False         # 排查慢速时开启：环境模型双卡纯计算 A/B，无图片读取
 RUN_TRAINING = True
 EPOCHS = 15 if TASK == 'environment' else 10
 BATCH_SIZE = 8 if TASK == 'environment' else 32   # 每张 GPU 的样本数
@@ -142,6 +143,36 @@ if not ON_KAGGLE:
     DATA = local_data
 print('数据:', DATA)
 subprocess.run([sys.executable, 'tools/preflight.py', '--data', str(DATA)], check=True)
+''')
+md('''## 3.5 可选双卡性能诊断
+训练慢时设 `RUN_BENCHMARK=True`，按顺序比较 packed / dense；每项预热 10 步、测量 40 步。
+两项均关闭 cuDNN 自动调优、不下载预训练权重、不写 checkpoint，不衡量准确率。
+合成输入只测计算与 DDP，真实训练还包含图片读取/增强，结果不能当完整训练速度。
+默认仍使用 packed；先看正式训练的 `recent20 / data / work`，再决定是否调整。
+''')
+code('''if RUN_BENCHMARK and TASK == 'environment':
+    env = os.environ.copy()
+    env.update(OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1', PYTHONUNBUFFERED='1')
+    for mode in ('packed', 'dense'):
+        cmd = [sys.executable, '-m', 'torch.distributed.run', '--standalone',
+               '--nproc_per_node=' + str(GPUS), 'tools/bench_train.py',
+               '--config', CONFIG, '--batch-size', str(BATCH_SIZE), '--mode', mode]
+        log_path = WORK / ('benchmark_' + mode + '.log')
+        with log_path.open('w') as log:
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       text=True, bufsize=1, env=env)
+            try:
+                for line in process.stdout:
+                    print(line, end='')
+                    log.write(line)
+                    log.flush()
+                status = process.wait()
+            except BaseException:
+                process.terminate()
+                process.wait(timeout=30)
+                raise
+        if status:
+            raise RuntimeError('基准失败，详见 ' + str(log_path))
 ''')
 md('''## 4. 双卡短冒烟
 2 轮 × 64 张用于验证前向、反向、DDP 汇总、checkpoint 和验证流程，不要求已过拟合。

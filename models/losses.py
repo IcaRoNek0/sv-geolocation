@@ -33,7 +33,7 @@ class MultiTaskLoss(nn.Module):
         return F.cross_entropy(logits[valid].float(), target[valid],
                                label_smoothing=self.ls)
 
-    def forward(self, out, batch):
+    def forward(self, out, batch, collect_parts=True):
         county_target = batch["county"]
         valid = county_target != self.ignore_index
 
@@ -71,6 +71,8 @@ class MultiTaskLoss(nn.Module):
                  + self.w_prov * loss_prov
                  + self.w_coord * loss_coord
                  + self.w_view * loss_view)
+        if not collect_parts:
+            return total, {}
         return total, {
             "county": float(loss_county.detach()),
             "view": float(loss_view.detach()),
